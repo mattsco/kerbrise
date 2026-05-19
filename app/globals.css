@@ -5,3 +5,25 @@
 html, body {
   height: 100%;
 }
+
+/* Ajustements pour react-big-calendar */
+.rbc-calendar {
+  font-family: inherit;
+}
+
+.rbc-event {
+  padding: 2px 6px !important;
+}
+
+.rbc-today {
+  background-color: rgb(241 245 249) !important;
+}
+
+.rbc-toolbar button {
+  color: rgb(51 65 85) !important;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: rgb(15 23 42) !important;
+  color: white !important;
+}
