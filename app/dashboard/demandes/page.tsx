@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ApprovalButtons from "@/components/ApprovalButtons";
+import BookingActions from "@/components/BookingActions";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,9 @@ type BookingWithApprovals = {
   start_date: string;
   end_date: string;
   note: string | null;
+  status: "pending" | "approved" | "rejected" | "cancelled";
   family_id: string;
+  created_by: string;
   created_at: string;
   families: { name: string; color: string } | null;
   users: { display_name: string | null } | null;
@@ -39,16 +42,16 @@ export default async function PendingBookingsPage() {
   const isFamilyHead =
     (profile as { is_family_head?: boolean }).is_family_head ?? false;
 
-  // Récupère toutes les demandes en attente avec leurs approbations
+  // Récupère TOUS les bookings non rejetés/annulés (pending + approved)
   const { data: bookings, error } = await supabase
     .from("bookings")
     .select(`
-      id, start_date, end_date, note, family_id, created_at,
+      id, start_date, end_date, note, status, family_id, created_by, created_at,
       families(name, color),
       users:created_by(display_name),
       approvals(family_id, decision, families(name, color))
     `)
-    .eq("status", "pending")
+    .in("status", ["pending", "approved"])
     .order("start_date");
 
   if (error) {
@@ -61,6 +64,25 @@ export default async function PendingBookingsPage() {
 
   const allBookings = (bookings ?? []) as unknown as BookingWithApprovals[];
 
+  // Filtrage par sections
+  const toValidate = allBookings.filter(
+    (b) =>
+      b.status === "pending" &&
+      b.family_id !== profile.family_id &&
+      !b.approvals.some((a) => a.family_id === profile.family_id)
+  );
+
+  const myFamilyBookings = allBookings.filter(
+    (b) => b.family_id === profile.family_id
+  );
+
+  const otherPending = allBookings.filter(
+    (b) =>
+      b.status === "pending" &&
+      b.family_id !== profile.family_id &&
+      !toValidate.some((t) => t.id === b.id)
+  );
+
   return (
     <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
@@ -68,29 +90,80 @@ export default async function PendingBookingsPage() {
           <Link href="/dashboard" className="text-sm text-slate-500 underline">
             ← Tableau de bord
           </Link>
-          <h1 className="text-2xl font-light mt-1">Demandes en attente</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {allBookings.length} demande{allBookings.length > 1 ? "s" : ""}{" "}
-            en attente de validation
-          </p>
+          <h1 className="text-2xl font-light mt-1">Demandes</h1>
         </header>
 
-        {allBookings.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500">
-            🎉 Aucune demande en attente !
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {allBookings.map((b) => (
-              <BookingCard
-                key={b.id}
-                booking={b}
-                currentUserId={user.id}
-                currentUserFamilyId={profile.family_id}
-                isFamilyHead={isFamilyHead}
-              />
-            ))}
-          </div>
+        {/* SECTION 1 : à valider (chefs seulement) */}
+        {isFamilyHead && toValidate.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-sm uppercase tracking-wide font-medium text-amber-700 mb-3">
+              ⚠️ À ta décision ({toValidate.length})
+            </h2>
+            <div className="space-y-3">
+              {toValidate.map((b) => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  currentUserId={user.id}
+                  currentUserFamilyId={profile.family_id}
+                  isFamilyHead={isFamilyHead}
+                  showApprovalButtons
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 2 : demandes de MA famille */}
+        <section className="mb-8">
+          <h2 className="text-sm uppercase tracking-wide font-medium text-slate-500 mb-3">
+            🏠 Demandes de ma famille
+          </h2>
+          {myFamilyBookings.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow p-6 text-center text-slate-500 text-sm">
+              Aucune demande active.
+              <br />
+              <Link
+                href="/dashboard/nouvelle-demande"
+                className="text-slate-900 underline mt-2 inline-block"
+              >
+                Créer une demande
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myFamilyBookings.map((b) => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  currentUserId={user.id}
+                  currentUserFamilyId={profile.family_id}
+                  isFamilyHead={isFamilyHead}
+                  isOwnFamily
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* SECTION 3 : autres demandes en attente (lecture seule) */}
+        {otherPending.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-sm uppercase tracking-wide font-medium text-slate-500 mb-3">
+              📋 Autres demandes en cours ({otherPending.length})
+            </h2>
+            <div className="space-y-3">
+              {otherPending.map((b) => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  currentUserId={user.id}
+                  currentUserFamilyId={profile.family_id}
+                  isFamilyHead={isFamilyHead}
+                />
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </main>
@@ -102,81 +175,76 @@ function BookingCard({
   currentUserId,
   currentUserFamilyId,
   isFamilyHead,
+  showApprovalButtons,
+  isOwnFamily,
 }: {
   booking: BookingWithApprovals;
   currentUserId: string;
   currentUserFamilyId: string;
   isFamilyHead: boolean;
+  showApprovalButtons?: boolean;
+  isOwnFamily?: boolean;
 }) {
   const familyName = booking.families?.name ?? "?";
   const familyColor = booking.families?.color ?? "#888";
   const createdBy = booking.users?.display_name ?? "?";
-
-  const isMyFamily = booking.family_id === currentUserFamilyId;
-  const myFamilyApproval = booking.approvals.find(
-    (a) => a.family_id === currentUserFamilyId
-  );
-
-  // Le chef peut décider seulement si :
-  // - C'est PAS sa famille
-  // - Sa famille n'a pas encore décidé
-  const canDecide = isFamilyHead && !isMyFamily && !myFamilyApproval;
+  const isAuthor = booking.created_by === currentUserId;
 
   return (
     <div className="bg-white rounded-2xl shadow p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="inline-block px-2 py-0.5 rounded-full text-white text-xs"
-              style={{ backgroundColor: familyColor }}
-            >
-              {familyName}
-            </span>
-            {isMyFamily && (
-              <span className="text-xs text-slate-400">(votre famille)</span>
-            )}
-          </div>
-          <p className="text-base font-medium">
-            Du {formatDate(booking.start_date)} au {formatDate(booking.end_date)}
-          </p>
-          <p className="text-sm text-slate-500 mt-1">
-            Demandé par {createdBy}
-            {booking.note && ` · ${booking.note}`}
-          </p>
+      <div className="mb-3">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span
+            className="inline-block px-2 py-0.5 rounded-full text-white text-xs"
+            style={{ backgroundColor: familyColor }}
+          >
+            {familyName}
+          </span>
+          <StatusBadge status={booking.status} />
         </div>
+        <p className="text-base font-medium">
+          Du {formatDate(booking.start_date)} au {formatDate(booking.end_date)}
+        </p>
+        <p className="text-sm text-slate-500 mt-1">
+          Demandé par {createdBy}
+          {booking.note && ` · ${booking.note}`}
+        </p>
       </div>
 
       {/* État des approbations */}
-      <div className="border-t border-slate-100 pt-3 mt-3 space-y-1">
-        <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">
-          Validations
-        </p>
-        <ApprovalStatus
-          familyName={familyName}
-          color={familyColor}
-          decision="self"
-          isOwn
-        />
-        {["Antoine", "François", "Vincent"]
-          .filter((name) => name !== familyName)
-          .map((otherFamily) => {
+      {booking.status === "pending" && (
+        <div className="border-t border-slate-100 pt-3 mt-3 space-y-1">
+          <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">
+            Validations
+          </p>
+          {["Antoine", "François", "Vincent"].map((fam) => {
+            if (fam === familyName) {
+              return (
+                <ApprovalStatus
+                  key={fam}
+                  familyName={fam}
+                  color={familyColor}
+                  decision="self"
+                />
+              );
+            }
             const approval = booking.approvals.find(
-              (a) => a.families?.name === otherFamily
+              (a) => a.families?.name === fam
             );
             return (
               <ApprovalStatus
-                key={otherFamily}
-                familyName={otherFamily}
-                color={approval?.families?.color ?? familyColorFor(otherFamily)}
+                key={fam}
+                familyName={fam}
+                color={approval?.families?.color ?? familyColorFor(fam)}
                 decision={approval?.decision ?? null}
               />
             );
           })}
-      </div>
+        </div>
+      )}
 
-      {/* Boutons d'action */}
-      {canDecide && (
+      {/* Boutons d'approbation pour les chefs */}
+      {showApprovalButtons && (
         <ApprovalButtons
           bookingId={booking.id}
           familyId={currentUserFamilyId}
@@ -184,12 +252,37 @@ function BookingCard({
         />
       )}
 
-      {!isFamilyHead && !isMyFamily && (
+      {/* Boutons d'action pour ma famille (annuler/modifier) */}
+      {isOwnFamily && isAuthor && booking.status !== "cancelled" && (
+        <BookingActions
+          bookingId={booking.id}
+          startDate={booking.start_date}
+          endDate={booking.end_date}
+          status={booking.status}
+        />
+      )}
+
+      {isOwnFamily && !isAuthor && (
         <p className="mt-3 text-xs text-slate-400 italic">
-          Seuls les chefs de famille peuvent approuver.
+          Seul {createdBy} (auteur) peut modifier ou annuler cette demande.
         </p>
       )}
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: BookingWithApprovals["status"] }) {
+  const config = {
+    pending: { label: "⏳ En attente", color: "bg-amber-100 text-amber-800" },
+    approved: { label: "✅ Approuvée", color: "bg-emerald-100 text-emerald-800" },
+    rejected: { label: "❌ Refusée", color: "bg-red-100 text-red-800" },
+    cancelled: { label: "🚫 Annulée", color: "bg-slate-100 text-slate-600" },
+  };
+  const c = config[status];
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${c.color}`}>
+      {c.label}
+    </span>
   );
 }
 
@@ -197,17 +290,15 @@ function ApprovalStatus({
   familyName,
   color,
   decision,
-  isOwn,
 }: {
   familyName: string;
   color: string;
   decision: "approved" | "rejected" | "self" | null;
-  isOwn?: boolean;
 }) {
   let label = "";
   let labelColor = "text-slate-400";
 
-  if (isOwn) {
+  if (decision === "self") {
     label = "🏠 (auteur)";
   } else if (decision === "approved") {
     label = "✅ Approuvé";
@@ -235,6 +326,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
+    year: "numeric",
   });
 }
 
