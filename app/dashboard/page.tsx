@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -84,8 +85,22 @@ export default async function DashboardPage() {
             </span>
           </p>
 
-          <div className="mt-8 p-4 bg-slate-50 rounded-lg text-sm text-slate-500">
-            🚧 Le calendrier et les demandes de réservation arrivent bientôt.
+          <div className="mt-8 grid gap-3">
+            <Link
+              href="/dashboard/calendrier"
+              className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
+            >
+              <div className="font-medium">📅 Voir le calendrier</div>
+              <div className="text-sm text-slate-500 mt-0.5">
+                Réservations des 3 familles
+              </div>
+            </Link>
+            <div className="block rounded-lg border border-slate-200 p-4 opacity-50">
+              <div className="font-medium">➕ Nouvelle demande</div>
+              <div className="text-sm text-slate-500 mt-0.5">
+                Bientôt disponible
+              </div>
+            </div>
           </div>
         </div>
       </div>
