@@ -1,3 +1,21 @@
+import { createClient } from "@/lib/supabase/server";
+
+async function FamiliesFooter() {
+  const supabase = await createClient();
+  const { data: families } = await supabase
+    .from("families")
+    .select("name")
+    .order("name");
+
+  const names = families?.map((f) => f.name).join(" · ") ?? "Chargement...";
+
+  return (
+    <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
+      {names}
+    </footer>
+  );
+}
+
 export default function HomePage() {
   return (
     <main className="relative min-h-screen w-full overflow-hidden">
@@ -45,7 +63,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
-          Antoine · François · Vincent
+          <FamiliesFooter />
         </footer>
       </div>
     </main>
