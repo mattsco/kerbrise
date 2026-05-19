@@ -1,14 +1,52 @@
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow p-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">🏡 Kerbrise</h1>
-        <p className="text-slate-600 mb-6">
-          Réservation de la maison familiale
-        </p>
-        <p className="text-sm text-slate-400">
-          Site en construction · Antoine · François · Vincent
-        </p>
+    <main className="relative min-h-screen w-full overflow-hidden">
+      {/* Image de fond */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
+        }}
+      />
+
+      {/* Voile dégradé pour la lisibilité */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />
+
+      {/* Contenu */}
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-between px-6 py-12 text-white">
+        {/* Header */}
+        <header className="w-full text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/70">
+            Saint-Malo · Rothéneuf
+          </p>
+        </header>
+
+        {/* Bloc central */}
+        <div className="flex flex-col items-center text-center">
+          <h1 className="text-6xl font-light tracking-tight drop-shadow-lg sm:text-7xl">
+            Kerbrise
+          </h1>
+          <div className="mx-auto mt-4 h-px w-16 bg-white/60" />
+          <p className="mt-6 max-w-xs text-lg font-light leading-relaxed text-white/90">
+            La maison familiale du Val,
+            <br />à deux pas de la plage.
+          </p>
+
+          {/* CTA placeholder pour plus tard */}
+          <button
+            disabled
+            className="mt-10 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium tracking-wide backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-70"
+          >
+            Se connecter
+          </button>
+          <p className="mt-3 text-xs text-white/60">Bientôt disponible</p>
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
+          Antoine · François · Vincent
+        </footer>
       </div>
     </main>
   );
