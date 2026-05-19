@@ -95,12 +95,15 @@ export default async function DashboardPage() {
                 Réservations des 3 familles
               </div>
             </Link>
-            <div className="block rounded-lg border border-slate-200 p-4 opacity-50">
+            <Link
+              href="/dashboard/nouvelle-demande"
+              className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
+            >
               <div className="font-medium">➕ Nouvelle demande</div>
               <div className="text-sm text-slate-500 mt-0.5">
-                Bientôt disponible
+                Demander un séjour à Kerbrise
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
