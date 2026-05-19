@@ -30,9 +30,6 @@ export default async function DashboardPage() {
             L'adresse <strong>{user.email}</strong> n'est pas autorisée à
             accéder à Kerbrise.
           </p>
-          <p className="text-xs text-slate-400">
-            Contacte Matthieu si tu penses que c'est une erreur.
-          </p>
           <form action="/auth/signout" method="post" className="mt-6">
             <button
               type="submit"
@@ -61,7 +58,6 @@ export default async function DashboardPage() {
 
   const allPendingCount = pendingBookings?.length ?? 0;
 
-  // Pour les chefs : compte les demandes qu'ILS doivent valider
   let actionableCount = 0;
   if (isFamilyHead && pendingBookings && pendingBookings.length > 0) {
     const otherFamiliesBookings = pendingBookings.filter(
@@ -175,22 +171,9 @@ export default async function DashboardPage() {
               href="/dashboard/demandes"
               className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
             >
-              <div className="font-medium flex items-center gap-2">
-                📋 Demandes en attente
-                {allPendingCount > 0 && (
-                  <span
-                    className={`inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 text-xs font-medium rounded-full ${
-                      isFamilyHead && actionableCount > 0
-                        ? "bg-amber-500 text-white"
-                        : "bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    {allPendingCount}
-                  </span>
-                )}
-              </div>
+              <div className="font-medium">🗂️ Demandes</div>
               <div className="text-sm text-slate-500 mt-0.5">
-                Voir et approuver les demandes en cours
+                Mes demandes et celles à valider
               </div>
             </Link>
 
