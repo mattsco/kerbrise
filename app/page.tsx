@@ -62,14 +62,14 @@ export default async function HomePage() {
             La maison familiale du Val,
             <br />à deux pas de la plage.
           </p>
-
-          {/* CTA placeholder pour plus tard */}
-          <button
-            disabled
-            className="mt-10 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium tracking-wide backdrop-blur-sm transition hover:bg-white/20 disabled:opacity-70"
+          <a
+            href="/login"
+            className="mt-10 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium tracking-wide backdrop-blur-sm transition hover:bg-white/20"
           >
             Se connecter
-          </button>
+          </a>
+
+      
           <p className="mt-3 text-xs text-white/60">Bientôt disponible</p>
         </div>
 
