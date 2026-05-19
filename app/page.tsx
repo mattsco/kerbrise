@@ -2,12 +2,24 @@ import { createClient } from "@/lib/supabase/server";
 
 async function FamiliesFooter() {
   const supabase = await createClient();
-  const { data: families } = await supabase
+  const { data: families, error } = await supabase
     .from("families")
     .select("name")
     .order("name");
 
-  const names = families?.map((f) => f.name).join(" · ") ?? "Chargement...";
+  if (error) {
+    console.error("Supabase error:", error);
+    return (
+      <footer className="text-center text-xs uppercase tracking-[0.25em] text-red-400">
+        Erreur Supabase
+      </footer>
+    );
+  }
+
+  const names =
+    families && families.length > 0
+      ? families.map((f) => f.name).join(" · ")
+      : "Aucune famille";
 
   return (
     <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
@@ -16,7 +28,7 @@ async function FamiliesFooter() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <main className="relative min-h-screen w-full overflow-hidden">
       {/* Image de fond */}
@@ -61,10 +73,8 @@ export default function HomePage() {
           <p className="mt-3 text-xs text-white/60">Bientôt disponible</p>
         </div>
 
-        {/* Footer */}
-        <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
-          <FamiliesFooter />
-        </footer>
+        {/* Footer dynamique depuis Supabase */}
+        <FamiliesFooter />
       </div>
     </main>
   );
