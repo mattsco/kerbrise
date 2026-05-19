@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+
 type Props = {
   bookingId: string;
   startDate: string;
   endDate: string;
-  status: "pending" | "approved";
+  status: "pending" | "approved" | "rejected";
 };
 
 export default function BookingActions({
