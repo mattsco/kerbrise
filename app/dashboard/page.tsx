@@ -115,6 +115,16 @@ export default async function DashboardPage() {
                 Demander un séjour à Kerbrise
               </div>
             </Link>
+
+<Link
+              href="/dashboard/profil"
+              className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
+            >
+              <div className="font-medium">⚙️ Mon profil</div>
+              <div className="text-sm text-slate-500 mt-0.5">
+                Changer mon mot de passe
+              </div>
+            </Link>
           </div>
         </div>
       </div>
