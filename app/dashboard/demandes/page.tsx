@@ -36,6 +36,9 @@ export default async function PendingBookingsPage() {
     .single();
   if (!profile) redirect("/dashboard");
 
+  const isFamilyHead =
+    (profile as { is_family_head?: boolean }).is_family_head ?? false;
+
   // Récupère toutes les demandes en attente avec leurs approbations
   const { data: bookings, error } = await supabase
     .from("bookings")
@@ -84,8 +87,7 @@ export default async function PendingBookingsPage() {
                 booking={b}
                 currentUserId={user.id}
                 currentUserFamilyId={profile.family_id}
-                // @ts-expect-error
-                isFamilyHead={profile.is_family_head ?? false}
+                isFamilyHead={isFamilyHead}
               />
             ))}
           </div>
@@ -118,8 +120,7 @@ function BookingCard({
   // Le chef peut décider seulement si :
   // - C'est PAS sa famille
   // - Sa famille n'a pas encore décidé
-  const canDecide =
-    isFamilyHead && !isMyFamily && !myFamilyApproval;
+  const canDecide = isFamilyHead && !isMyFamily && !myFamilyApproval;
 
   return (
     <div className="bg-white rounded-2xl shadow p-5">
