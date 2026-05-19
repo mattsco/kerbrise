@@ -95,6 +95,17 @@ export default async function DashboardPage() {
                 Réservations des 3 familles
               </div>
             </Link>
+
+            <Link
+              href="/dashboard/demandes"
+              className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
+            >
+              <div className="font-medium">📋 Demandes en attente</div>
+              <div className="text-sm text-slate-500 mt-0.5">
+                Voir et approuver les demandes en cours
+              </div>
+            </Link>
+
             <Link
               href="/dashboard/nouvelle-demande"
               className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
