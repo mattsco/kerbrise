@@ -270,8 +270,9 @@ function MonthGrid({
   const daysInMonth = lastDayOfMonth.getDate();
   const totalCells = Math.ceil((offsetStart + daysInMonth) / 7) * 7;
 
-  function getEventForDay(dateStr: string) {
-    return events.find(
+  // Renvoie TOUS les events qui couvrent cette date
+  function getEventsForDay(dateStr: string): CalendarEvent[] {
+    return events.filter(
       (e) => dateStr >= e.start_date && dateStr <= e.end_date
     );
   }
@@ -306,34 +307,39 @@ function MonthGrid({
 
           const date = new Date(year, month, dayNum);
           const dateStr = dateToISO(date);
-          const event = getEventForDay(dateStr);
+          const dayEvents = getEventsForDay(dateStr);
           const isToday = isSameDay(date, today);
           const isPast = date < today;
           const isSelected = isInSelection(dateStr);
 
-          const isFirstOfEvent = event && event.start_date === dateStr;
-          const isLastOfEvent = event && event.end_date === dateStr;
-          const isPivot = (() => {
-            // Pivot : ce jour est le start d'un event et le end d'un autre
-            if (!event) return false;
-            const isStart = event.start_date === dateStr;
-            const isEnd = event.end_date === dateStr;
-            if (!isStart && !isEnd) return false;
-            const otherEvent = events.find(
-              (e) =>
-                e.bookingId !== event.bookingId &&
-                (e.start_date === dateStr || e.end_date === dateStr)
-            );
-            return !!otherEvent;
-          })();
+          // Détection du pivot : 2 events ce même jour, l'un finit, l'autre commence
+          const endingEvent = dayEvents.find((e) => e.end_date === dateStr);
+          const startingEvent = dayEvents.find((e) => e.start_date === dateStr);
+          const isPivot =
+            !!endingEvent &&
+            !!startingEvent &&
+            endingEvent.bookingId !== startingEvent.bookingId;
+
+          // Event principal à afficher (cas non-pivot)
+          const mainEvent = dayEvents[0];
+
+          // Click handler : si pivot, on a 2 events possibles
+          function handleClick() {
+            if (isPivot && startingEvent) {
+              // Sur un pivot, on ouvre l'event qui commence (le plus actionnable)
+              onDayClick(dateStr, true, startingEvent.bookingId);
+            } else if (mainEvent) {
+              onDayClick(dateStr, true, mainEvent.bookingId);
+            } else {
+              onDayClick(dateStr, false);
+            }
+          }
 
           return (
             <div
               key={i}
-              className="h-14 relative"
-              onClick={() =>
-                onDayClick(dateStr, !!event, event?.bookingId)
-              }
+              className="h-14 relative cursor-pointer"
+              onClick={handleClick}
               onMouseEnter={() => onDayHover(dateStr)}
               onTouchStart={() => onDayHover(dateStr)}
             >
@@ -351,42 +357,87 @@ function MonthGrid({
               </div>
 
               {/* Sélection en cours */}
-              {isSelected && !event && (
+              {isSelected && dayEvents.length === 0 && (
                 <div className="absolute inset-0 bg-blue-100/60 rounded" />
               )}
 
-              {/* Event coloré */}
-              {event && (
-                <div
-                  className={`
-                    absolute bottom-1 left-0 right-0 h-6 text-[11px] text-white font-medium
-                    flex items-center px-1 truncate
-                    ${event.status === "pending" ? "border-2 border-dashed border-white/70" : ""}
-                  `}
-                  style={{
-                    backgroundColor: event.color,
-                    opacity: event.status === "pending" ? 0.75 : 1,
-                    borderTopLeftRadius: isFirstOfEvent ? 12 : 0,
-                    borderBottomLeftRadius: isFirstOfEvent ? 12 : 0,
-                    borderTopRightRadius: isLastOfEvent ? 12 : 0,
-                    borderBottomRightRadius: isLastOfEvent ? 12 : 0,
-                    marginLeft: isFirstOfEvent ? 4 : 0,
-                    marginRight: isLastOfEvent ? 4 : 0,
-                  }}
-                >
-                  {isFirstOfEvent && (
-                    <span className="truncate">
-                      {event.family_name}
-                      {event.status === "pending" ? " ⏳" : ""}
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* === RENDU DES EVENTS === */}
 
-              {/* Indicateur pivot (petit point au coin) */}
-              {isPivot && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white" />
-              )}
+              {isPivot && endingEvent && startingEvent ? (
+                // Cas pivot : 2 demi-barres
+                <>
+                  {/* Gauche : famille qui finit */}
+                  <div
+                    className={`
+                      absolute bottom-1 left-0 w-1/2 h-6
+                      ${endingEvent.status === "pending" ? "border-2 border-dashed border-white/70" : ""}
+                    `}
+                    style={{
+                      backgroundColor: endingEvent.color,
+                      opacity: endingEvent.status === "pending" ? 0.75 : 1,
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      borderTopRightRadius: 12,
+                      borderBottomRightRadius: 12,
+                      marginRight: 1,
+                    }}
+                  />
+                  {/* Droite : famille qui commence */}
+                  <div
+                    className={`
+                      absolute bottom-1 right-0 w-1/2 h-6 text-[11px] text-white font-medium
+                      flex items-center px-1 truncate
+                      ${startingEvent.status === "pending" ? "border-2 border-dashed border-white/70" : ""}
+                    `}
+                    style={{
+                      backgroundColor: startingEvent.color,
+                      opacity: startingEvent.status === "pending" ? 0.75 : 1,
+                      borderTopLeftRadius: 12,
+                      borderBottomLeftRadius: 12,
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                      marginLeft: 1,
+                    }}
+                  >
+                    <span className="truncate">
+                      {startingEvent.family_name}
+                      {startingEvent.status === "pending" ? " ⏳" : ""}
+                    </span>
+                  </div>
+                </>
+              ) : mainEvent ? (
+                // Cas normal : barre simple
+                (() => {
+                  const isFirstOfEvent = mainEvent.start_date === dateStr;
+                  const isLastOfEvent = mainEvent.end_date === dateStr;
+                  return (
+                    <div
+                      className={`
+                        absolute bottom-1 left-0 right-0 h-6 text-[11px] text-white font-medium
+                        flex items-center px-1 truncate
+                        ${mainEvent.status === "pending" ? "border-2 border-dashed border-white/70" : ""}
+                      `}
+                      style={{
+                        backgroundColor: mainEvent.color,
+                        opacity: mainEvent.status === "pending" ? 0.75 : 1,
+                        borderTopLeftRadius: isFirstOfEvent ? 12 : 0,
+                        borderBottomLeftRadius: isFirstOfEvent ? 12 : 0,
+                        borderTopRightRadius: isLastOfEvent ? 12 : 0,
+                        borderBottomRightRadius: isLastOfEvent ? 12 : 0,
+                        marginLeft: isFirstOfEvent ? 4 : 0,
+                        marginRight: isLastOfEvent ? 4 : 0,
+                      }}
+                    >
+                      {isFirstOfEvent && (
+                        <span className="truncate">
+                          {mainEvent.family_name}
+                          {mainEvent.status === "pending" ? " ⏳" : ""}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : null}
             </div>
           );
         })}
