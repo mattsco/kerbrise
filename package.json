@@ -15,6 +15,7 @@
     "next": "^15.2.5",
     "react": "19.0.0",
     "react-big-calendar": "^1.15.0",
+    "lucide-react": "^0.456.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
