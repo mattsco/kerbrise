@@ -8,12 +8,14 @@ type Props = {
   bookingId: string;
   familyId: string;
   userId: string;
+  onActionComplete?: () => void;
 };
 
 export default function ApprovalButtons({
   bookingId,
   familyId,
   userId,
+  onActionComplete,
 }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -41,6 +43,7 @@ export default function ApprovalButtons({
     }
 
     router.refresh();
+    if (onActionComplete) onActionComplete();
   }
 
   async function handleReject() {
@@ -65,6 +68,7 @@ export default function ApprovalButtons({
     setMode("idle");
     setComment("");
     router.refresh();
+    if (onActionComplete) onActionComplete();
   }
 
   if (mode === "rejecting") {
