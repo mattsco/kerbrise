@@ -1,22 +1,10 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import KerbriseCalendar, { BookingEvent } from "@/components/Calendar";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import Calendar from "@/components/Calendar";
 
-export const dynamic = "force-dynamic";
-
-type BookingRow = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  status: "pending" | "approved" | "rejected" | "cancelled";
-  note: string | null;
-  families: { name: string; color: string } | null;
-};
-
-export default async function CalendarPage() {
+export default async function CalendrierPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -25,72 +13,73 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
-  const { data: bookings, error } = await supabase
+  const { data: profile } = await supabase
+    .from("users")
+    .select("family_id, is_family_head")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    redirect("/login");
+  }
+
+  // On exclut les rejected du calendrier (seul l'auteur les voit dans /demandes)
+  const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, start_date, end_date, status, note, families(name, color)")
+    .select(
+      `
+      id, start_date, end_date, status, note,
+      families(name, color)
+    `
+    )
     .in("status", ["pending", "approved"])
     .order("start_date");
 
-  if (error) {
-    return (
-      <main className="min-h-screen bg-slate-50 p-6">
-        <p className="text-red-600">Erreur Supabase : {error.message}</p>
-      </main>
-    );
-  }
-
-  const events: BookingEvent[] = (bookings as unknown as BookingRow[]).map(
-    (b) => {
-      const familyName = b.families?.name ?? "?";
-      const familyColor = b.families?.color ?? "#888";
-      const statusLabel = b.status === "pending" ? " (en attente)" : "";
+  const events =
+    bookings?.map((b: any) => {
+      const start = new Date(b.start_date);
+      // end exclusive pour react-big-calendar
+      const end = new Date(b.end_date);
+      end.setDate(end.getDate() + 1);
       return {
         id: b.id,
-        title: `${familyName}${statusLabel}${b.note ? " · " + b.note : ""}`,
-        start: new Date(b.start_date + "T00:00:00"),
-        end: new Date(b.end_date + "T23:59:59"),
-        familyName,
-        familyColor,
-        status: b.status,
+        title: `${b.families?.name ?? "?"}${b.status === "pending" ? " (en attente)" : ""}`,
+        start,
+        end,
+        resource: {
+          bookingId: b.id,
+          familyName: b.families?.name ?? "?",
+          color: b.families?.color ?? "#888",
+          status: b.status,
+        },
       };
-    }
-  );
+    }) ?? [];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
-      <div className="max-w-5xl mx-auto">
-        <header className="flex items-center justify-between mb-6">
-          <div>
-            <Link href="/dashboard" className="text-sm text-slate-500 underline">
-              ← Tableau de bord
-            </Link>
-            <h1 className="text-2xl font-light mt-1">Calendrier</h1>
-          </div>
-        </header>
-
-        <div className="flex flex-wrap gap-3 mb-4 text-xs">
-          <Legend color="#3b82f6" label="Antoine" />
-          <Legend color="#10b981" label="François" />
-          <Legend color="#f59e0b" label="Vincent" />
-          <span className="ml-2 text-slate-500">
-            (plein = approuvé · hachuré = en attente)
-          </span>
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        <Link
+          href="/dashboard"
+          className="text-sm text-slate-600 hover:text-slate-900"
+        >
+          ← Tableau de bord
+        </Link>
+        <h1 className="text-2xl sm:text-3xl font-bold mt-2 mb-4">
+          Calendrier
+        </h1>
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <p className="text-xs text-slate-500 mb-3">
+            💡 Sélectionne une plage de dates pour créer une demande, ou
+            touche une réservation pour voir les détails.
+          </p>
+          <Calendar
+            events={events}
+            currentUserId={user.id}
+            currentFamilyId={profile.family_id}
+            isFamilyHead={profile.is_family_head}
+          />
         </div>
-
-        <KerbriseCalendar events={events} />
       </div>
-    </main>
-  );
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block w-3 h-3 rounded-sm"
-        style={{ backgroundColor: color }}
-      />
-      {label}
-    </span>
+    </div>
   );
 }
