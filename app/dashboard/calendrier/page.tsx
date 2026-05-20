@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Calendar from "@/components/Calendar";
 
+// Parse "YYYY-MM-DD" en Date locale (pas UTC)
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 export default async function CalendrierPage() {
   const supabase = await createClient();
   const {
@@ -23,7 +29,6 @@ export default async function CalendrierPage() {
     redirect("/login");
   }
 
-  // On exclut les rejected du calendrier (seul l'auteur les voit dans /demandes)
   const { data: bookings } = await supabase
     .from("bookings")
     .select(
@@ -37,9 +42,10 @@ export default async function CalendrierPage() {
 
   const events =
     bookings?.map((b: any) => {
-      const start = new Date(b.start_date);
-      // end exclusive pour react-big-calendar
-      const end = new Date(b.end_date);
+      // Parse en local pour éviter le décalage UTC
+      const start = parseLocalDate(b.start_date);
+      // end exclusive pour react-big-calendar : on ajoute 1 jour
+      const end = parseLocalDate(b.end_date);
       end.setDate(end.getDate() + 1);
       return {
         id: b.id,
