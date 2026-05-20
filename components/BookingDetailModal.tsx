@@ -321,6 +321,7 @@ export default function BookingDetailModal({
               bookingId={booking.id}
               familyId={currentFamilyId}
               userId={currentUserId}
+              onActionComplete={onClose}
             />
           )}
 
@@ -331,6 +332,7 @@ export default function BookingDetailModal({
               startDate={booking.start_date}
               endDate={booking.end_date}
               status={booking.status as "pending" | "approved" | "rejected"}
+              onActionComplete={onClose}
             />
           )}
         </div>
