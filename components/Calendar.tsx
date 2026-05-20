@@ -37,6 +37,15 @@ type Props = {
   isFamilyHead: boolean;
 };
 
+// Formate une Date en YYYY-MM-DD en utilisant les composants locaux
+// (évite le bug UTC de toISOString())
+function dateToLocalString(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function Calendar({
   events,
   currentUserId,
@@ -50,13 +59,14 @@ export default function Calendar({
   } | null>(null);
 
   function handleSelectSlot(slotInfo: { start: Date; end: Date }) {
-    // react-big-calendar utilise un end exclusive : un drag d'un jour donne
-    // start = 15 et end = 16. On retire 1 jour pour avoir un end inclusive.
+    // react-big-calendar : end est exclusif (un drag d'un jour donne end = jour+1)
+    // On utilise la conversion locale pour éviter les décalages UTC
+    const startStr = dateToLocalString(slotInfo.start);
+    
+    // Pour end : on retire 1 jour pour avoir une date inclusive
     const endInclusive = new Date(slotInfo.end);
     endInclusive.setDate(endInclusive.getDate() - 1);
-
-    const startStr = slotInfo.start.toISOString().split("T")[0];
-    const endStr = endInclusive.toISOString().split("T")[0];
+    const endStr = dateToLocalString(endInclusive);
 
     setNewBookingRange({ start: startStr, end: endStr });
   }
