@@ -44,14 +44,20 @@ export default async function CalendrierPage() {
     bookings?.map((b: any) => {
       // Parse en local pour éviter le décalage UTC
       const start = parseLocalDate(b.start_date);
-      // end exclusive pour react-big-calendar : on ajoute 1 jour
+      start.setHours(0, 0, 0, 0);
+
+      // Pour la vue Mois de react-big-calendar : on met end à 23:59:59 du jour
+      // de fin (au lieu de 00:00 du jour suivant) pour que l'affichage soit
+      // strictement inclusif au jour près
       const end = parseLocalDate(b.end_date);
-      end.setDate(end.getDate() + 1);
+      end.setHours(23, 59, 59, 999);
+
       return {
         id: b.id,
         title: `${b.families?.name ?? "?"}${b.status === "pending" ? " (en attente)" : ""}`,
         start,
         end,
+        allDay: true,
         resource: {
           bookingId: b.id,
           familyName: b.families?.name ?? "?",
