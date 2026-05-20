@@ -1,98 +1,128 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
-type ApprovedBooking = {
-  start_date: string;
-  end_date: string;
-  family_id: string;
-  families: { name: string } | null;
-};
 
 type Props = {
   familyId: string;
   userId: string;
-  approvedBookings: ApprovedBooking[];
+  initialStart?: string;
+  initialEnd?: string;
+  onSuccess?: () => void;
+};
+
+type AdjacentBooking = {
+  id: string;
+  start_date: string;
+  end_date: string;
+  family_name: string;
+  family_color: string;
 };
 
 export default function NewBookingForm({
   familyId,
   userId,
-  approvedBookings,
+  initialStart = "",
+  initialEnd = "",
+  onSuccess,
 }: Props) {
   const router = useRouter();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [start, setStart] = useState(initialStart);
+  const [end, setEnd] = useState(initialEnd);
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [adjacent, setAdjacent] = useState<AdjacentBooking[]>([]);
 
-  // Dates min/max pour les input
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Fetch séjours connectés à ±7 jours quand les dates sont saisies
+  useEffect(() => {
+    async function fetchAdjacent() {
+      if (!start || !end) {
+        setAdjacent([]);
+        return;
+      }
 
-  function validate(): string | null {
-    if (!startDate || !endDate) return "Indique une date de début et de fin.";
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const before = new Date(startDate);
+      before.setDate(before.getDate() - 7);
+      const after = new Date(endDate);
+      after.setDate(after.getDate() + 7);
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, start_date, end_date, families(name, color)")
+        .in("status", ["pending", "approved"])
+        .gte("end_date", before.toISOString().split("T")[0])
+        .lte("start_date", after.toISOString().split("T")[0])
+        .order("start_date");
 
-    if (end < start) return "La date de fin doit être après la date de début.";
-
-    // Min 1 jour à l'avance
-    const tomorrowDate = new Date();
-    tomorrowDate.setHours(0, 0, 0, 0);
-    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    if (start < tomorrowDate)
-      return "La date de début doit être au moins demain.";
-
-    // Max 60 jours
-    const diffDays = Math.ceil(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diffDays > 60)
-      return `La durée maximum est de 60 jours (tu as demandé ${diffDays} jours).`;
-
-    // Anti-chevauchement avec les approuvées
-    const conflict = approvedBookings.find((b) => {
-      const bStart = new Date(b.start_date);
-      const bEnd = new Date(b.end_date);
-      return start <= bEnd && end >= bStart;
-    });
-    if (conflict) {
-      const famName = conflict.families?.name ?? "?";
-      return `Conflit : la famille ${famName} a déjà réservé du ${formatDate(
-        conflict.start_date
-      )} au ${formatDate(conflict.end_date)}.`;
+      if (data) {
+        const mapped = data
+          .map((b: any) => ({
+            id: b.id,
+            start_date: b.start_date,
+            end_date: b.end_date,
+            family_name: b.families?.name ?? "?",
+            family_color: b.families?.color ?? "#888",
+          }))
+          // Exclut les séjours qui se chevauchent strictement
+          // (on garde ceux à ±7 jours qui sont juste avant/après)
+          .filter((b) => {
+            const bStart = new Date(b.start_date);
+            const bEnd = new Date(b.end_date);
+            // Adjacent = totalement avant ou totalement après (pivot OK)
+            return bEnd <= startDate || bStart >= endDate;
+          });
+        setAdjacent(mapped);
+      }
     }
 
-    return null;
-  }
+    fetchAdjacent();
+  }, [start, end]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setError("");
 
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    if (!start || !end) {
+      setError("Les deux dates sont requises.");
+      return;
+    }
+
+    if (new Date(end) < new Date(start)) {
+      setError("La date de fin doit être après la date de début.");
+      return;
+    }
+
+    const diffDays = Math.ceil(
+      (new Date(end).getTime() - new Date(start).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    if (diffDays > 60) {
+      setError(`La durée maximum est de 60 jours (${diffDays} demandés).`);
+      return;
+    }
+
+    const tomorrow = new Date();
+    tomorrow.setHours(0, 0, 0, 0);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (new Date(start) < tomorrow) {
+      setError("La date de début doit être au moins demain.");
       return;
     }
 
     setSubmitting(true);
-
     const supabase = createClient();
+
     const { error: insertError } = await supabase.from("bookings").insert({
       family_id: familyId,
       created_by: userId,
-      start_date: startDate,
-      end_date: endDate,
-      status: "pending",
+      start_date: start,
+      end_date: end,
       note: note.trim() || null,
+      status: "pending",
     });
 
     if (insertError) {
@@ -101,38 +131,59 @@ export default function NewBookingForm({
       return;
     }
 
-    router.push("/dashboard/demande-envoyee");
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      router.push("/dashboard/demande-envoyee");
+    }
   }
 
+  function formatShort(iso: string) {
+    return new Date(iso).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+    });
+  }
+
+  function daysBetween(date1: string, date2: string) {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    const diff = Math.abs(d1.getTime() - d2.getTime());
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  const before = adjacent.filter(
+    (b) => start && new Date(b.end_date) <= new Date(start)
+  );
+  const after = adjacent.filter(
+    (b) => end && new Date(b.start_date) >= new Date(end)
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow p-6 space-y-4">
+    <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          Arrivée
+          Date d'arrivée
         </label>
         <input
           type="date"
-          required
-          min={minDate}
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          value={start}
+          onChange={(e) => setStart(e.target.value)}
           disabled={submitting}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-50"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          Départ (jour du départ au matin)
+          Date de départ
         </label>
         <input
           type="date"
-          required
-          min={startDate || minDate}
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
+          value={end}
+          onChange={(e) => setEnd(e.target.value)}
           disabled={submitting}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-50"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
       </div>
 
@@ -145,38 +196,65 @@ export default function NewBookingForm({
           onChange={(e) => setNote(e.target.value)}
           disabled={submitting}
           rows={2}
-          placeholder="Ex : vacances scolaires, anniversaire..."
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-50"
+          placeholder="Ex: Vacances de Noël en famille"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
       </div>
 
+      {/* Section "séjours connectés" */}
+      {(before.length > 0 || after.length > 0) && (
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
+          <p className="text-xs font-semibold text-blue-900 uppercase">
+            🏠 Séjours connectés (±7 jours)
+          </p>
+          {before.map((b) => {
+            const gap = start ? daysBetween(b.end_date, start) : 0;
+            return (
+              <div key={b.id} className="text-xs text-slate-700 flex items-center gap-2">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: b.family_color }}
+                />
+                <strong>{b.family_name}</strong> · du{" "}
+                {formatShort(b.start_date)} au {formatShort(b.end_date)}
+                <span className="text-slate-500">
+                  ({gap === 0 ? "même jour" : `${gap}j avant`})
+                </span>
+              </div>
+            );
+          })}
+          {after.map((b) => {
+            const gap = end ? daysBetween(b.start_date, end) : 0;
+            return (
+              <div key={b.id} className="text-xs text-slate-700 flex items-center gap-2">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: b.family_color }}
+                />
+                <strong>{b.family_name}</strong> · du{" "}
+                {formatShort(b.start_date)} au {formatShort(b.end_date)}
+                <span className="text-slate-500">
+                  ({gap === 0 ? "même jour" : `${gap}j après`})
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+        <div className="bg-red-50 text-red-700 text-sm p-3 rounded-lg">
           {error}
         </div>
       )}
 
-      <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
-        💡 Ta demande sera envoyée aux 2 autres familles pour validation.
-        Elle sera confirmée si les deux donnent leur accord.
-      </div>
-
       <button
-        type="submit"
+        onClick={handleSubmit}
         disabled={submitting}
-        className="w-full rounded-lg bg-slate-900 text-white py-2.5 font-medium hover:bg-slate-800 disabled:opacity-50 transition"
+        className="w-full rounded-lg bg-slate-900 text-white py-2.5 font-medium hover:bg-slate-800 disabled:opacity-50"
       >
         {submitting ? "Envoi..." : "Envoyer la demande"}
       </button>
-    </form>
+    </div>
   );
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 }
