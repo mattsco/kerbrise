@@ -156,41 +156,6 @@ export default async function DashboardPage() {
             )}
           </p>
 
-{/* Webcam live */}
-<div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow">
-  <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-    <div>
-      <h2 className="text-base font-medium text-slate-900">
-        🌊 Webcam Kerbrise
-      </h2>
-      <p className="text-sm text-slate-500">
-        Vue en direct depuis Rothéneuf
-      </p>
-    </div>
-
-    <div className="flex items-center gap-2 text-sm text-emerald-600">
-      <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-      Live
-    </div>
-  </div>
-
-  <div className="relative w-full bg-black">
-    <div className="relative w-full pb-[56.25%]">
-      <iframe
-        src="https://video.nest.com/embedded/live/7sEyKZsVBd?autoplay=1"
-        frameBorder="0"
-        allowFullScreen
-        loading="lazy"
-        className="absolute inset-0 h-full w-full"
-      />
-    </div>
-  </div>
-
-  <div className="border-t border-slate-100 px-5 py-3 text-xs text-slate-500">
-    Conditions météo et marée en temps réel ✨
-  </div>
-</div>
-
           <div className="mt-8 grid gap-3">
             <Link
               href="/dashboard/calendrier"
@@ -221,6 +186,17 @@ export default async function DashboardPage() {
                 Demander un séjour à Kerbrise
               </div>
             </Link>
+
+<Link
+  href="/dashboard/webcam"
+  className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition"
+>
+  <div className="font-medium">🌊 Webcam live</div>
+
+  <div className="text-sm text-slate-500 mt-0.5">
+    Voir Kerbrise en direct
+  </div>
+</Link>
 
             <Link
               href="/dashboard/profil"
