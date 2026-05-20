@@ -69,8 +69,6 @@ export default async function HomePage() {
             Se connecter
           </a>
 
-      
-          <p className="mt-3 text-xs text-white/60">Bientôt disponible</p>
         </div>
 
         {/* Footer dynamique depuis Supabase */}
