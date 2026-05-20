@@ -25,15 +25,14 @@ export default function BookingActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Détermine si la nouvelle période est incluse dans l'ancienne
+  // La nouvelle période est-elle incluse dans l'ancienne ?
   const isReductionOnly =
-    status === "approved" &&
     newStart >= startDate &&
     newEnd <= endDate &&
     (newStart !== startDate || newEnd !== endDate);
 
-  const willNeedRevalidation =
-    status === "approved" &&
+  // La nouvelle période déborde-t-elle de l'ancienne ?
+  const isExtensionOrShift =
     (newStart < startDate || newEnd > endDate) &&
     (newStart !== startDate || newEnd !== endDate);
 
@@ -162,17 +161,18 @@ export default function BookingActions({
         {/* Encart informatif selon le cas */}
         {isReductionOnly && (
           <div className="text-xs text-emerald-700 bg-emerald-50 p-3 rounded-lg">
-            ✅ Tu réduis ton séjour à l'intérieur des dates déjà approuvées.
-            <strong> Pas besoin de nouvelle validation</strong>, la modification
-            sera immédiatement effective.
+            ✅ Tu réduis ton séjour à l'intérieur de la période actuelle.
+            <strong> Les validations déjà reçues restent valides</strong> —
+            pas besoin de revoter pour les chefs qui ont déjà approuvé.
           </div>
         )}
 
-        {willNeedRevalidation && (
+        {isExtensionOrShift && (
           <div className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg">
-            ⚠️ Tu modifies les dates en dehors de la période déjà approuvée. La
-            demande va <strong>repasser en attente de validation</strong> par
-            les deux autres familles.
+            ⚠️ Tu modifies les dates en dehors de la période actuelle. Les
+            validations précédentes seront <strong>annulées</strong> et la
+            demande repassera en attente de validation par les deux autres
+            familles.
           </div>
         )}
 
