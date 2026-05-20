@@ -3,12 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Calendar from "@/components/Calendar";
 
-// Parse "YYYY-MM-DD" en Date locale (pas UTC)
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
 export default async function CalendrierPage() {
   const supabase = await createClient();
   const {
@@ -33,7 +27,7 @@ export default async function CalendrierPage() {
     .from("bookings")
     .select(
       `
-      id, start_date, end_date, status, note,
+      id, start_date, end_date, status,
       families(name, color)
     `
     )
@@ -41,32 +35,19 @@ export default async function CalendrierPage() {
     .order("start_date");
 
   const events =
-    bookings?.map((b: any) => {
-      // Parse en local + heure à midi pour éviter tous les bugs de RBC
-      // avec les événements multi-jours en vue Mois
-      const start = parseLocalDate(b.start_date);
-      start.setHours(12, 0, 0, 0);
-
-      const end = parseLocalDate(b.end_date);
-      end.setHours(12, 0, 0, 0);
-
-      return {
-        id: b.id,
-        title: `${b.families?.name ?? "?"}${b.status === "pending" ? " (en attente)" : ""}`,
-        start,
-        end,
-        resource: {
-          bookingId: b.id,
-          familyName: b.families?.name ?? "?",
-          color: b.families?.color ?? "#888",
-          status: b.status,
-        },
-      };
-    }) ?? [];
+    bookings?.map((b: any) => ({
+      id: b.id,
+      bookingId: b.id,
+      start_date: b.start_date,
+      end_date: b.end_date,
+      family_name: b.families?.name ?? "?",
+      color: b.families?.color ?? "#888",
+      status: b.status as "pending" | "approved",
+    })) ?? [];
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6">
         <Link
           href="/dashboard"
           className="text-sm text-slate-600 hover:text-slate-900"
@@ -76,10 +57,11 @@ export default async function CalendrierPage() {
         <h1 className="text-2xl sm:text-3xl font-bold mt-2 mb-4">
           Calendrier
         </h1>
-        <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-xs text-slate-500 mb-3">
-            💡 Sélectionne une plage de dates pour créer une demande, ou
-            touche une réservation pour voir les détails.
+        <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+          <p className="text-xs text-slate-500 mb-4">
+            💡 Touche un jour pour commencer une sélection, puis touche un
+            second jour pour créer une demande. Touche une réservation pour
+            voir les détails.
           </p>
           <Calendar
             events={events}
