@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Fond rond couleur sable -->
+  <circle cx="256" cy="256" r="256" fill="#fef3e2"/>
+  
+  <!-- Ciel sunset dégradé (haut du cercle) -->
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f4a896"/>
+      <stop offset="50%" stop-color="#f5c4a8"/>
+      <stop offset="100%" stop-color="#fde4cb"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a8a96"/>
+      <stop offset="100%" stop-color="#2d6470"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f4d6a8"/>
+      <stop offset="100%" stop-color="#e8c084"/>
+    </linearGradient>
+    <clipPath id="circle-clip">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
+  </defs>
+  
+  <g clip-path="url(#circle-clip)">
+    <!-- Ciel -->
+    <rect x="0" y="0" width="512" height="240" fill="url(#sky)"/>
+    
+    <!-- Soleil -->
+    <circle cx="340" cy="180" r="42" fill="#e74c3c"/>
+    
+    <!-- Île rocheuse au loin (gauche) -->
+    <ellipse cx="80" cy="240" rx="55" ry="18" fill="#3d5560" opacity="0.7"/>
+    
+    <!-- Pointe rocheuse à gauche avec pins -->
+    <path d="M 0 240 Q 30 220 70 225 Q 100 215 130 235 L 130 260 L 0 260 Z" fill="#3d5560"/>
+    <!-- Silhouettes de pins -->
+    <circle cx="45" cy="218" r="14" fill="#2a3d3f"/>
+    <circle cx="70" cy="208" r="18" fill="#2a3d3f"/>
+    <circle cx="95" cy="215" r="15" fill="#2a3d3f"/>
+    
+    <!-- Petits rochers au loin (droite) -->
+    <ellipse cx="440" cy="245" rx="22" ry="6" fill="#3d5560" opacity="0.7"/>
+    <ellipse cx="475" cy="247" rx="15" ry="5" fill="#3d5560" opacity="0.7"/>
+    
+    <!-- Mer -->
+    <rect x="0" y="240" width="512" height="100" fill="url(#sea)"/>
+    
+    <!-- Reflets sur la mer (vagues stylisées) -->
+    <path d="M 0 270 Q 80 265 160 270 T 320 270 T 512 270" 
+          stroke="#9bc4cb" stroke-width="2" fill="none" opacity="0.6"/>
+    <path d="M 0 290 Q 100 285 200 290 T 400 290 T 512 290" 
+          stroke="#9bc4cb" stroke-width="2" fill="none" opacity="0.5"/>
+    <path d="M 0 310 Q 120 305 240 310 T 480 310 T 512 310" 
+          stroke="#9bc4cb" stroke-width="2" fill="none" opacity="0.4"/>
+    
+    <!-- Plage (sable) -->
+    <path d="M 0 340 Q 256 320 512 340 L 512 430 L 0 430 Z" fill="url(#sand)"/>
+    
+    <!-- Digue blanche (la signature du Val !) -->
+    <rect x="0" y="425" width="512" height="14" fill="#ffffff"/>
+    <rect x="0" y="430" width="512" height="3" fill="#d4d4d8"/>
+    
+    <!-- Piliers de la digue -->
+    <rect x="40" y="425" width="10" height="40" fill="#ffffff"/>
+    <rect x="130" y="425" width="10" height="40" fill="#ffffff"/>
+    <rect x="220" y="425" width="10" height="40" fill="#ffffff"/>
+    <rect x="310" y="425" width="10" height="40" fill="#ffffff"/>
+    <rect x="400" y="425" width="10" height="40" fill="#ffffff"/>
+    <rect x="490" y="425" width="10" height="40" fill="#ffffff"/>
+    
+    <!-- Trottoir / promenade -->
+    <rect x="0" y="465" width="512" height="47" fill="#a8a29e"/>
+  </g>
+  
+  <!-- Bord du cercle -->
+  <circle cx="256" cy="256" r="254" fill="none" stroke="#1e293b" stroke-width="3" opacity="0.15"/>
+</svg>
