@@ -25,6 +25,18 @@ export default function BookingActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Détermine si la nouvelle période est incluse dans l'ancienne
+  const isReductionOnly =
+    status === "approved" &&
+    newStart >= startDate &&
+    newEnd <= endDate &&
+    (newStart !== startDate || newEnd !== endDate);
+
+  const willNeedRevalidation =
+    status === "approved" &&
+    (newStart < startDate || newEnd > endDate) &&
+    (newStart !== startDate || newEnd !== endDate);
+
   async function handleCancel() {
     setSubmitting(true);
     setError("");
@@ -85,7 +97,7 @@ export default function BookingActions({
       .update({
         start_date: newStart,
         end_date: newEnd,
-        last_action_type: "modified",
+        last_action_type: isReductionOnly ? "reduced" : "modified",
         last_action_comment: comment.trim() || null,
       })
       .eq("id", bookingId);
@@ -131,23 +143,39 @@ export default function BookingActions({
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
-            Message aux autres familles (optionnel)
+            Message (optionnel)
           </label>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             disabled={submitting}
             rows={2}
-            placeholder="Ex: On a dû ajuster nos dates de vacances."
+            placeholder={
+              isReductionOnly
+                ? "Ex: On a finalement raccourci notre séjour."
+                : "Ex: On a dû ajuster nos dates de vacances."
+            }
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
           />
         </div>
-        {status === "approved" && (
-          <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded">
-            ⚠️ Modifier les dates va annuler les approbations en cours. La
-            demande devra être à nouveau validée.
+
+        {/* Encart informatif selon le cas */}
+        {isReductionOnly && (
+          <div className="text-xs text-emerald-700 bg-emerald-50 p-3 rounded-lg">
+            ✅ Tu réduis ton séjour à l'intérieur des dates déjà approuvées.
+            <strong> Pas besoin de nouvelle validation</strong>, la modification
+            sera immédiatement effective.
           </div>
         )}
+
+        {willNeedRevalidation && (
+          <div className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg">
+            ⚠️ Tu modifies les dates en dehors de la période déjà approuvée. La
+            demande va <strong>repasser en attente de validation</strong> par
+            les deux autres familles.
+          </div>
+        )}
+
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex gap-2">
           <button
