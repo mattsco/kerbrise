@@ -9,6 +9,7 @@ type Props = {
   startDate: string;
   endDate: string;
   status: "pending" | "approved" | "rejected";
+  onActionComplete?: () => void;
 };
 
 export default function BookingActions({
@@ -16,6 +17,7 @@ export default function BookingActions({
   startDate,
   endDate,
   status,
+  onActionComplete,
 }: Props) {
   const router = useRouter();
   const [mode, setMode] = useState<"idle" | "editing" | "cancelling">("idle");
@@ -25,13 +27,11 @@ export default function BookingActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // La nouvelle période est-elle incluse dans l'ancienne ?
   const isReductionOnly =
     newStart >= startDate &&
     newEnd <= endDate &&
     (newStart !== startDate || newEnd !== endDate);
 
-  // La nouvelle période déborde-t-elle de l'ancienne ?
   const isExtensionOrShift =
     (newStart < startDate || newEnd > endDate) &&
     (newStart !== startDate || newEnd !== endDate);
@@ -57,6 +57,7 @@ export default function BookingActions({
     }
 
     router.refresh();
+    if (onActionComplete) onActionComplete();
   }
 
   async function handleSave() {
@@ -111,6 +112,7 @@ export default function BookingActions({
     setComment("");
     setSubmitting(false);
     router.refresh();
+    if (onActionComplete) onActionComplete();
   }
 
   if (mode === "editing") {
@@ -158,7 +160,6 @@ export default function BookingActions({
           />
         </div>
 
-        {/* Encart informatif selon le cas */}
         {isReductionOnly && (
           <div className="text-xs text-emerald-700 bg-emerald-50 p-3 rounded-lg">
             ✅ Tu réduis ton séjour à l'intérieur de la période actuelle.
