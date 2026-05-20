@@ -41,6 +41,11 @@ type BookingDetail = {
   }>;
 };
 
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 export default function BookingDetailModal({
   bookingId,
   currentUserId,
@@ -83,21 +88,27 @@ export default function BookingDetailModal({
         )
         .eq("booking_id", bookingId);
 
-      // Fetch séjours adjacents
-      const startDate = new Date(b.start_date);
-      const endDate = new Date(b.end_date);
+      const startDate = parseLocalDate(b.start_date);
+      const endDate = parseLocalDate(b.end_date);
       const before = new Date(startDate);
       before.setDate(before.getDate() - 7);
       const after = new Date(endDate);
       after.setDate(after.getDate() + 7);
+
+      function toISO(d: Date) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
 
       const { data: adj } = await supabase
         .from("bookings")
         .select("id, start_date, end_date, families(name, color)")
         .in("status", ["pending", "approved"])
         .neq("id", bookingId)
-        .gte("end_date", before.toISOString().split("T")[0])
-        .lte("start_date", after.toISOString().split("T")[0])
+        .gte("end_date", toISO(before))
+        .lte("start_date", toISO(after))
         .order("start_date");
 
       const adjacent = (adj ?? [])
@@ -109,8 +120,8 @@ export default function BookingDetailModal({
           family_color: a.families?.color ?? "#888",
         }))
         .filter((a) => {
-          const aStart = new Date(a.start_date);
-          const aEnd = new Date(a.end_date);
+          const aStart = parseLocalDate(a.start_date);
+          const aEnd = parseLocalDate(a.end_date);
           return aEnd <= startDate || aStart >= endDate;
         });
 
@@ -145,7 +156,7 @@ export default function BookingDetailModal({
   }, [bookingId]);
 
   function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString("fr-FR", {
+    return parseLocalDate(iso).toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -154,7 +165,7 @@ export default function BookingDetailModal({
   }
 
   function formatShort(iso: string) {
-    return new Date(iso).toLocaleDateString("fr-FR", {
+    return parseLocalDate(iso).toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "short",
     });
@@ -192,6 +203,11 @@ export default function BookingDetailModal({
     !booking.approvals.some((a) => a.family_id === currentFamilyId);
   const canEditOrCancel =
     isAuthor && (booking.status === "pending" || booking.status === "approved");
+
+  // Sections affichées uniquement pour les statuts non-finaux
+  const showValidations = booking.status === "pending";
+  const showAdjacent =
+    booking.status === "pending" && booking.adjacent.length > 0;
 
   const statusBadge =
     booking.status === "pending"
@@ -245,8 +261,8 @@ export default function BookingDetailModal({
             )}
           </div>
 
-          {/* Validations */}
-          {booking.status !== "cancelled" && booking.status !== "rejected" && (
+          {/* Validations - SEULEMENT pour pending */}
+          {showValidations && (
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase mb-2">
                 Validations
@@ -280,8 +296,8 @@ export default function BookingDetailModal({
             </div>
           )}
 
-          {/* Séjours connectés */}
-          {booking.adjacent.length > 0 && (
+          {/* Séjours connectés - SEULEMENT pour pending */}
+          {showAdjacent && (
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-1.5">
               <p className="text-xs font-semibold text-blue-900 uppercase">
                 🏠 Séjours connectés (±7 jours)
