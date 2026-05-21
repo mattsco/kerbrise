@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ApprovalButtons from "@/components/ApprovalButtons";
 import BookingActions from "@/components/BookingActions";
+import BackButton from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -87,9 +88,7 @@ export default async function PendingBookingsPage() {
     <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
         <header className="mb-6">
-          <Link href="/dashboard" className="text-sm text-slate-500 underline">
-            ← Tableau de bord
-          </Link>
+          <BackButton />
           <h1 className="text-2xl font-light mt-1">Demandes</h1>
         </header>
 
