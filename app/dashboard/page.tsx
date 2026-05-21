@@ -6,7 +6,7 @@ import {
   Inbox,
   Plus,
   Video,
-  Settings,
+  KeyRound,
   LogOut,
   AlertCircle,
   ArrowRight,
@@ -94,22 +94,9 @@ export default async function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-30 backdrop-blur-md bg-white/90">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/logo.svg"
-              alt="Kerbrise"
-              className="w-9 h-9 rounded-full"
-            />
-            <div>
-              <h1 className="text-base font-semibold text-slate-900 leading-tight">
-                Kerbrise
-              </h1>
-              <p className="text-[11px] text-slate-500 leading-tight">
-                Le port d'attache
-              </p>
-            </div>
-          </div>
-          {/* IMPORTANT : form POST, pas un Link, sinon prefetch déconnecte */}
+          <h1 className="text-lg font-semibold text-slate-900">
+            Kerbrise
+          </h1>
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
@@ -154,22 +141,21 @@ export default async function DashboardPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-            <p className="text-xs font-medium text-white/80 uppercase tracking-wide">
+            <p className="text-sm font-medium text-white/90">
               Bonjour 👋
             </p>
-            <h2 className="text-2xl font-bold mt-1">{displayName}</h2>
-            <div className="flex items-center gap-2 mt-2">
+            <h2 className="text-2xl font-bold mt-0.5">{displayName}</h2>
+            <div className="flex items-center gap-2 mt-2 text-xs text-white/90">
               <span
-                className="inline-block px-2.5 py-0.5 rounded-full text-white text-xs font-medium"
+                className="inline-block w-2 h-2 rounded-full"
                 style={{ backgroundColor: familyColor }}
-              >
+              />
+              <span>
                 Famille {familyName}
+                {profile.is_family_head && (
+                  <span className="text-white/70"> · chef de famille</span>
+                )}
               </span>
-              {profile.is_family_head && (
-                <span className="text-xs text-white/90">
-                  · chef de famille
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -239,14 +225,14 @@ export default async function DashboardPage() {
             icon={<Video className="w-5 h-5" />}
             iconBg="bg-cyan-50 text-cyan-600"
             title="Webcam live"
-            desc="Voir Kerbrise en direct"
+            desc="Voir le Val en direct"
           />
           <ActionCard
             href="/dashboard/profil"
-            icon={<Settings className="w-5 h-5" />}
+            icon={<KeyRound className="w-5 h-5" />}
             iconBg="bg-slate-100 text-slate-600"
-            title="Mon profil"
-            desc="Mot de passe et préférences"
+            title="Mot de passe"
+            desc="Changer mon mot de passe"
           />
         </div>
       </div>
