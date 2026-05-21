@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Check } from "lucide-react";
 
 type Props = {
   bookingId: string;
@@ -71,12 +72,13 @@ export default function ApprovalButtons({
     if (onActionComplete) onActionComplete();
   }
 
+  // Mode "je suis en train de refuser, je rédige éventuellement un mot"
   if (mode === "rejecting") {
     return (
       <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Message à l'auteur (optionnel)
+            Un mot à l'auteur ? <span className="text-slate-400 font-normal">(optionnel)</span>
           </label>
           <textarea
             value={comment}
@@ -84,21 +86,14 @@ export default function ApprovalButtons({
             disabled={submitting}
             rows={3}
             placeholder="Ex: On voulait prendre cette semaine, on peut s'en parler au téléphone ?"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
           />
           <p className="mt-1 text-xs text-slate-500">
-            Sera transmis dans l'email à l'auteur de la demande.
+            Sera transmis dans l'email à l'auteur.
           </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex gap-2">
-          <button
-            onClick={handleReject}
-            disabled={submitting}
-            className="flex-1 rounded-lg bg-red-600 text-white py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-          >
-            {submitting ? "..." : "Confirmer le refus"}
-          </button>
           <button
             onClick={() => {
               setMode("idle");
@@ -106,31 +101,40 @@ export default function ApprovalButtons({
               setError("");
             }}
             disabled={submitting}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50"
+            className="flex-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 py-2 text-sm font-medium transition"
           >
             Annuler
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={submitting}
+            className="flex-1 rounded-lg bg-slate-800 hover:bg-slate-900 text-white py-2 text-sm font-medium disabled:opacity-50 transition"
+          >
+            {submitting ? "..." : "Confirmer le refus"}
           </button>
         </div>
       </div>
     );
   }
 
+  // Mode "idle" : approuver en avant, refuser discret
   return (
     <div className="mt-4 pt-4 border-t border-slate-100">
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <button
           onClick={handleApprove}
           disabled={submitting}
-          className="flex-1 rounded-lg bg-emerald-600 text-white py-2.5 font-medium hover:bg-emerald-700 disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-sm font-medium disabled:opacity-50 transition shadow-sm"
         >
-          {submitting ? "..." : "✅ Approuver"}
+          <Check className="w-4 h-4" />
+          {submitting ? "..." : "Approuver"}
         </button>
         <button
           onClick={() => setMode("rejecting")}
           disabled={submitting}
-          className="flex-1 rounded-lg bg-red-600 text-white py-2.5 font-medium hover:bg-red-700 disabled:opacity-50"
+          className="px-4 py-3 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition"
         >
-          ❌ Refuser
+          Refuser
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
