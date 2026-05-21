@@ -220,6 +220,13 @@ export default async function DashboardPage() {
             title="Nouvelle demande"
             desc="Demander un séjour à Kerbrise"
           />
+<ActionCard
+            href="/dashboard/stats"
+            icon={<TrendingUp className="w-5 h-5" />}
+            iconBg="bg-purple-50 text-purple-600"
+            title="Stats"
+            desc="Quelques graphiques"
+          />
           <ActionCard
             href="/dashboard/webcam"
             icon={<Video className="w-5 h-5" />}
