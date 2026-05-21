@@ -59,8 +59,7 @@ export default async function HomePage() {
           </h1>
           <div className="mx-auto mt-4 h-px w-16 bg-white/60" />
           <p className="mt-6 max-w-xs text-lg font-light leading-relaxed text-white/90">
-            La maison familiale du Val,
-            <br />à deux pas de la plage.
+            La maison familiale du Val
           </p>
           <a
             href="/login"
