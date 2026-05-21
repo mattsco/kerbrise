@@ -40,7 +40,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("display_name, family_id, is_family_head, families(name, color)")
+    .select("display_name, family_id, is_family_head, is_admin, families(name, color)")
     .eq("id", user.id)
     .single();
 
@@ -234,6 +234,17 @@ export default async function DashboardPage() {
             title="Mot de passe"
             desc="Changer mon mot de passe"
           />
+
+{profile.is_admin && (
+            <ActionCard
+              href="/dashboard/admin"
+              icon={<span className="text-base">🕵🏻‍♂️</span>}
+              iconBg="bg-purple-50 text-purple-600"
+              title="Secret Admin Tools"
+              desc="Outils admin (seulement toi)"
+            />
+          )}
+
         </div>
       </div>
     </main>
