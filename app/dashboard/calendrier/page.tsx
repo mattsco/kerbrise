@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Calendar from "@/components/Calendar";
+import BackButton from "@/components/BackButton";
 
 export default async function CalendrierPage() {
   const supabase = await createClient();
@@ -48,12 +49,7 @@ export default async function CalendrierPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto p-4 sm:p-6">
-        <Link
-          href="/dashboard"
-          className="text-sm text-slate-600 hover:text-slate-900"
-        >
-          ← Tableau de bord
-        </Link>
+        <BackButton />
         <h1 className="text-2xl sm:text-3xl font-bold mt-2 mb-4">
           Calendrier
         </h1>
