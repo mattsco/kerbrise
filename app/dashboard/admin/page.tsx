@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServerClient } from "@supabase/ssr";
+import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
+
 import Link from "next/link";
 import {
   Database,
@@ -109,12 +111,7 @@ export default async function AdminPage({
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
         {/* Header */}
         <div>
-          <Link
-            href="/dashboard"
-            className="text-sm text-slate-600 hover:text-slate-900"
-          >
-            ← Tableau de bord
-          </Link>
+          <BackButton />
           <h1 className="text-2xl sm:text-3xl font-bold mt-2 flex items-center gap-2">
             🕵🏻‍♂️ Secret Admin Tools
           </h1>
