@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
-
+import BackButton from "@/components/BackButton";
 export const dynamic = "force-dynamic";
 
 export default async function ProfilPage() {
@@ -28,9 +28,7 @@ export default async function ProfilPage() {
     <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="max-w-md mx-auto">
         <header className="mb-6">
-          <Link href="/dashboard" className="text-sm text-slate-500 underline">
-            ← Tableau de bord
-          </Link>
+          <BackButton />
           <h1 className="text-2xl font-light mt-1">Mon profil</h1>
         </header>
 
