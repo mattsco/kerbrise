@@ -10,7 +10,7 @@ type Props = {
 
 export default function BackButton({
   href = "/dashboard",
-  label = "Tableau de bord",
+  label = "Retour",
 }: Props) {
   return (
     <Link
