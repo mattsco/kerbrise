@@ -236,22 +236,6 @@ export default async function DashboardPage() {
           />
         </div>
       </div>
-
-      {/* Footer avec photo sunset */}
-      <footer className="mt-12 relative overflow-hidden">
-        <img
-          src="/sunset.jpg"
-          alt=""
-          className="w-full h-40 object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 text-center text-white px-4">
-          <p className="text-sm font-medium">Kerbrise</p>
-          <p className="text-xs text-white/80 mt-1">
-            Maison familiale en Bretagne
-          </p>
-        </div>
-      </footer>
     </main>
   );
 }
