@@ -1,6 +1,32 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import {
+  Calendar,
+  Inbox,
+  Plus,
+  Video,
+  Settings,
+  LogOut,
+  AlertCircle,
+  ArrowRight,
+} from "lucide-react";
+
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatRange(start: string, end: string): string {
+  const s = parseLocalDate(start);
+  const e = parseLocalDate(end);
+  const sameMonth = s.getMonth() === e.getMonth();
+  const sameYear = s.getFullYear() === e.getFullYear();
+  const sShort = s.toLocaleDateString("fr-FR", { day: "numeric", month: sameMonth ? undefined : "short" });
+  const eShort = e.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  if (sameMonth && sameYear) return `${s.getDate()} → ${eShort}`;
+  return `${sShort} → ${eShort}`;
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,120 +70,234 @@ export default async function DashboardPage() {
       ).length ?? 0;
   }
 
+  // Prochains séjours approuvés
+  const today = new Date();
+  const todayISO = today.toISOString().split("T")[0];
+  const { data: upcoming } = await supabase
+    .from("bookings")
+    .select("id, start_date, end_date, families(name, color)")
+    .eq("status", "approved")
+    .gte("end_date", todayISO)
+    .order("start_date")
+    .limit(3);
+
+  const upcomingBookings = (upcoming ?? []).map((b: any) => ({
+    id: b.id,
+    start_date: b.start_date,
+    end_date: b.end_date,
+    family_name: b.families?.name ?? "?",
+    family_color: b.families?.color ?? "#888",
+  }));
+
   return (
     <main className="min-h-screen bg-slate-50">
-      <div className="max-w-2xl mx-auto p-4 sm:p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Kerbrise
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Tableau de bord</p>
+      {/* Header */}
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-30 backdrop-blur-md bg-white/90">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo.svg"
+              alt="Kerbrise"
+              className="w-9 h-9 rounded-full"
+            />
+            <div>
+              <h1 className="text-base font-semibold text-slate-900 leading-tight">
+                Kerbrise
+              </h1>
+              <p className="text-[11px] text-slate-500 leading-tight">
+                Le port d'attache
+              </p>
+            </div>
           </div>
+          {/* IMPORTANT : form POST, pas un Link, sinon prefetch déconnecte */}
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
-              className="text-sm text-slate-500 hover:text-slate-900 underline"
+              className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 transition"
+              aria-label="Se déconnecter"
             >
-              Se déconnecter
+              <LogOut className="w-4 h-4" />
             </button>
           </form>
         </div>
+      </header>
 
+      <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
         {/* Bannière demandes en attente */}
         {pendingCount > 0 && (
           <Link
             href="/dashboard/demandes"
-            className="block bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 hover:bg-amber-100 transition"
+            className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100/50 transition"
           >
             <div className="flex items-center gap-3">
-              <div className="text-3xl">⚠️</div>
+              <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
               <div className="flex-1">
-                <p className="font-semibold text-amber-900">
+                <p className="font-semibold text-amber-900 text-sm">
                   {pendingCount} demande{pendingCount > 1 ? "s" : ""} attend
                   {pendingCount > 1 ? "ent" : ""} ta validation
                 </p>
-                <p className="text-sm text-amber-700">Tape pour décider →</p>
+                <p className="text-xs text-amber-700">Tape pour décider</p>
               </div>
+              <ArrowRight className="w-4 h-4 text-amber-700 flex-shrink-0" />
             </div>
           </Link>
         )}
 
-        {/* Carte de bienvenue */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">
-            Bienvenue, <strong>{displayName}</strong> 👋
-          </h2>
-          <div className="flex items-center gap-2 mt-2 text-sm text-slate-600">
-            <span>Famille</span>
-            <span
-              className="inline-block px-3 py-0.5 rounded-full text-white text-xs font-medium"
-              style={{ backgroundColor: familyColor }}
-            >
-              {familyName}
-            </span>
-            {profile.is_family_head && (
-              <span className="text-amber-700">· chef de famille</span>
-            )}
-          </div>
-
-          {/* Cartes d'actions */}
-          <div className="mt-6 space-y-3">
-            <Link
-              href="/dashboard/calendrier"
-              className="block border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
-            >
-              <p className="font-semibold text-slate-900">
-                📅 Voir le calendrier
-              </p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Réservations des 3 familles
-              </p>
-            </Link>
-
-            <Link
-              href="/dashboard/demandes"
-              className="block border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
-            >
-              <p className="font-semibold text-slate-900">📂 Demandes</p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Mes demandes et celles à valider
-              </p>
-            </Link>
-
-            <Link
-              href="/dashboard/nouvelle-demande"
-              className="block border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
-            >
-              <p className="font-semibold text-slate-900">➕ Nouvelle demande</p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Demander un séjour à Kerbrise
-              </p>
-            </Link>
-
-            <Link
-              href="/dashboard/webcam"
-              className="block border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
-            >
-              <p className="font-semibold text-slate-900">🌊 Webcam live</p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Voir Kerbrise en direct
-              </p>
-            </Link>
-
-            <Link
-              href="/dashboard/profil"
-              className="block border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition"
-            >
-              <p className="font-semibold text-slate-900">⚙️ Mon profil</p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Changer mon mot de passe
-              </p>
-            </Link>
+        {/* Hero avec photo de la maison */}
+        <div className="relative rounded-3xl overflow-hidden shadow-sm">
+          <img
+            src="/house.jpg"
+            alt="Kerbrise"
+            className="w-full h-48 sm:h-56 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+            <p className="text-xs font-medium text-white/80 uppercase tracking-wide">
+              Bonjour 👋
+            </p>
+            <h2 className="text-2xl font-bold mt-1">{displayName}</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <span
+                className="inline-block px-2.5 py-0.5 rounded-full text-white text-xs font-medium"
+                style={{ backgroundColor: familyColor }}
+              >
+                Famille {familyName}
+              </span>
+              {profile.is_family_head && (
+                <span className="text-xs text-white/90">
+                  · chef de famille
+                </span>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Prochains séjours */}
+        {upcomingBookings.length > 0 && (
+          <section className="bg-white rounded-2xl border border-slate-100 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Prochains séjours
+              </h3>
+              <Link
+                href="/dashboard/calendrier"
+                className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-0.5"
+              >
+                Voir tout
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <ul className="space-y-2.5">
+              {upcomingBookings.map((b) => (
+                <li
+                  key={b.id}
+                  className="flex items-center gap-3 text-sm"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: b.family_color }}
+                  />
+                  <span className="font-medium text-slate-900 min-w-[80px]">
+                    {b.family_name}
+                  </span>
+                  <span className="text-slate-600">
+                    {formatRange(b.start_date, b.end_date)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Cartes d'actions */}
+        <div className="space-y-3">
+          <ActionCard
+            href="/dashboard/calendrier"
+            icon={<Calendar className="w-5 h-5" />}
+            iconBg="bg-blue-50 text-blue-600"
+            title="Calendrier"
+            desc="Vue des réservations sur 3 mois"
+          />
+          <ActionCard
+            href="/dashboard/demandes"
+            icon={<Inbox className="w-5 h-5" />}
+            iconBg="bg-amber-50 text-amber-600"
+            title="Demandes"
+            desc="Mes demandes et celles à valider"
+          />
+          <ActionCard
+            href="/dashboard/nouvelle-demande"
+            icon={<Plus className="w-5 h-5" />}
+            iconBg="bg-emerald-50 text-emerald-600"
+            title="Nouvelle demande"
+            desc="Demander un séjour à Kerbrise"
+          />
+          <ActionCard
+            href="/dashboard/webcam"
+            icon={<Video className="w-5 h-5" />}
+            iconBg="bg-cyan-50 text-cyan-600"
+            title="Webcam live"
+            desc="Voir Kerbrise en direct"
+          />
+          <ActionCard
+            href="/dashboard/profil"
+            icon={<Settings className="w-5 h-5" />}
+            iconBg="bg-slate-100 text-slate-600"
+            title="Mon profil"
+            desc="Mot de passe et préférences"
+          />
+        </div>
       </div>
+
+      {/* Footer avec photo sunset */}
+      <footer className="mt-12 relative overflow-hidden">
+        <img
+          src="/sunset.jpg"
+          alt=""
+          className="w-full h-40 object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 text-center text-white px-4">
+          <p className="text-sm font-medium">Kerbrise</p>
+          <p className="text-xs text-white/80 mt-1">
+            Maison familiale en Bretagne
+          </p>
+        </div>
+      </footer>
     </main>
+  );
+}
+
+function ActionCard({
+  href,
+  icon,
+  iconBg,
+  title,
+  desc,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-4 bg-white rounded-2xl border border-slate-100 p-4 hover:border-slate-200 hover:shadow-sm transition"
+    >
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}
+      >
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-slate-900 text-[15px]">{title}</p>
+        <p className="text-xs text-slate-500 mt-0.5 truncate">{desc}</p>
+      </div>
+      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition flex-shrink-0" />
+    </Link>
   );
 }
