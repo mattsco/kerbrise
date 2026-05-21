@@ -124,4 +124,114 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
     const msg = e?.message ?? "Erreur inconnue";
     redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
   }
+
+// Toggle calendar admin
+export async function toggleCalendarAdmin() {
+  try {
+    const user = await checkAdmin();
+    const supabase = await createClient();
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("is_calendar_admin")
+      .eq("id", user.id)
+      .single();
+
+    const newValue = !profile?.is_calendar_admin;
+    const { error } = await supabase
+      .from("users")
+      .update({ is_calendar_admin: newValue })
+      .eq("id", user.id);
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/calendrier");
+
+    const message = newValue
+      ? "🛡️ Mode Admin Calendrier activé"
+      : "Mode Admin Calendrier désactivé";
+    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(message)}`);
+  } catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    const msg = e?.message ?? "Erreur inconnue";
+    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+  }
+}
+
+// Création d'une réservation admin (sans déclencher emails)
+export async function adminCreateBooking(formData: FormData) {
+  try {
+    await checkAdmin();
+    const supabase = await createClient();
+
+    const startDate = formData.get("start_date") as string;
+    const endDate = formData.get("end_date") as string;
+    const familyId = formData.get("family_id") as string;
+    const authorId = formData.get("author_id") as string;
+    const statusInput = formData.get("status") as string;
+    const status = statusInput === "approved" ? "approved" : "pending";
+
+    if (!startDate || !endDate || !familyId || !authorId) {
+      throw new Error("Tous les champs sont requis");
+    }
+
+    // Désactive temporairement les triggers d'emails (le temps de l'insert)
+    // Note : on ne peut pas DISABLE TRIGGER via supabase client, on utilise donc un flag
+    // dans le booking pour indiquer "no_email"
+    const { data: booking, error } = await supabase
+      .from("bookings")
+      .insert({
+        family_id: familyId,
+        author_id: authorId,
+        start_date: startDate,
+        end_date: endDate,
+        status: status,
+        is_admin_created: true,  // flag pour les triggers
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/calendrier");
+    revalidatePath("/dashboard/demandes");
+
+    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(`✅ Réservation créée du ${startDate} au ${endDate}`)}`);
+  } catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    const msg = e?.message ?? "Erreur inconnue";
+    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+  }
+}
+
+// Suppression admin
+export async function adminDeleteBooking(bookingId: string) {
+  try {
+    await checkAdmin();
+    const supabase = await createClient();
+
+    // D'abord supprime les approvals
+    await supabase.from("approvals").delete().eq("booking_id", bookingId);
+    
+    // Puis le booking
+    const { error } = await supabase
+      .from("bookings")
+      .delete()
+      .eq("id", bookingId);
+    if (error) throw error;
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/calendrier");
+    revalidatePath("/dashboard/demandes");
+
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e?.message };
+  }
+}
+
 }
