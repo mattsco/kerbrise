@@ -1,77 +1,46 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
-async function FamiliesFooter() {
-  const supabase = await createClient();
-  const { data: families, error } = await supabase
-    .from("families")
-    .select("name")
-    .order("name");
-
-  if (error) {
-    console.error("Supabase error:", error);
-    return (
-      <footer className="text-center text-xs uppercase tracking-[0.25em] text-red-400">
-        Erreur Supabase
-      </footer>
-    );
-  }
-
-  const names =
-    families && families.length > 0
-      ? families.map((f) => f.name).join(" · ")
-      : "Aucune famille";
-
+export default function HomePage() {
   return (
-    <footer className="text-center text-xs uppercase tracking-[0.25em] text-white/60">
-      {names}
-    </footer>
-  );
-}
-
-export default async function HomePage() {
-  return (
-    <main className="relative min-h-screen w-full overflow-hidden">
-      {/* Image de fond */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://kerbrise.fr/sunset.jpg?auto=format&fit=crop&w=1600&q=80')",
-        }}
+    <main className="min-h-screen relative overflow-hidden">
+      {/* Photo sunset en fond plein écran */}
+      <img
+        src="/sunset.jpg"
+        alt="Kerbrise au coucher du soleil"
+        className="absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* Voile dégradé pour la lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />
+      {/* Overlay très subtil pour lisibilité */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
 
       {/* Contenu */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-between px-6 py-12 text-white">
-        {/* Header */}
-        <header className="w-full text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/70">
-            Saint-Malo · Rothéneuf
-          </p>
-        </header>
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Localisation en haut */}
+        <p className="text-center text-white/80 text-xs tracking-[0.3em] uppercase pt-14">
+          Saint-Malo · Rothéneuf
+        </p>
 
-        {/* Bloc central */}
-        <div className="flex flex-col items-center text-center">
-          <h1 className="text-6xl font-light tracking-tight drop-shadow-lg sm:text-7xl">
+        {/* Bloc central : Kerbrise + sous-titre + bouton */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pb-40">
+          <h1 className="text-6xl sm:text-7xl font-light text-white tracking-tight drop-shadow-lg">
             Kerbrise
           </h1>
-          <div className="mx-auto mt-4 h-px w-16 bg-white/60" />
-          <p className="mt-6 max-w-xs text-lg font-light leading-relaxed text-white/90">
+          <div className="w-16 h-px bg-white/60 my-5" />
+          <p className="text-white/90 text-base mb-10 drop-shadow">
             La maison familiale du Val
           </p>
-          <a
+          <Link
             href="/login"
-            className="mt-10 rounded-full border border-white/40 bg-white/10 px-8 py-3 text-sm font-medium tracking-wide backdrop-blur-sm transition hover:bg-white/20"
+            className="inline-block px-10 py-3.5 rounded-full bg-white/90 text-slate-900 font-medium hover:bg-white transition shadow-lg backdrop-blur-sm"
           >
             Se connecter
-          </a>
-
+          </Link>
         </div>
 
-        {/* Footer dynamique depuis Supabase */}
-        <FamiliesFooter />
+        {/* Noms en bas */}
+        <p className="text-center text-white/80 text-xs tracking-[0.3em] uppercase pb-12">
+          Antoine · François · Vincent
+        </p>
       </div>
     </main>
   );
