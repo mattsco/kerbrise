@@ -10,13 +10,29 @@ import {
   CheckCircle2,
   Users,
   AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Info,
 } from "lucide-react";
 import {
   toggleFamilyHead,
   simulateApprovals,
 } from "./actions";
 
-export default async function AdminPage() {
+type SearchParams = Promise<{
+  status?: string;
+  message?: string;
+}>;
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const status = params.status;
+  const message = params.message;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -60,7 +76,6 @@ export default async function AdminPage() {
   const { data: authUsers } = await adminClient.auth.admin.listUsers();
   const allAuthUsers = authUsers?.users ?? [];
 
-  // Mappe avec la table users pour avoir display_name + family
   const { data: dbUsers } = await supabase
     .from("users")
     .select("id, email, display_name, families(name, color)");
@@ -107,6 +122,11 @@ export default async function AdminPage() {
             Tu es le seul à voir cette page.
           </p>
         </div>
+
+        {/* Encart de feedback */}
+        {status && message && (
+          <FeedbackBanner status={status} message={decodeURIComponent(message)} />
+        )}
 
         {/* Stats rapides */}
         <div className="grid grid-cols-3 gap-3">
@@ -181,7 +201,6 @@ export default async function AdminPage() {
             👥 Adoption des comptes
           </h2>
 
-          {/* Jamais connectés */}
           <div className="mb-5">
             <h3 className="text-sm font-medium text-red-700 mb-2 flex items-center gap-1.5">
               ⚪ Jamais connecté{neverConnected.length > 1 ? "s" : ""} ({neverConnected.length})
@@ -214,7 +233,6 @@ export default async function AdminPage() {
             )}
           </div>
 
-          {/* Connectés */}
           <div>
             <h3 className="text-sm font-medium text-emerald-700 mb-2">
               ✅ Connectés ({connected.length})
@@ -298,6 +316,52 @@ export default async function AdminPage() {
       </div>
     </main>
   );
+}
+
+function FeedbackBanner({ status, message }: { status: string; message: string }) {
+  if (status === "success") {
+    return (
+      <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl p-4 flex items-start gap-3">
+        <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-sm font-medium">{message}</div>
+        <Link
+          href="/dashboard/admin"
+          className="text-xs text-emerald-700 hover:underline flex-shrink-0"
+        >
+          OK
+        </Link>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-900 rounded-2xl p-4 flex items-start gap-3">
+        <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-sm font-medium">{message}</div>
+        <Link
+          href="/dashboard/admin"
+          className="text-xs text-red-700 hover:underline flex-shrink-0"
+        >
+          OK
+        </Link>
+      </div>
+    );
+  }
+  if (status === "info") {
+    return (
+      <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-2xl p-4 flex items-start gap-3">
+        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-sm font-medium">{message}</div>
+        <Link
+          href="/dashboard/admin"
+          className="text-xs text-blue-700 hover:underline flex-shrink-0"
+        >
+          OK
+        </Link>
+      </div>
+    );
+  }
+  return null;
 }
 
 function StatCard({
