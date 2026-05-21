@@ -10,6 +10,7 @@ import {
   LogOut,
   AlertCircle,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 
 function parseLocalDate(iso: string): Date {
