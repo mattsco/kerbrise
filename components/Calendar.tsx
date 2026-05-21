@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import BookingDetailModal from "./BookingDetailModal";
 import NewBookingModal from "./NewBookingModal";
+import { getHolidaysInRange } from "@/lib/holidays";
 
 type CalendarEvent = {
   id: string;
@@ -53,6 +54,11 @@ function dayIndex(d: Date) {
   return (d.getDay() + 6) % 7;
 }
 
+// True si l'indice est samedi (5) ou dimanche (6)
+function isWeekendIndex(i: number) {
+  return i === 5 || i === 6;
+}
+
 export default function Calendar({
   events,
   currentUserId,
@@ -62,7 +68,6 @@ export default function Calendar({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Premier mois affiché : le mois courant par défaut
   const [anchorMonth, setAnchorMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
@@ -73,9 +78,24 @@ export default function Calendar({
     end: string;
   } | null>(null);
 
-  // Sélection de plage (drag/tap)
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [hoverDate, setHoverDate] = useState<string | null>(null);
+
+  // Calcule les 3 mois affichés
+  const months: Date[] = [];
+  for (let i = 0; i < 3; i++) {
+    months.push(new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() + i, 1));
+  }
+
+  // Pré-calcule les jours fériés des 3 mois (mémoïsé)
+  const holidaySet = useMemo(() => {
+    const startMonth = months[0];
+    const endMonth = months[months.length - 1];
+    const startISO = dateToISO(new Date(startMonth.getFullYear(), startMonth.getMonth(), 1));
+    const endISO = dateToISO(new Date(endMonth.getFullYear(), endMonth.getMonth() + 1, 0));
+    const list = getHolidaysInRange(startISO, endISO);
+    return new Set(list.map((h) => h.date));
+  }, [anchorMonth]);
 
   function goPrevMonth() {
     setAnchorMonth(new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() - 1, 1));
@@ -88,20 +108,17 @@ export default function Calendar({
   }
 
   function handleDayClick(dateStr: string, hasEvent: boolean, eventBookingId?: string) {
-    // Si l'utilisateur a cliqué sur un événement, ouvre la modale détail
     if (hasEvent && eventBookingId) {
       setSelectedBookingId(eventBookingId);
       setRangeStart(null);
       return;
     }
 
-    // Sinon, gestion de la sélection de plage
     if (!rangeStart) {
       setRangeStart(dateStr);
       return;
     }
 
-    // 2e clic : ouvre la modale nouvelle demande
     const start = rangeStart < dateStr ? rangeStart : dateStr;
     const end = rangeStart < dateStr ? dateStr : rangeStart;
     setNewBookingRange({ start, end });
@@ -126,12 +143,6 @@ export default function Calendar({
     const min = rangeStart < end ? rangeStart : end;
     const max = rangeStart < end ? end : rangeStart;
     return dateStr >= min && dateStr <= max;
-  }
-
-  // Génère les 3 mois affichés
-  const months: Date[] = [];
-  for (let i = 0; i < 3; i++) {
-    months.push(new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() + i, 1));
   }
 
   return (
@@ -199,7 +210,7 @@ export default function Calendar({
         </div>
       )}
 
-      {/* Grille des mois (1 col mobile, 2 cols ≥ lg) */}
+      {/* Grille des mois */}
       <div className="grid gap-6 lg:grid-cols-2">
         {months.map((monthDate, idx) => (
           <MonthGrid
@@ -212,6 +223,7 @@ export default function Calendar({
             isInSelection={isInSelection}
             onDayClick={handleDayClick}
             onDayHover={handleDayHover}
+            holidaySet={holidaySet}
           />
         ))}
       </div>
@@ -252,6 +264,7 @@ type MonthGridProps = {
   isInSelection: (dateStr: string) => boolean;
   onDayClick: (dateStr: string, hasEvent: boolean, eventBookingId?: string) => void;
   onDayHover: (dateStr: string) => void;
+  holidaySet: Set<string>;
 };
 
 function MonthGrid({
@@ -261,6 +274,7 @@ function MonthGrid({
   isInSelection,
   onDayClick,
   onDayHover,
+  holidaySet,
 }: MonthGridProps) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -270,7 +284,6 @@ function MonthGrid({
   const daysInMonth = lastDayOfMonth.getDate();
   const totalCells = Math.ceil((offsetStart + daysInMonth) / 7) * 7;
 
-  // Renvoie TOUS les events qui couvrent cette date
   function getEventsForDay(dateStr: string): CalendarEvent[] {
     return events.filter(
       (e) => dateStr >= e.start_date && dateStr <= e.end_date
@@ -279,24 +292,23 @@ function MonthGrid({
 
   return (
     <div>
-      {/* Nom du mois */}
       <h3 className="text-base font-semibold text-slate-900 mb-3 text-center">
         {FRENCH_MONTHS[month]} {year}
       </h3>
 
-      {/* Entêtes jours de semaine */}
       <div className="grid grid-cols-7 mb-1">
-        {FRENCH_DAYS_SHORT.map((d) => (
+        {FRENCH_DAYS_SHORT.map((d, i) => (
           <div
             key={d}
-            className="text-xs font-medium text-slate-500 text-center py-1"
+            className={`text-xs font-medium text-center py-1 ${
+              isWeekendIndex(i) ? "text-slate-400" : "text-slate-500"
+            }`}
           >
             {d}
           </div>
         ))}
       </div>
 
-      {/* Cellules */}
       <div className="grid grid-cols-7 gap-y-1">
         {Array.from({ length: totalCells }).map((_, i) => {
           const dayNum = i - offsetStart + 1;
@@ -312,7 +324,13 @@ function MonthGrid({
           const isPast = date < today;
           const isSelected = isInSelection(dateStr);
 
-          // Détection du pivot : 2 events ce même jour, l'un finit, l'autre commence
+          // Position dans la semaine (0=lundi, 6=dimanche)
+          const weekIndex = i % 7;
+          const isWeekend = isWeekendIndex(weekIndex);
+          const isHoliday = holidaySet.has(dateStr);
+          const isSpecialDay = isWeekend || isHoliday;
+
+          // Pivot detection
           const endingEvent = dayEvents.find((e) => e.end_date === dateStr);
           const startingEvent = dayEvents.find((e) => e.start_date === dateStr);
           const isPivot =
@@ -320,13 +338,10 @@ function MonthGrid({
             !!startingEvent &&
             endingEvent.bookingId !== startingEvent.bookingId;
 
-          // Event principal à afficher (cas non-pivot)
           const mainEvent = dayEvents[0];
 
-          // Click handler : si pivot, on a 2 events possibles
           function handleClick() {
             if (isPivot && startingEvent) {
-              // Sur un pivot, on ouvre l'event qui commence (le plus actionnable)
               onDayClick(dateStr, true, startingEvent.bookingId);
             } else if (mainEvent) {
               onDayClick(dateStr, true, mainEvent.bookingId);
@@ -338,7 +353,10 @@ function MonthGrid({
           return (
             <div
               key={i}
-              className="h-14 relative cursor-pointer"
+              className={`
+                h-14 relative cursor-pointer rounded
+                ${isSpecialDay && !isSelected ? "bg-slate-100/70" : ""}
+              `}
               onClick={handleClick}
               onMouseEnter={() => onDayHover(dateStr)}
               onTouchStart={() => onDayHover(dateStr)}
@@ -364,9 +382,7 @@ function MonthGrid({
               {/* === RENDU DES EVENTS === */}
 
               {isPivot && endingEvent && startingEvent ? (
-                // Cas pivot : 2 demi-barres
                 <>
-                  {/* Gauche : famille qui finit */}
                   <div
                     className={`
                       absolute bottom-1 left-0 w-1/2 h-6
@@ -382,7 +398,6 @@ function MonthGrid({
                       marginRight: 1,
                     }}
                   />
-                  {/* Droite : famille qui commence */}
                   <div
                     className={`
                       absolute bottom-1 right-0 w-1/2 h-6 text-[11px] text-white font-medium
@@ -406,7 +421,6 @@ function MonthGrid({
                   </div>
                 </>
               ) : mainEvent ? (
-                // Cas normal : barre simple
                 (() => {
                   const isFirstOfEvent = mainEvent.start_date === dateStr;
                   const isLastOfEvent = mainEvent.end_date === dateStr;
