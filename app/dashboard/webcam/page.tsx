@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import NestCamera from "@/components/NestCamera";
+import BackButton from "@/components/BackButton";
 
 export default async function WebcamPage() {
   const supabase = await createClient();
@@ -16,12 +17,7 @@ export default async function WebcamPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-4 sm:p-6">
-        <Link
-          href="/dashboard"
-          className="text-sm text-slate-600 hover:text-slate-900"
-        >
-          ← Tableau de bord
-        </Link>
+        <BackButton />
         <h1 className="text-2xl sm:text-3xl font-bold mt-2 mb-4">
           Webcam Kerbrise 🌊
         </h1>
