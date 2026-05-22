@@ -16,7 +16,7 @@ export default async function CalendrierPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("family_id, is_family_head")
+    .select("family_id, is_family_head, is_calendar_admin")
     .eq("id", user.id)
     .single();
 
@@ -52,18 +52,29 @@ export default async function CalendrierPage() {
         <BackButton />
         <h1 className="text-2xl sm:text-3xl font-bold mt-2 mb-4">
           Calendrier
+          {profile.is_calendar_admin && (
+            <span className="ml-2 text-xs sm:text-sm font-normal text-purple-700 bg-purple-100 px-2 py-1 rounded-full align-middle">
+              🛡️ Admin
+            </span>
+          )}
         </h1>
         <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
           <p className="text-xs text-slate-500 mb-4">
             💡 Touche un jour pour commencer une sélection, puis touche un
             second jour pour créer une demande. Touche une réservation pour
             voir les détails.
+            {profile.is_calendar_admin && (
+              <span className="block mt-1 text-purple-700">
+                🛡️ Mode admin actif : tu peux modifier ou supprimer n'importe quel séjour.
+              </span>
+            )}
           </p>
           <Calendar
             events={events}
             currentUserId={user.id}
             currentFamilyId={profile.family_id}
             isFamilyHead={profile.is_family_head}
+            isCalendarAdmin={profile.is_calendar_admin ?? false}
           />
         </div>
       </div>
