@@ -24,12 +24,41 @@ export default function AdminBookingForm({
 }) {
   const [familyId, setFamilyId] = useState(families[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  // Filtre les users selon la famille sélectionnée
   const filteredUsers = users.filter((u) => u.family_id === familyId);
 
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+    setFeedback(null);
+
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+    const result = await adminCreateBooking(formData);
+
+    setSubmitting(false);
+
+    if (result?.success) {
+      setFeedback({
+        type: "success",
+        message: result.message || "✅ Réservation créée avec succès",
+      });
+      formEl.reset();
+      setFamilyId(families[0]?.id ?? "");
+    } else {
+      setFeedback({
+        type: "error",
+        message: result?.error || "Une erreur est survenue",
+      });
+    }
+  }
+
   return (
-    <form action={adminCreateBooking} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {/* Dates */}
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -79,7 +108,7 @@ export default function AdminBookingForm({
         </select>
       </div>
 
-      {/* Auteur */}
+      {/* Créateur */}
       <div>
         <label className="block text-xs font-medium text-slate-700 mb-1.5">
           Créateur (au nom de qui)
@@ -110,8 +139,8 @@ export default function AdminBookingForm({
           name="status"
           required
           disabled={submitting}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white"
           defaultValue="approved"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 bg-white"
         >
           <option value="approved">Approuvé (validé directement)</option>
           <option value="pending">En attente (workflow normal)</option>
@@ -122,10 +151,22 @@ export default function AdminBookingForm({
         🛡️ Création admin : aucun email ne sera envoyé.
       </div>
 
+      {/* Feedback */}
+      {feedback && (
+        <div
+          className={`rounded-lg border p-3 text-sm ${
+            feedback.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+              : "bg-red-50 border-red-200 text-red-900"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={submitting}
-        onClick={() => setSubmitting(true)}
         className="w-full rounded-lg bg-purple-700 text-white py-2.5 font-medium hover:bg-purple-800 disabled:opacity-50 transition"
       >
         {submitting ? "Création..." : "Créer la réservation"}
