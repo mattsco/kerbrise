@@ -29,17 +29,28 @@ export default function ChangePasswordForm() {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({
+    
+    // 1. Met à jour le mot de passe dans auth.users
+    const { error: pwError } = await supabase.auth.updateUser({
       password: newPassword,
     });
 
-    setSubmitting(false);
-
-    if (error) {
-      setErrorMsg("Erreur : " + error.message);
+    if (pwError) {
+      setSubmitting(false);
+      setErrorMsg("Erreur : " + pwError.message);
       return;
     }
 
+    // 2. Marque password_changed = true dans public.users
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from("users")
+        .update({ password_changed: true })
+        .eq("id", user.id);
+    }
+
+    setSubmitting(false);
     setSuccess(true);
     setNewPassword("");
     setConfirmPassword("");
