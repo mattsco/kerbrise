@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import {
   toggleFamilyHead,
   simulateApprovals,
-  toggleCalendarAdmin,  // ← nouveau
+  toggleCalendarAdmin,  
 } from "./actions";
 import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
@@ -21,10 +21,6 @@ import {
   XCircle,
   Info,
 } from "lucide-react";
-import {
-  toggleFamilyHead,
-  simulateApprovals,
-} from "./actions";
 
 type SearchParams = Promise<{
   status?: string;
