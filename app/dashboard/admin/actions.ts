@@ -21,6 +21,23 @@ async function checkAdmin() {
   return user;
 }
 
+async function checkCalendarAdmin() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("is_calendar_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_calendar_admin) throw new Error("Not calendar admin");
+  return user;
+}
+
 // Toggle chef de famille
 export async function toggleFamilyHead() {
   try {
@@ -153,7 +170,7 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
 // Création admin d'une réservation (sans email)
 export async function adminCreateBooking(formData: FormData) {
   try {
-    await checkAdmin();
+    await checkCalendarAdmin();
     const supabase = await createClient();
 
     const startDate = formData.get("start_date") as string;
@@ -201,19 +218,63 @@ export async function adminCreateBooking(formData: FormData) {
   }
 }
 
-// Suppression admin
-export async function adminDeleteBooking(bookingId: string) {
+// Modification admin d'une réservation (sans email)
+export async function adminUpdateBooking(
+  bookingId: string,
+  newStart: string,
+  newEnd: string
+) {
   try {
-    await checkAdmin();
+    await checkCalendarAdmin();
     const supabase = await createClient();
 
-    // Marquer comme admin_created pour bypass les triggers de la suppression
+    if (!bookingId || !newStart || !newEnd) {
+      return { success: false, error: "Paramètres manquants" };
+    }
+
+    if (new Date(newEnd) < new Date(newStart)) {
+      return {
+        success: false,
+        error: "La date de fin doit être après la date de début.",
+      };
+    }
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        start_date: newStart,
+        end_date: newEnd,
+        is_admin_created: true, // bypass triggers/emails
+      })
+      .eq("id", bookingId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/calendrier");
+    revalidatePath("/dashboard/demandes");
+
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e?.message ?? "Erreur inconnue" };
+  }
+}
+
+// Suppression admin (hard delete)
+export async function adminDeleteBooking(bookingId: string) {
+  try {
+    await checkCalendarAdmin();
+    const supabase = await createClient();
+
+    // Marquer comme admin_created pour bypass les triggers AVANT delete
     await supabase
       .from("bookings")
       .update({ is_admin_created: true })
       .eq("id", bookingId);
 
-    // D'abord supprime les approvals associées
+    // Supprime d'abord les approvals (FK)
     await supabase.from("approvals").delete().eq("booking_id", bookingId);
 
     // Puis le booking
