@@ -14,6 +14,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
+// Date de lancement officiel — toute donnée < cette date est considérée comme historique
+const LAUNCH_DATE = "2026-05-22";
+
 export default async function AdminAnalyticsPage() {
   const supabase = await createClient();
   const {
@@ -95,18 +98,18 @@ export default async function AdminAnalyticsPage() {
   const stillDefaultPassword = users.filter(
     (u) => !u.last_sign_in_at || !u.password_changed
   );
-
-  // Inactifs depuis longtemps (créé un compte mais pas vu depuis 30 jours)
   const ghostUsers = users.filter(
     (u) =>
       u.last_sign_in_at &&
       (!u.last_seen_at || new Date(u.last_seen_at).getTime() < oneMonthAgo)
   );
 
-  // Engagement : top créateurs de séjours
+  // Engagement : top créateurs (depuis le lancement, hors imports admin)
   const { data: bookingsByUser } = await supabase
     .from("bookings")
-    .select("created_by, users:created_by(display_name)");
+    .select("created_by, users:created_by(display_name)")
+    .gt("created_at", LAUNCH_DATE)
+    .eq("is_admin_created", false);
 
   const bookingCounts: Record<string, { name: string; count: number }> = {};
   for (const b of bookingsByUser ?? []) {
@@ -119,23 +122,35 @@ export default async function AdminAnalyticsPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  // Engagement : top approbateurs
-  const { data: approvalsByUser } = await supabase
-    .from("approvals")
-    .select("decided_by, users:decided_by(display_name)");
+  // Engagement : top approbateurs (uniquement sur bookings non-historiques)
+  const { data: postLaunchBookings } = await supabase
+    .from("bookings")
+    .select("id")
+    .gt("created_at", LAUNCH_DATE)
+    .eq("is_admin_created", false);
 
-  const approvalCounts: Record<string, { name: string; count: number }> = {};
-  for (const a of approvalsByUser ?? []) {
-    const id = (a as any).decided_by;
-    const name = (a as any).users?.display_name ?? "?";
-    if (!approvalCounts[id]) approvalCounts[id] = { name, count: 0 };
-    approvalCounts[id].count += 1;
+  const postLaunchBookingIds = (postLaunchBookings ?? []).map((b: any) => b.id);
+
+  let topApprovers: Array<{ name: string; count: number }> = [];
+  if (postLaunchBookingIds.length > 0) {
+    const { data: approvalsByUser } = await supabase
+      .from("approvals")
+      .select("decided_by, users:decided_by(display_name)")
+      .in("booking_id", postLaunchBookingIds);
+
+    const approvalCounts: Record<string, { name: string; count: number }> = {};
+    for (const a of approvalsByUser ?? []) {
+      const id = (a as any).decided_by;
+      const name = (a as any).users?.display_name ?? "?";
+      if (!approvalCounts[id]) approvalCounts[id] = { name, count: 0 };
+      approvalCounts[id].count += 1;
+    }
+    topApprovers = Object.values(approvalCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
   }
-  const topApprovers = Object.values(approvalCounts)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
 
-  // Tendance : bookings créés ces 6 derniers mois
+  // Tendance : bookings créés ces 6 derniers mois (hors imports admin)
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
@@ -144,6 +159,8 @@ export default async function AdminAnalyticsPage() {
   const { data: recentBookings } = await supabase
     .from("bookings")
     .select("created_at")
+    .gt("created_at", LAUNCH_DATE)
+    .eq("is_admin_created", false)
     .gte("created_at", sixMonthsAgo.toISOString());
 
   const bookingsByMonth: Record<string, number> = {};
@@ -165,6 +182,12 @@ export default async function AdminAnalyticsPage() {
   }));
   const maxMonthly = Math.max(...monthlyData.map((m) => m.count), 1);
 
+  // Compteur d'imports historiques (pour info)
+  const { count: historicalCount } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .eq("is_admin_created", true);
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
@@ -174,13 +197,17 @@ export default async function AdminAnalyticsPage() {
             📊 App Analytics
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Activité, adoption et engagement des utilisateurs.
+            Activité, adoption et engagement depuis le lancement (
+            {new Date(LAUNCH_DATE).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+            ).
           </p>
         </div>
 
-        {/* ============================================ */}
-        {/* SECTION 1 : ACTIVITÉ                          */}
-        {/* ============================================ */}
+        {/* SECTION 1 : ACTIVITÉ */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <Activity className="w-5 h-5 text-emerald-600" />
@@ -245,16 +272,13 @@ export default async function AdminAnalyticsPage() {
           )}
         </section>
 
-        {/* ============================================ */}
-        {/* SECTION 2 : ADOPTION (déplacé)                */}
-        {/* ============================================ */}
+        {/* SECTION 2 : ADOPTION */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
             Adoption des comptes
           </h2>
 
-          {/* Bandeau kerbrise2026 */}
           {stillDefaultPassword.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
               <KeyRound className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
@@ -271,7 +295,6 @@ export default async function AdminAnalyticsPage() {
             </div>
           )}
 
-          {/* Jamais connectés */}
           <div className="mb-5">
             <h3 className="text-sm font-medium text-red-700 mb-2 flex items-center gap-1.5">
               ⚪ Jamais connecté
@@ -305,7 +328,6 @@ export default async function AdminAnalyticsPage() {
             )}
           </div>
 
-          {/* Connectés */}
           <div>
             <h3 className="text-sm font-medium text-emerald-700 mb-2">
               ✅ Connectés au moins une fois ({connected.length})
@@ -358,7 +380,6 @@ export default async function AdminAnalyticsPage() {
             </ul>
           </div>
 
-          {/* Ghost users (connectés mais pas vus depuis 30j) */}
           {ghostUsers.length > 0 && (
             <div className="mt-5">
               <h3 className="text-sm font-medium text-slate-600 mb-2">
@@ -389,23 +410,22 @@ export default async function AdminAnalyticsPage() {
           )}
         </section>
 
-        {/* ============================================ */}
-        {/* SECTION 3 : ENGAGEMENT                        */}
-        {/* ============================================ */}
+        {/* SECTION 3 : ENGAGEMENT */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-amber-600" />
             Engagement
           </h2>
 
-          {/* Top créateurs */}
           <div className="mb-5">
             <h3 className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-blue-500" />
               Top créateurs de séjours
             </h3>
             {topCreators.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">Aucun séjour créé.</p>
+              <p className="text-xs text-slate-500 italic">
+                Aucun séjour créé depuis le lancement.
+              </p>
             ) : (
               <ul className="space-y-1.5">
                 {topCreators.map((c, i) => (
@@ -428,7 +448,6 @@ export default async function AdminAnalyticsPage() {
             )}
           </div>
 
-          {/* Top approbateurs */}
           <div>
             <h3 className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
               <Crown className="w-4 h-4 text-amber-500" />
@@ -436,7 +455,7 @@ export default async function AdminAnalyticsPage() {
             </h3>
             {topApprovers.length === 0 ? (
               <p className="text-xs text-slate-500 italic">
-                Aucune décision encore.
+                Aucune décision encore depuis le lancement.
               </p>
             ) : (
               <ul className="space-y-1.5">
@@ -461,9 +480,7 @@ export default async function AdminAnalyticsPage() {
           </div>
         </section>
 
-        {/* ============================================ */}
-        {/* SECTION 4 : TENDANCE                          */}
-        {/* ============================================ */}
+        {/* SECTION 4 : TENDANCE */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-purple-600" />
@@ -501,7 +518,10 @@ export default async function AdminAnalyticsPage() {
         </section>
 
         <p className="text-xs text-slate-400 text-center pt-2 pb-6">
-          Données calculées en temps réel · activité trackée avec un délai max de 15 min
+          Données depuis le lancement ({LAUNCH_DATE}) · ✨ {historicalCount ?? 0} séjour
+          {(historicalCount ?? 0) > 1 ? "s" : ""} historique
+          {(historicalCount ?? 0) > 1 ? "s" : ""} importé
+          {(historicalCount ?? 0) > 1 ? "s" : ""} (non comptés)
         </p>
       </div>
     </main>
@@ -551,7 +571,7 @@ function formatRelative(date: Date): string {
 }
 
 function formatMonthLabel(key: string): string {
-  const [y, m] = key.split("-");
+  const [, m] = key.split("-");
   const months = [
     "Jan",
     "Fév",
