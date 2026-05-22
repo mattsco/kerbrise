@@ -89,7 +89,7 @@ export async function toggleCalendarAdmin() {
   }
 }
 
-// Simuler l'approbation d'une famille pour toutes les pending
+// Simuler l'approbation d'une famille pour toutes les demandes pending
 export async function simulateApprovals(familyName: "François" | "Vincent") {
   try {
     await checkAdmin();
@@ -159,37 +159,76 @@ export async function adminCreateBooking(formData: FormData) {
     const startDate = formData.get("start_date") as string;
     const endDate = formData.get("end_date") as string;
     const familyId = formData.get("family_id") as string;
-    const authorId = formData.get("author_id") as string;
+    const createdBy = formData.get("author_id") as string;
     const statusInput = formData.get("status") as string;
     const status = statusInput === "approved" ? "approved" : "pending";
 
-    if (!startDate || !endDate || !familyId || !authorId) {
-      throw new Error("Tous les champs sont requis");
+    if (!startDate || !endDate || !familyId || !createdBy) {
+      return { success: false, error: "Tous les champs sont requis" };
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("bookings")
       .insert({
         family_id: familyId,
-        author_id: authorId,
+        created_by: createdBy,
         start_date: startDate,
         end_date: endDate,
         status: status,
-        is_admin_created: true, // ← bypass triggers
-      });
+        is_admin_created: true,
+      })
+      .select()
+      .single();
 
-    if (error) throw error;
+    if (error) {
+      return { success: false, error: error.message };
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/admin");
     revalidatePath("/dashboard/calendrier");
     revalidatePath("/dashboard/demandes");
 
-    const message = `✅ Réservation créée du ${startDate} au ${endDate}`;
-    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(message)}`);
+    return {
+      success: true,
+      message: `✅ Réservation créée du ${startDate} au ${endDate}`,
+    };
   } catch (e: any) {
-    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
-    const msg = e?.message ?? "Erreur inconnue";
-    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+    return {
+      success: false,
+      error: e?.message ?? "Erreur inconnue",
+    };
+  }
+}
+
+// Suppression admin
+export async function adminDeleteBooking(bookingId: string) {
+  try {
+    await checkAdmin();
+    const supabase = await createClient();
+
+    // Marquer comme admin_created pour bypass les triggers de la suppression
+    await supabase
+      .from("bookings")
+      .update({ is_admin_created: true })
+      .eq("id", bookingId);
+
+    // D'abord supprime les approvals associées
+    await supabase.from("approvals").delete().eq("booking_id", bookingId);
+
+    // Puis le booking
+    const { error } = await supabase
+      .from("bookings")
+      .delete()
+      .eq("id", bookingId);
+    if (error) throw error;
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/calendrier");
+    revalidatePath("/dashboard/demandes");
+
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e?.message };
   }
 }
