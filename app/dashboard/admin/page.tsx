@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServerClient } from "@supabase/ssr";
+import {
+  toggleFamilyHead,
+  simulateApprovals,
+  toggleCalendarAdmin,  // ← nouveau
+} from "./actions";
 import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
 
@@ -46,7 +51,7 @@ export default async function AdminPage({
 
   const { data: profile } = await supabase
     .from("users")
-    .select("is_admin, is_family_head")
+    .select("is_admin, is_family_head, is_calendar_admin")
     .eq("id", user.id)
     .single();
 
@@ -155,6 +160,24 @@ export default async function AdminPage({
               </span>
               <span className="text-xs text-blue-700">
                 {profile.is_family_head ? "actuel : chef" : "actuel : membre"}
+              </span>
+            </button>
+          </form>
+
+{/* Toggle calendar admin */}
+          <form action={toggleCalendarAdmin}>
+            <button
+              type="submit"
+              className="w-full flex items-center gap-3 bg-purple-50 border border-purple-200 text-purple-900 rounded-xl p-3 text-sm font-medium hover:bg-purple-100 transition"
+            >
+              <span className="text-lg">🛡️</span>
+              <span className="flex-1 text-left">
+                {profile.is_calendar_admin
+                  ? "Désactiver mode Admin Calendrier"
+                  : "Activer mode Admin Calendrier"}
+              </span>
+              <span className="text-xs text-purple-700">
+                {profile.is_calendar_admin ? "actuel : ACTIF" : "actuel : inactif"}
               </span>
             </button>
           </form>
