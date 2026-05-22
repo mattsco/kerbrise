@@ -20,6 +20,7 @@ import {
   CheckCircle,
   XCircle,
   Info,
+  KeyRound,
 } from "lucide-react";
 
 type SearchParams = Promise<{
@@ -51,7 +52,7 @@ export default async function AdminPage({
     .eq("id", user.id)
     .single();
 
-// Familles + users pour la modal admin
+  // Familles + users pour la modal admin
   const { data: families } = await supabase
     .from("families")
     .select("id, name, color")
@@ -92,7 +93,7 @@ export default async function AdminPage({
 
   const { data: dbUsers } = await supabase
     .from("users")
-    .select("id, email, display_name, families(name, color)");
+    .select("id, email, display_name, password_changed, families(name, color)");
 
   type UserRow = {
     id: string;
@@ -101,6 +102,7 @@ export default async function AdminPage({
     family_name: string;
     family_color: string;
     last_sign_in_at: string | null;
+    password_changed: boolean;
   };
 
   const usersWithStatus: UserRow[] = (dbUsers ?? []).map((u: any) => {
@@ -112,11 +114,19 @@ export default async function AdminPage({
       family_name: u.families?.name ?? "?",
       family_color: u.families?.color ?? "#888",
       last_sign_in_at: authMatch?.last_sign_in_at ?? null,
+      password_changed: u.password_changed ?? false,
     };
   });
 
   const neverConnected = usersWithStatus.filter((u) => !u.last_sign_in_at);
   const connected = usersWithStatus.filter((u) => u.last_sign_in_at);
+  
+  // Count des users encore avec kerbrise2026 :
+  // - jamais connectés (forcément kerbrise2026)
+  // - OU connectés mais qui n'ont jamais changé leur mot de passe
+  const stillDefaultPassword = usersWithStatus.filter(
+    (u) => !u.last_sign_in_at || !u.password_changed
+  );
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -171,7 +181,7 @@ export default async function AdminPage({
             </button>
           </form>
 
-{/* Toggle calendar admin */}
+          {/* Toggle calendar admin */}
           <form action={toggleCalendarAdmin}>
             <button
               type="submit"
@@ -222,8 +232,7 @@ export default async function AdminPage({
           </form>
         </section>
 
-
-{/* Section : ajout admin de séjour (visible seulement en mode admin calendrier) */}
+        {/* Section : ajout admin de séjour (visible seulement en mode admin calendrier) */}
         {profile.is_calendar_admin && (
           <section className="bg-white rounded-2xl border border-purple-200 p-5 space-y-3">
             <div>
@@ -241,12 +250,28 @@ export default async function AdminPage({
           </section>
         )}
 
-
         {/* Section : tracking adoption */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             👥 Adoption des comptes
           </h2>
+
+          {/* Compteur global mots de passe défaut */}
+          {stillDefaultPassword.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+              <KeyRound className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 text-xs">
+                <p className="font-medium text-amber-900">
+                  {stillDefaultPassword.length} compte{stillDefaultPassword.length > 1 ? "s" : ""}{" "}
+                  utilise{stillDefaultPassword.length > 1 ? "nt" : ""} encore{" "}
+                  <code className="bg-amber-100 px-1 rounded">kerbrise2026</code>
+                </p>
+                <p className="text-amber-700 mt-0.5">
+                  Inclut les jamais-connectés et ceux qui n'ont jamais changé leur mot de passe.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="mb-5">
             <h3 className="text-sm font-medium text-red-700 mb-2 flex items-center gap-1.5">
@@ -304,6 +329,15 @@ export default async function AdminPage({
                     <span className="font-medium text-slate-900">
                       {u.display_name ?? "?"}
                     </span>
+                    {!u.password_changed && (
+                      <span 
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
+                        title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
+                      >
+                        <KeyRound className="w-2.5 h-2.5" />
+                        kerbrise2026
+                      </span>
+                    )}
                     <span className="text-xs text-slate-500 truncate">
                       {u.email}
                     </span>
