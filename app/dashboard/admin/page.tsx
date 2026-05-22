@@ -7,7 +7,7 @@ import {
 } from "./actions";
 import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
-import { AdminBookingForm } from "./AdminBookingForm";
+import AdminBookingForm from "@/components/AdminBookingForm";
 import Link from "next/link";
 import {
   Database,
