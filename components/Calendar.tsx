@@ -20,6 +20,7 @@ type Props = {
   currentUserId: string;
   currentFamilyId: string;
   isFamilyHead: boolean;
+  isCalendarAdmin?: boolean;
 };
 
 const FRENCH_MONTHS = [
@@ -64,6 +65,7 @@ export default function Calendar({
   currentUserId,
   currentFamilyId,
   isFamilyHead,
+  isCalendarAdmin = false,
 }: Props) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -234,6 +236,7 @@ export default function Calendar({
           currentUserId={currentUserId}
           currentFamilyId={currentFamilyId}
           isFamilyHead={isFamilyHead}
+          isCalendarAdmin={isCalendarAdmin}
           onClose={() => setSelectedBookingId(null)}
         />
       )}
