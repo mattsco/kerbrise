@@ -34,6 +34,8 @@ const FRENCH_MONTHS_SHORT = [
   "Déc",
 ];
 
+const MIN_YEAR = 2015;
+
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 function parseLocalDate(iso: string): Date {
@@ -51,7 +53,10 @@ function dateToISO(d: Date): string {
 function daysBetween(startISO: string, endISO: string): number {
   const start = parseLocalDate(startISO);
   const end = parseLocalDate(endISO);
-  return Math.floor((end.getTime() - start.getTime()) / MS_PER_DAY) + 1;
+
+  return (
+    Math.floor((end.getTime() - start.getTime()) / MS_PER_DAY) + 1
+  );
 }
 
 function daysInRange(
@@ -62,6 +67,7 @@ function daysInRange(
 ): number {
   const start = parseLocalDate(startISO);
   const end = parseLocalDate(endISO);
+
   const rangeStart = parseLocalDate(rangeStartISO);
   const rangeEnd = parseLocalDate(rangeEndISO);
 
@@ -69,7 +75,12 @@ function daysInRange(
   const overlapEnd = end < rangeEnd ? end : rangeEnd;
 
   if (overlapStart > overlapEnd) return 0;
-  return Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / MS_PER_DAY) + 1;
+
+  return (
+    Math.floor(
+      (overlapEnd.getTime() - overlapStart.getTime()) / MS_PER_DAY
+    ) + 1
+  );
 }
 
 type BookingRow = {
@@ -94,6 +105,7 @@ type MonthStats = {
   label: string;
   families: Record<string, number>;
   total: number;
+  pct: number;
 };
 
 export default async function StatsPage({
@@ -104,49 +116,82 @@ export default async function StatsPage({
   const params = await searchParams;
 
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) {
+    redirect("/login");
+  }
 
-  const now = new Date();
+  const currentYear = new Date().getFullYear();
 
-  const rawYear = Array.isArray(params?.year) ? params.year[0] : params?.year;
+  const rawYear = Array.isArray(params?.year)
+    ? params.year[0]
+    : params?.year;
+
   const parsedYear = Number(rawYear);
 
-  const year = Number.isFinite(parsedYear) ? parsedYear : now.getFullYear();
+  let year = Number.isFinite(parsedYear)
+    ? parsedYear
+    : currentYear;
+
+  if (year < MIN_YEAR) year = MIN_YEAR;
+  if (year > currentYear) year = currentYear;
 
   const startOfYear = `${year}-01-01`;
   const endOfYear = `${year}-12-31`;
 
-  const daysInYear = Math.round(
-    (new Date(year + 1, 0, 1).getTime() - new Date(year, 0, 1).getTime()) / MS_PER_DAY
-  );
+  const daysInYear =
+    year % 4 === 0 ? 366 : 365;
 
+  // OPTIMISÉ :
+  // On ne récupère QUE les bookings utiles à l'année affichée
   const { data: bookings } = await supabase
     .from("bookings")
     .select("id, start_date, end_date, families(name)")
     .eq("status", "approved")
+    .lte("start_date", endOfYear)
+    .gte("end_date", startOfYear)
     .order("start_date");
 
-  const allBookings: BookingRow[] = (bookings ?? []).map((b: any) => {
-    const effectiveStart = b.start_date < startOfYear ? startOfYear : b.start_date;
-    const effectiveEnd = b.end_date > endOfYear ? endOfYear : b.end_date;
+  const allBookings: BookingRow[] = (bookings ?? []).map(
+    (b: any) => {
+      const effectiveStart =
+        b.start_date < startOfYear
+          ? startOfYear
+          : b.start_date;
 
-    return {
-      id: b.id,
-      start_date: b.start_date,
-      end_date: b.end_date,
-      family_name: b.families?.name ?? "?",
-      days_in_year: daysInRange(effectiveStart, effectiveEnd, startOfYear, endOfYear),
-      duration: daysBetween(b.start_date, b.end_date),
-    };
-  });
+      const effectiveEnd =
+        b.end_date > endOfYear
+          ? endOfYear
+          : b.end_date;
 
-  const yearBookings = allBookings.filter((b) => b.days_in_year > 0);
+      return {
+        id: b.id,
+        start_date: b.start_date,
+        end_date: b.end_date,
+        family_name: b.families?.name ?? "?",
+        days_in_year: daysInRange(
+          effectiveStart,
+          effectiveEnd,
+          startOfYear,
+          endOfYear
+        ),
+        duration: daysBetween(
+          b.start_date,
+          b.end_date
+        ),
+      };
+    }
+  );
 
-  const familyStatsMap: Record<string, FamilyStats> = {};
+  const familyStatsMap: Record<
+    string,
+    FamilyStats
+  > = {};
+
   for (const name of FAMILY_NAMES) {
     familyStatsMap[name] = {
       name,
@@ -157,20 +202,34 @@ export default async function StatsPage({
     };
   }
 
-  for (const b of yearBookings) {
+  for (const b of allBookings) {
     const stat = familyStatsMap[b.family_name];
+
     if (stat) {
       stat.totalDays += b.days_in_year;
       stat.nbStays += 1;
-      if (b.duration > stat.longestStay) stat.longestStay = b.duration;
+
+      if (b.duration > stat.longestStay) {
+        stat.longestStay = b.duration;
+      }
     }
   }
 
-  const familyStats = Object.values(familyStatsMap);
-  const totalDaysReserved = familyStats.reduce((sum, f) => sum + f.totalDays, 0);
-  const occupationRate = Math.round((totalDaysReserved / daysInYear) * 100);
+  const familyStats = Object.values(
+    familyStatsMap
+  );
+
+  const totalDaysReserved = familyStats.reduce(
+    (sum, f) => sum + f.totalDays,
+    0
+  );
+
+  const occupationRate = Math.round(
+    (totalDaysReserved / daysInYear) * 100
+  );
 
   const monthsStats: MonthStats[] = [];
+
   for (let m = 0; m < 12; m++) {
     const families: Record<string, number> = {
       Antoine: 0,
@@ -179,29 +238,62 @@ export default async function StatsPage({
     };
 
     let total = 0;
-    const monthStart = dateToISO(new Date(year, m, 1));
-    const monthEnd = dateToISO(new Date(year, m + 1, 0));
 
-    for (const b of yearBookings) {
-      const days = daysInRange(b.start_date, b.end_date, monthStart, monthEnd);
-      if (days > 0 && families[b.family_name] !== undefined) {
+    const monthStart = dateToISO(
+      new Date(year, m, 1)
+    );
+
+    const monthEnd = dateToISO(
+      new Date(year, m + 1, 0)
+    );
+
+    for (const b of allBookings) {
+      const days = daysInRange(
+        b.start_date,
+        b.end_date,
+        monthStart,
+        monthEnd
+      );
+
+      if (
+        days > 0 &&
+        families[b.family_name] !== undefined
+      ) {
         families[b.family_name] += days;
         total += days;
       }
     }
+
+    const monthDays = new Date(
+      year,
+      m + 1,
+      0
+    ).getDate();
 
     monthsStats.push({
       month: m,
       label: FRENCH_MONTHS_SHORT[m],
       families,
       total,
+      pct: Math.round((total / monthDays) * 100),
     });
   }
 
-  const topMonth = [...monthsStats].sort((a, b) => b.total - a.total)[0];
-  const longestStay = [...yearBookings].sort((a, b) => b.duration - a.duration)[0];
+  const topMonth = [...monthsStats].sort(
+    (a, b) => b.total - a.total
+  )[0];
 
-  const maxMonth = Math.max(...monthsStats.map((m) => m.total), 1);
+  const longestStay = [...allBookings].sort(
+    (a, b) => b.duration - a.duration
+  )[0];
+
+  const maxMonth = Math.max(
+    ...monthsStats.map((m) => m.total),
+    1
+  );
+
+  const canGoPrev = year > MIN_YEAR;
+  const canGoNext = year < currentYear;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -209,105 +301,58 @@ export default async function StatsPage({
         <BackButton />
 
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Stats {year}
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              La maison en chiffres cette année
-            </p>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            Stats {year}
+          </h1>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/dashboard/stats?year=${year - 1}`}
-              className="w-10 h-10 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition"
-              aria-label="Année précédente"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Link>
-
-            <span className="min-w-20 h-10 px-4 rounded-full border border-slate-200 bg-white text-slate-800 text-sm font-medium flex items-center justify-center">
-              {year}
-            </span>
-
-            <Link
-              href={`/dashboard/stats?year=${year + 1}`}
-              className="w-10 h-10 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition"
-              aria-label="Année suivante"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <BigStatCard
-            icon={<Home className="w-5 h-5" />}
-            label="Taux d'occupation"
-            value={`${occupationRate}%`}
-            sub={`${totalDaysReserved} / ${daysInYear} jours`}
-          />
-          <BigStatCard
-            icon={<TrendingUp className="w-5 h-5" />}
-            label="Séjours cette année"
-            value={`${yearBookings.length}`}
-sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
-          />
-        </div>
-
-        <section
-          key={`months-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_420ms_ease-out_both]"
-        >
-          <h2 className="text-base font-semibold text-slate-900 mb-4">
-            Occupation par mois
-          </h2>
-
-          <div className="space-y-2">
-            {monthsStats.map((m, index) => (
-              <div
-                key={m.month}
-                className="flex items-center gap-3 text-xs animate-[rowIn_420ms_ease-out_both]"
-                style={{ animationDelay: `${index * 28}ms` }}
+            {canGoPrev ? (
+              <Link
+                href={`/dashboard/stats?year=${
+                  year - 1
+                }`}
+                className="w-10 h-10 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition"
               >
-                <span className="text-slate-500 w-9 text-right">
-                  {m.label}
-                </span>
-
-                <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden flex">
-                  {familyStats.map((f) => {
-                    const days = m.families[f.name];
-                    if (days === 0) return null;
-
-                    const segmentPct = (days / maxMonth) * 100;
-
-                    return (
-                      <div
-                        key={f.name}
-                        className="animate-[growX_520ms_ease-out_both] origin-left"
-                        style={{
-                          width: `${segmentPct}%`,
-                          backgroundColor: f.color,
-                          animationDelay: `${index * 28}ms`,
-                        }}
-                        title={`${f.name} : ${days} j`}
-                      />
-                    );
-                  })}
-                </div>
-
-                <span className="text-slate-700 font-medium w-8 text-right">
-                  {m.total > 0 ? `${m.total}j` : "—"}
-                </span>
+                <ChevronLeft className="w-4 h-4" />
+              </Link>
+            ) : (
+              <div className="w-10 h-10 rounded-full border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
+                <ChevronLeft className="w-4 h-4" />
               </div>
-            ))}
-          </div>
-        </section>
+            )}
 
+            <div className="min-w-[84px] h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-sm font-medium text-slate-800">
+              {year}
+            </div>
+
+            {canGoNext ? (
+              <Link
+                href={`/dashboard/stats?year=${
+                  year + 1
+                }`}
+                className="w-10 h-10 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <div className="w-10 h-10 rounded-full border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <BigStatCard
+          icon={<Home className="w-5 h-5" />}
+          label="Taux d'occupation"
+          value={`${occupationRate}%`}
+          sub={`${totalDaysReserved} / ${daysInYear} jours`}
+        />
+
+        {/* Répartition famille */}
         <section
           key={`family-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_520ms_ease-out_both]"
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_320ms_ease-out]"
         >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Répartition par famille
@@ -320,13 +365,18 @@ sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
                   f.totalDays > 0 ? (
                     <div
                       key={f.name}
-                      className="animate-[growX_600ms_ease-out_both] origin-left"
+                      className="origin-left animate-[growX_650ms_cubic-bezier(.2,.8,.2,1)_both]"
                       style={{
-                        width: `${(f.totalDays / totalDaysReserved) * 100}%`,
+                        width: `${
+                          (f.totalDays /
+                            totalDaysReserved) *
+                          100
+                        }%`,
                         backgroundColor: f.color,
-                        animationDelay: `${index * 70}ms`,
+                        animationDelay: `${
+                          index * 70
+                        }ms`,
                       }}
-                      title={`${f.name} : ${f.totalDays} jours`}
                     />
                   ) : null
                 )}
@@ -336,26 +386,43 @@ sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
                 {familyStats.map((f, index) => {
                   const pct =
                     totalDaysReserved > 0
-                      ? Math.round((f.totalDays / totalDaysReserved) * 100)
+                      ? Math.round(
+                          (f.totalDays /
+                            totalDaysReserved) *
+                            100
+                        )
                       : 0;
 
                   return (
                     <div
                       key={f.name}
-                      className="flex items-center gap-3 text-sm animate-[rowIn_420ms_ease-out_both]"
-                      style={{ animationDelay: `${index * 40}ms` }}
+                      className="flex items-center gap-3 text-sm animate-[fadeUp_420ms_ease-out_both]"
+                      style={{
+                        animationDelay: `${
+                          index * 45
+                        }ms`,
+                      }}
                     >
                       <span
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: f.color }}
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          backgroundColor: f.color,
+                        }}
                       />
+
                       <span className="font-medium text-slate-900 min-w-[80px]">
                         {f.name}
                       </span>
+
                       <span className="text-slate-500 flex-1">
-                        {f.totalDays} j · {f.nbStays} séjour{f.nbStays > 1 ? "s" : ""}
+                        {f.totalDays} j ·{" "}
+                        {f.nbStays} séjour
+                        {f.nbStays > 1
+                          ? "s"
+                          : ""}
                       </span>
-                      <span className="text-slate-900 font-medium">
+
+                      <span className="font-semibold text-slate-900">
                         {pct}%
                       </span>
                     </div>
@@ -365,27 +432,102 @@ sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
             </div>
           ) : (
             <p className="text-sm text-slate-500 italic">
-              Aucun séjour réservé cette année.
+              Aucun séjour réservé cette
+              année.
             </p>
           )}
         </section>
 
+        {/* Occupation mois */}
         <section
-          key={`records-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_580ms_ease-out_both]"
+          key={`months-${year}`}
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_360ms_ease-out]"
         >
+          <h2 className="text-base font-semibold text-slate-900 mb-4">
+            Occupation par mois
+          </h2>
+
+          <div className="space-y-2.5">
+            {monthsStats.map((m, index) => (
+              <div
+                key={m.month}
+                className="flex items-center gap-3 text-xs animate-[fadeUp_380ms_ease-out_both]"
+                style={{
+                  animationDelay: `${
+                    index * 24
+                  }ms`,
+                }}
+              >
+                <span className="text-slate-500 w-9 text-right">
+                  {m.label}
+                </span>
+
+                <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden flex">
+                  {familyStats.map((f) => {
+                    const days =
+                      m.families[f.name];
+
+                    if (days === 0)
+                      return null;
+
+                    const segmentPct =
+                      (days / maxMonth) * 100;
+
+                    return (
+                      <div
+                        key={f.name}
+                        className="origin-left animate-[growX_700ms_cubic-bezier(.2,.8,.2,1)_both]"
+                        style={{
+                          width: `${segmentPct}%`,
+                          backgroundColor:
+                            f.color,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+
+                <span className="w-14 text-right">
+                  <span className="font-medium text-slate-700">
+                    {m.total > 0
+                      ? `${m.total}j`
+                      : "—"}
+                  </span>
+
+                  {m.total > 0 && (
+                    <span className="text-[11px] text-slate-900 ml-1 font-semibold">
+                      {m.pct}%
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Records */}
+        <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Records {year}
           </h2>
 
           <div className="space-y-3 text-sm">
             <RecordLine
-              icon={<Calendar className="w-4 h-4 text-blue-500" />}
+              icon={
+                <Calendar className="w-4 h-4 text-blue-500" />
+              }
               label="Mois le plus prisé"
-              value={topMonth.total > 0 ? `${topMonth.label} (${topMonth.total} jours)` : "—"}
+              value={
+                topMonth.total > 0
+                  ? `${topMonth.label} (${topMonth.total} jours)`
+                  : "—"
+              }
             />
+
             <RecordLine
-              icon={<TrendingUp className="w-4 h-4 text-emerald-500" />}
+              icon={
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              }
               label="Séjour le plus long"
               value={
                 longestStay
@@ -393,32 +535,29 @@ sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
                   : "—"
               }
             />
+
             <RecordLine
-              icon={<Home className="w-4 h-4 text-amber-500" />}
+              icon={
+                <Home className="w-4 h-4 text-amber-500" />
+              }
               label="Total séjours"
-              value={`${yearBookings.length} séjour${yearBookings.length > 1 ? "s" : ""}`}
+              value={`${allBookings.length} séjour${
+                allBookings.length > 1
+                  ? "s"
+                  : ""
+              }`}
             />
           </div>
         </section>
 
         <p className="text-xs text-slate-400 text-center pt-2 pb-6">
-          Stats basées sur les séjours approuvés de {year}
+          Stats basées sur les séjours
+          approuvés de {year}
         </p>
       </div>
 
       <style>{`
         @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes rowIn {
           from {
             opacity: 0;
             transform: translateY(8px);
@@ -459,8 +598,16 @@ function BigStatCard({
         {icon}
         <span>{label}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+
+      <p className="text-2xl font-bold text-slate-900">
+        {value}
+      </p>
+
+      {sub && (
+        <p className="text-xs text-slate-500 mt-0.5">
+          {sub}
+        </p>
+      )}
     </div>
   );
 }
@@ -476,9 +623,15 @@ function RecordLine({
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex-shrink-0">{icon}</span>
-      <span className="text-slate-500 flex-1">{label}</span>
-      <span className="text-slate-900 font-medium">{value}</span>
+      <span>{icon}</span>
+
+      <span className="text-slate-500 flex-1">
+        {label}
+      </span>
+
+      <span className="font-medium text-slate-900">
+        {value}
+      </span>
     </div>
   );
 }
