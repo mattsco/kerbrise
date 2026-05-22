@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { createServerClient } from "@supabase/ssr";
 import {
   toggleFamilyHead,
   simulateApprovals,
-  toggleCalendarAdmin,  
+  toggleCalendarAdmin,
 } from "./actions";
 import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
@@ -20,7 +19,7 @@ import {
   CheckCircle,
   XCircle,
   Info,
-  KeyRound,
+  BarChart3,
 } from "lucide-react";
 
 type SearchParams = Promise<{
@@ -79,55 +78,6 @@ export default async function AdminPage({
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
 
-  // Liste des utilisateurs avec last_sign_in_at (depuis auth.users)
-  const adminClient = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: { getAll: () => [], setAll: () => {} },
-    }
-  );
-
-  const { data: authUsers } = await adminClient.auth.admin.listUsers();
-  const allAuthUsers = authUsers?.users ?? [];
-
-  const { data: dbUsers } = await supabase
-    .from("users")
-    .select("id, email, display_name, password_changed, families(name, color)");
-
-  type UserRow = {
-    id: string;
-    email: string;
-    display_name: string | null;
-    family_name: string;
-    family_color: string;
-    last_sign_in_at: string | null;
-    password_changed: boolean;
-  };
-
-  const usersWithStatus: UserRow[] = (dbUsers ?? []).map((u: any) => {
-    const authMatch = allAuthUsers.find((a: any) => a.id === u.id);
-    return {
-      id: u.id,
-      email: u.email,
-      display_name: u.display_name,
-      family_name: u.families?.name ?? "?",
-      family_color: u.families?.color ?? "#888",
-      last_sign_in_at: authMatch?.last_sign_in_at ?? null,
-      password_changed: u.password_changed ?? false,
-    };
-  });
-
-  const neverConnected = usersWithStatus.filter((u) => !u.last_sign_in_at);
-  const connected = usersWithStatus.filter((u) => u.last_sign_in_at);
-  
-  // Count des users encore avec kerbrise2026 :
-  // - jamais connectés (forcément kerbrise2026)
-  // - OU connectés mais qui n'ont jamais changé leur mot de passe
-  const stillDefaultPassword = usersWithStatus.filter(
-    (u) => !u.last_sign_in_at || !u.password_changed
-  );
-
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
@@ -150,9 +100,30 @@ export default async function AdminPage({
         {/* Stats rapides */}
         <div className="grid grid-cols-3 gap-3">
           <StatCard label="Utilisateurs" value={totalUsers ?? 0} icon={<Users className="w-4 h-4" />} />
-          <StatCard label="Demandes" value={totalBookings ?? 0} icon={<CheckCircle2 className="w-4 h-4" />} />
+          <StatCard label="Séjours" value={totalBookings ?? 0} icon={<CheckCircle2 className="w-4 h-4" />} />
           <StatCard label="En attente" value={pendingBookings ?? 0} icon={<AlertTriangle className="w-4 h-4" />} />
         </div>
+
+        {/* Lien vers App Analytics */}
+        <Link
+          href="/dashboard/admin/analytics"
+          className="block bg-white rounded-2xl border border-slate-100 p-5 hover:bg-slate-50 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <BarChart3 className="w-5 h-5 text-purple-700" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-base font-semibold text-slate-900">
+                📊 App Analytics
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Activité, adoption, engagement, tendances
+              </p>
+            </div>
+            <ExternalLink className="w-4 h-4 text-slate-400" />
+          </div>
+        </Link>
 
         {/* Section : actions de simulation */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4">
@@ -249,107 +220,6 @@ export default async function AdminPage({
             />
           </section>
         )}
-
-        {/* Section : tracking adoption */}
-        <section className="bg-white rounded-2xl border border-slate-100 p-5">
-          <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
-            👥 Adoption des comptes
-          </h2>
-
-          {/* Compteur global mots de passe défaut */}
-          {stillDefaultPassword.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-              <KeyRound className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <p className="font-medium text-amber-900">
-                  {stillDefaultPassword.length} compte{stillDefaultPassword.length > 1 ? "s" : ""}{" "}
-                  utilise{stillDefaultPassword.length > 1 ? "nt" : ""} encore{" "}
-                  <code className="bg-amber-100 px-1 rounded">kerbrise2026</code>
-                </p>
-                <p className="text-amber-700 mt-0.5">
-                  Inclut les jamais-connectés et ceux qui n'ont jamais changé leur mot de passe.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="mb-5">
-            <h3 className="text-sm font-medium text-red-700 mb-2 flex items-center gap-1.5">
-              ⚪ Jamais connecté{neverConnected.length > 1 ? "s" : ""} ({neverConnected.length})
-            </h3>
-            {neverConnected.length === 0 ? (
-              <p className="text-xs text-slate-500 italic pl-2">
-                Tous les comptes ont été activés 🎉
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {neverConnected.map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex items-center gap-2 text-sm bg-red-50 rounded-lg p-2"
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: u.family_color }}
-                    />
-                    <span className="font-medium text-slate-900">
-                      {u.display_name ?? "?"}
-                    </span>
-                    <span className="text-xs text-slate-500">· {u.email}</span>
-                    <span className="ml-auto text-xs text-slate-400">
-                      {u.family_name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-emerald-700 mb-2">
-              ✅ Connectés ({connected.length})
-            </h3>
-            <ul className="space-y-1.5">
-              {connected.map((u) => {
-                const last = u.last_sign_in_at
-                  ? new Date(u.last_sign_in_at)
-                  : null;
-                const lastLabel = last
-                  ? formatRelative(last)
-                  : "?";
-                return (
-                  <li
-                    key={u.id}
-                    className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg p-2"
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: u.family_color }}
-                    />
-                    <span className="font-medium text-slate-900">
-                      {u.display_name ?? "?"}
-                    </span>
-                    {!u.password_changed && (
-                      <span 
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
-                        title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
-                      >
-                        <KeyRound className="w-2.5 h-2.5" />
-                        kerbrise2026
-                      </span>
-                    )}
-                    <span className="text-xs text-slate-500 truncate">
-                      {u.email}
-                    </span>
-                    <span className="ml-auto text-xs text-slate-400">
-                      {lastLabel}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </section>
 
         {/* Section : liens externes */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -486,16 +356,4 @@ function ExternalCard({
       <ExternalLink className="w-3 h-3 text-slate-400" />
     </a>
   );
-}
-
-function formatRelative(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}j`;
-  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
