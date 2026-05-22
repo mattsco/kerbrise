@@ -55,6 +55,17 @@ export default async function AdminPage({
     .eq("id", user.id)
     .single();
 
+// Familles + users pour la modal admin
+  const { data: families } = await supabase
+    .from("families")
+    .select("id, name, color")
+    .order("name");
+
+  const { data: allUsers } = await supabase
+    .from("users")
+    .select("id, display_name, family_id")
+    .order("display_name");
+
   if (!profile?.is_admin) {
     redirect("/dashboard");
   }
@@ -214,6 +225,26 @@ export default async function AdminPage({
             </button>
           </form>
         </section>
+
+
+{/* Section : ajout admin de séjour (visible seulement en mode admin calendrier) */}
+        {profile.is_calendar_admin && (
+          <section className="bg-white rounded-2xl border border-purple-200 p-5 space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                🛡️ Ajouter un séjour (mode admin)
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Crée une réservation au nom de n'importe quelle famille, sans déclencher d'email.
+              </p>
+            </div>
+            <AdminBookingForm
+              families={families ?? []}
+              users={allUsers ?? []}
+            />
+          </section>
+        )}
+
 
         {/* Section : tracking adoption */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
