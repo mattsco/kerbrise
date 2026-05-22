@@ -10,6 +10,7 @@ type Props = {
   currentUserId: string;
   currentFamilyId: string;
   isFamilyHead: boolean;
+  isCalendarAdmin?: boolean; // ← nouveau
   onClose: () => void;
 };
 
@@ -51,6 +52,7 @@ export default function BookingDetailModal({
   currentUserId,
   currentFamilyId,
   isFamilyHead,
+  isCalendarAdmin = false,
   onClose,
 }: Props) {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
@@ -201,8 +203,22 @@ export default function BookingDetailModal({
     booking.status === "pending" &&
     booking.family_id !== currentFamilyId &&
     !booking.approvals.some((a) => a.family_id === currentFamilyId);
-  const canEditOrCancel =
+
+  // Actions normales si auteur ET séjour non finalisé
+  const canEditOrCancelNormal =
     isAuthor && (booking.status === "pending" || booking.status === "approved");
+
+  // Actions admin si calendar admin + booking non cancelled/rejected
+  const canEditOrCancelAdmin =
+    isCalendarAdmin &&
+    !isAuthor && // si auteur, on garde le mode normal
+    (booking.status === "pending" || booking.status === "approved");
+
+  // Mode admin actif : si admin ET (pas auteur OU séjour cancelled/rejected)
+  const showAdminActions =
+    isCalendarAdmin &&
+    (canEditOrCancelAdmin ||
+      (isCalendarAdmin && !canEditOrCancelNormal && booking.status !== "cancelled"));
 
   // Sections affichées uniquement pour les statuts non-finaux
   const showValidations = booking.status === "pending";
@@ -315,8 +331,8 @@ export default function BookingDetailModal({
             </div>
           )}
 
-          {/* Actions chef */}
-          {canApprove && (
+          {/* Actions chef (sauf si admin agit comme admin) */}
+          {canApprove && !isCalendarAdmin && (
             <ApprovalButtons
               bookingId={booking.id}
               familyId={currentFamilyId}
@@ -325,8 +341,25 @@ export default function BookingDetailModal({
             />
           )}
 
-          {/* Actions auteur */}
-          {canEditOrCancel && (
+          {/* Actions auteur (mode normal) ou actions admin (mode admin) */}
+          {/* Si admin → toujours mode admin (priorité sur le mode auteur) */}
+          {isCalendarAdmin && booking.status !== "cancelled" && (
+            <BookingActions
+              bookingId={booking.id}
+              startDate={booking.start_date}
+              endDate={booking.end_date}
+              status={
+                booking.status === "cancelled"
+                  ? "approved"
+                  : (booking.status as "pending" | "approved" | "rejected")
+              }
+              onActionComplete={onClose}
+              isAdminMode
+            />
+          )}
+
+          {/* Si pas admin et auteur → mode normal */}
+          {!isCalendarAdmin && canEditOrCancelNormal && (
             <BookingActions
               bookingId={booking.id}
               startDate={booking.start_date}
