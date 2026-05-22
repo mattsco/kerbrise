@@ -4,6 +4,7 @@ import Link from "next/link";
 import ApprovalButtons from "@/components/ApprovalButtons";
 import BookingActions from "@/components/BookingActions";
 import BackButton from "@/components/BackButton";
+import { isStayActiveOrFuture } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -35,13 +36,15 @@ export default async function PendingBookingsPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("display_name, family_id, is_family_head, families(name, color)")
+    .select("display_name, family_id, is_family_head, is_calendar_admin, families(name, color)")
     .eq("id", user.id)
     .single();
   if (!profile) redirect("/dashboard");
 
   const isFamilyHead =
     (profile as { is_family_head?: boolean }).is_family_head ?? false;
+  const isCalendarAdmin =
+    (profile as { is_calendar_admin?: boolean }).is_calendar_admin ?? false;
 
   // Récupère TOUS les bookings non rejetés/annulés (pending + approved)
   const { data: bookings, error } = await supabase
@@ -73,9 +76,14 @@ export default async function PendingBookingsPage() {
       !b.approvals.some((a) => a.family_id === profile.family_id)
   );
 
-  const myFamilyBookings = allBookings.filter(
-    (b) => b.family_id === profile.family_id
-  );
+  // Section "Demandes de ma famille" : on n'affiche que les séjours
+  // actifs / futurs / terminés depuis ≤ 2 jours.
+  // L'admin calendrier voit tout son historique de famille.
+  const myFamilyBookings = allBookings.filter((b) => {
+    if (b.family_id !== profile.family_id) return false;
+    if (isCalendarAdmin) return true;
+    return isStayActiveOrFuture(b.end_date, 2);
+  });
 
   const otherPending = allBookings.filter(
     (b) =>
@@ -117,6 +125,11 @@ export default async function PendingBookingsPage() {
         <section className="mb-8">
           <h2 className="text-sm uppercase tracking-wide font-medium text-slate-500 mb-3">
             🏠 Demandes de ma famille
+            {isCalendarAdmin && (
+              <span className="ml-2 text-purple-600 font-normal normal-case">
+                (mode admin : historique complet)
+              </span>
+            )}
           </h2>
           {myFamilyBookings.length === 0 ? (
             <div className="bg-white rounded-2xl shadow p-6 text-center text-slate-500 text-sm">
