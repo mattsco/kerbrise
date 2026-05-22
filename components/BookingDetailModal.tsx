@@ -342,17 +342,14 @@ export default function BookingDetailModal({
           )}
 
           {/* Actions auteur (mode normal) ou actions admin (mode admin) */}
-          {/* Si admin → toujours mode admin (priorité sur le mode auteur) */}
+          
+{/* Si admin → toujours mode admin (priorité sur le mode auteur) */}
           {isCalendarAdmin && booking.status !== "cancelled" && (
             <BookingActions
               bookingId={booking.id}
               startDate={booking.start_date}
               endDate={booking.end_date}
-              status={
-                booking.status === "cancelled"
-                  ? "approved"
-                  : (booking.status as "pending" | "approved" | "rejected")
-              }
+              status={booking.status as "pending" | "approved" | "rejected"}
               onActionComplete={onClose}
               isAdminMode
             />
