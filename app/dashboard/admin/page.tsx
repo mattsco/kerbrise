@@ -20,12 +20,15 @@ import {
   XCircle,
   Info,
   BarChart3,
+  Activity,
 } from "lucide-react";
 
 type SearchParams = Promise<{
   status?: string;
   message?: string;
 }>;
+
+const LAUNCH_DATE = "2026-05-22";
 
 export default async function AdminPage({
   searchParams,
@@ -51,7 +54,6 @@ export default async function AdminPage({
     .eq("id", user.id)
     .single();
 
-  // Familles + users pour la modal admin
   const { data: families } = await supabase
     .from("families")
     .select("id, name, color")
@@ -70,9 +72,20 @@ export default async function AdminPage({
   const { count: totalUsers } = await supabase
     .from("users")
     .select("*", { count: "exact", head: true });
-  const { count: totalBookings } = await supabase
+
+  // Séjours post-launch (vrais séjours users)
+  const { count: postLaunchBookings } = await supabase
     .from("bookings")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .gt("created_at", LAUNCH_DATE)
+    .eq("is_admin_created", false);
+
+  // Séjours historiques (imports admin)
+  const { count: historicalBookings } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .eq("is_admin_created", true);
+
   const { count: pendingBookings } = await supabase
     .from("bookings")
     .select("*", { count: "exact", head: true })
@@ -97,33 +110,54 @@ export default async function AdminPage({
           <FeedbackBanner status={status} message={decodeURIComponent(message)} />
         )}
 
-        {/* Stats rapides */}
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Utilisateurs" value={totalUsers ?? 0} icon={<Users className="w-4 h-4" />} />
-          <StatCard label="Séjours" value={totalBookings ?? 0} icon={<CheckCircle2 className="w-4 h-4" />} />
-          <StatCard label="En attente" value={pendingBookings ?? 0} icon={<AlertTriangle className="w-4 h-4" />} />
+        {/* 2 gros boutons : Health (gauche) + Analytics (droite) */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/dashboard/admin/health"
+            className="block bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono"
+          >
+            <div className="flex items-center gap-2 text-emerald-400">
+              <Activity className="w-5 h-5" />
+              <span className="text-xs font-bold tracking-wider">HEALTH</span>
+            </div>
+            <p className="text-[10px] text-emerald-600 mt-1">
+              system diagnostics
+            </p>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/analytics"
+            className="block bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition"
+          >
+            <div className="flex items-center gap-2 text-purple-700">
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-sm font-bold">App Analytics</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              activité, adoption, engagement
+            </p>
+          </Link>
         </div>
 
-        {/* Lien vers App Analytics */}
-        <Link
-          href="/dashboard/admin/analytics"
-          className="block bg-white rounded-2xl border border-slate-100 p-5 hover:bg-slate-50 transition"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-              <BarChart3 className="w-5 h-5 text-purple-700" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-base font-semibold text-slate-900">
-                📊 App Analytics
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Activité, adoption, engagement, tendances
-              </p>
-            </div>
-            <ExternalLink className="w-4 h-4 text-slate-400" />
-          </div>
-        </Link>
+        {/* Stats rapides */}
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard
+            label="Utilisateurs"
+            value={totalUsers ?? 0}
+            icon={<Users className="w-4 h-4" />}
+          />
+          <StatCard
+            label="Séjours"
+            value={postLaunchBookings ?? 0}
+            icon={<CheckCircle2 className="w-4 h-4" />}
+            sub={`+ ${historicalBookings ?? 0} old`}
+          />
+          <StatCard
+            label="En attente"
+            value={pendingBookings ?? 0}
+            icon={<AlertTriangle className="w-4 h-4" />}
+          />
+        </div>
 
         {/* Section : actions de simulation */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4">
@@ -131,10 +165,10 @@ export default async function AdminPage({
             🧪 Outils de simulation
           </h2>
           <p className="text-xs text-slate-500">
-            ⚠️ Ces actions écrivent vraiment en base et déclenchent des emails (en mode test → ton email).
+            ⚠️ Ces actions écrivent vraiment en base et déclenchent des emails
+            (en mode test → ton email).
           </p>
 
-          {/* Toggle chef de famille */}
           <form action={toggleFamilyHead}>
             <button
               type="submit"
@@ -152,7 +186,6 @@ export default async function AdminPage({
             </button>
           </form>
 
-          {/* Toggle calendar admin */}
           <form action={toggleCalendarAdmin}>
             <button
               type="submit"
@@ -165,16 +198,19 @@ export default async function AdminPage({
                   : "Activer mode Admin Calendrier"}
               </span>
               <span className="text-xs text-purple-700">
-                {profile.is_calendar_admin ? "actuel : ACTIF" : "actuel : inactif"}
+                {profile.is_calendar_admin
+                  ? "actuel : ACTIF"
+                  : "actuel : inactif"}
               </span>
             </button>
           </form>
 
-          {/* Simuler François */}
-          <form action={async () => {
-            "use server";
-            await simulateApprovals("François");
-          }}>
+          <form
+            action={async () => {
+              "use server";
+              await simulateApprovals("François");
+            }}
+          >
             <button
               type="submit"
               className="w-full flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl p-3 text-sm font-medium hover:bg-emerald-100 transition"
@@ -186,11 +222,12 @@ export default async function AdminPage({
             </button>
           </form>
 
-          {/* Simuler Vincent */}
-          <form action={async () => {
-            "use server";
-            await simulateApprovals("Vincent");
-          }}>
+          <form
+            action={async () => {
+              "use server";
+              await simulateApprovals("Vincent");
+            }}
+          >
             <button
               type="submit"
               className="w-full flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-sm font-medium hover:bg-amber-100 transition"
@@ -203,7 +240,7 @@ export default async function AdminPage({
           </form>
         </section>
 
-        {/* Section : ajout admin de séjour (visible seulement en mode admin calendrier) */}
+        {/* Section : ajout admin de séjour */}
         {profile.is_calendar_admin && (
           <section className="bg-white rounded-2xl border border-purple-200 p-5 space-y-3">
             <div>
@@ -211,7 +248,8 @@ export default async function AdminPage({
                 🛡️ Ajouter un séjour (mode admin)
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Crée une réservation au nom de n'importe quelle famille, sans déclencher d'email.
+                Crée une réservation au nom de n'importe quelle famille, sans
+                déclencher d'email.
               </p>
             </div>
             <AdminBookingForm
@@ -259,8 +297,8 @@ export default async function AdminPage({
             En mode test, tous les emails partent uniquement vers ton adresse.
           </p>
           <p className="text-xs text-slate-700">
-            Pour changer : <strong>Supabase → Edge Functions → Secrets</strong> →{" "}
-            <code className="bg-slate-100 px-1 rounded">EMAIL_TEST_MODE</code>{" "}
+            Pour changer : <strong>Supabase → Edge Functions → Secrets</strong>{" "}
+            → <code className="bg-slate-100 px-1 rounded">EMAIL_TEST_MODE</code>{" "}
             (true / false)
           </p>
         </section>
@@ -269,7 +307,13 @@ export default async function AdminPage({
   );
 }
 
-function FeedbackBanner({ status, message }: { status: string; message: string }) {
+function FeedbackBanner({
+  status,
+  message,
+}: {
+  status: string;
+  message: string;
+}) {
   if (status === "success") {
     return (
       <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl p-4 flex items-start gap-3">
@@ -319,10 +363,12 @@ function StatCard({
   label,
   value,
   icon,
+  sub,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
+  sub?: string;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-3">
@@ -331,6 +377,9 @@ function StatCard({
         <span>{label}</span>
       </div>
       <p className="text-2xl font-bold text-slate-900">{value}</p>
+      {sub && (
+        <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>
+      )}
     </div>
   );
 }
