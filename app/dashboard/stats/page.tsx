@@ -130,7 +130,6 @@ export default async function StatsPage({
   const springEnd = `${year}-09-30`;
   const springDays = daysBetween(springStart, springEnd);
 
-  // On ne récupère que les bookings qui touchent l'année affichée
   const { data: bookings } = await supabase
     .from("bookings")
     .select("id, start_date, end_date, families(name)")
@@ -265,25 +264,21 @@ export default async function StatsPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <BigStatCard
-            className="md:col-span-1"
-            icon={<Home className="w-5 h-5" />}
+            icon={<Home className="w-4 h-4" />}
             label="Taux d'occupation"
             value={`${occupationRate}%`}
-            sub={`${totalDaysReserved} / ${daysInYear} jours`}
+            sub={`${totalDaysReserved} / ${daysInYear} j`}
           />
-
           <BigStatCard
-            className="md:col-span-2"
-            icon={<TrendingUp className="w-5 h-5" />}
-            label="Taux d'occupation printemps-été"
+            icon={<TrendingUp className="w-4 h-4" />}
+            label="Printemps-été"
             value={`${springRate}%`}
-            sub={`${springDaysReserved} / ${springDays} jours · avril à septembre`}
+            sub={`${springDaysReserved} / ${springDays} j`}
           />
         </div>
 
-        {/* Répartition par famille */}
         <section
           key={`family-${year}`}
           className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_320ms_ease-out]"
@@ -349,7 +344,6 @@ export default async function StatsPage({
           )}
         </section>
 
-        {/* Occupation par mois */}
         <section
           key={`months-${year}`}
           className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_360ms_ease-out]"
@@ -394,7 +388,6 @@ export default async function StatsPage({
           </div>
         </section>
 
-        {/* Records */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Records {year}
@@ -405,7 +398,9 @@ export default async function StatsPage({
               icon={<Calendar className="w-4 h-4 text-blue-500" />}
               label="Mois le plus prisé"
               value={
-                topMonth.total > 0 ? `${topMonth.label} (${topMonth.total} jours)` : "—"
+                topMonth.total > 0
+                  ? `${topMonth.label} (${topMonth.total} jours)`
+                  : "—"
               }
             />
             <RecordLine
@@ -460,22 +455,22 @@ function BigStatCard({
   label,
   value,
   sub,
-  className = "",
 }: {
   icon: ReactNode;
   label: string;
   value: string;
   sub?: string;
-  className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-2xl border border-slate-100 p-4 ${className}`}>
-      <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2">
+    <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4">
+      <div className="flex items-center gap-1.5 text-slate-500 text-[11px] sm:text-xs mb-1.5 whitespace-nowrap">
         {icon}
-        <span>{label}</span>
+        <span className="leading-none">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+      <p className="text-[26px] sm:text-3xl leading-none font-bold text-slate-900">
+        {value}
+      </p>
+      {sub && <p className="text-[11px] sm:text-xs text-slate-500 mt-1">{sub}</p>}
     </div>
   );
 }
