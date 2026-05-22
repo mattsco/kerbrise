@@ -252,7 +252,7 @@ export default async function StatsPage({
             icon={<TrendingUp className="w-5 h-5" />}
             label="Séjours cette année"
             value={`${yearBookings.length}`}
-            sub={`Séjour${yearBookings.length > 1 ? "s" : "" approuvés`}
+sub={`Séjour${yearBookings.length > 1 ? "s" : ""} approuvés`}
           />
         </div>
 
