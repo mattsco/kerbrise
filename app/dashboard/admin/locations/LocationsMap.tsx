@@ -1,5 +1,6 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 
 type UserLocation = {
@@ -20,9 +21,8 @@ export default function LocationsMap({ users }: { users: UserLocation[] }) {
 
   useEffect(() => {
     // Charger Leaflet uniquement côté client
-    (async () => {
+(async () => {
       const L = await import("leaflet");
-      await import("leaflet/dist/leaflet.css");
       setMap({ L });
     })();
   }, []);
