@@ -17,8 +17,9 @@ type Intro = {
   id: string;
   content: string;
   updated_at: string;
-  users?: { display_name: string | null } | null;
+  users?: { display_name: string | null } | { display_name: string | null }[] | null;
 } | null;
+
 
 type Link = {
   id: string;
