@@ -332,16 +332,22 @@ export default function AProposClient({
                 Aucun contenu encore. Clique "Modifier" pour ajouter une présentation.
               </p>
             )}
-            {intro?.users?.display_name && (
-              <p className="text-[10px] text-slate-400 mt-3">
-                Mis à jour par {intro.users.display_name} ·{" "}
-                {new Date(intro.updated_at).toLocaleDateString("fr-FR", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-            )}
+            {(() => {
+              const updater = Array.isArray(intro?.users)
+                ? intro?.users[0]
+                : intro?.users;
+              if (!updater?.display_name) return null;
+              return (
+                <p className="text-[10px] text-slate-400 mt-3">
+                  Mis à jour par {updater.display_name} ·{" "}
+                  {new Date(intro!.updated_at).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+              );
+            })()}
           </>
         )}
       </section>
