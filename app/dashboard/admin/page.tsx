@@ -110,8 +110,8 @@ export default async function AdminPage({
           <FeedbackBanner status={status} message={decodeURIComponent(message)} />
         )}
 
-        {/* 2 gros boutons : Health (gauche) + Analytics (droite) */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* 3 gros boutons : Health (gauche) + Analytics (droite) et maps */}
+        <div className="grid grid-cols-3 gap-3">
           <Link
             href="/dashboard/admin/health"
             className="block bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono"
@@ -137,6 +137,20 @@ export default async function AdminPage({
               activité, adoption, engagement
             </p>
           </Link>
+
+<Link
+            href="/dashboard/admin/locations"
+            className="block bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition"
+          >
+            <div className="flex items-center gap-2 text-blue-700">
+              <span className="text-lg">🌍</span>
+              <span className="text-sm font-bold">Locations</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              dernières positions
+            </p>
+          </Link>
+
         </div>
 
         {/* Stats rapides */}
