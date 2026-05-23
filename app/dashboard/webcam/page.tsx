@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import NestCamera from "@/components/NestCamera";
+import WebcamTimer from "@/components/WebcamTimer";
 import BackButton from "@/components/BackButton";
 
 export default async function WebcamPage() {
@@ -32,6 +32,9 @@ export default async function WebcamPage() {
         <p className="text-xs text-slate-400 mt-4 text-center">
           La caméra peut prendre quelques secondes à se charger.
         </p>
+
+        {/* Timer invisible : tracke le temps passé sur la page webcam */}
+        <WebcamTimer />
       </div>
     </main>
   );
