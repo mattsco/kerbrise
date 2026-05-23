@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import PWADetector from "@/components/PWADetector";
 import {
   Calendar,
   Inbox,
