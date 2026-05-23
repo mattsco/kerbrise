@@ -383,8 +383,7 @@ return (
               </div>
             </div>
           )}
-
-          {/* Utilisateurs actifs */}
+{/* Utilisateurs actifs */}
           {activeWeek.length > 0 && (
             <div className="mb-5">
               <h3 className="text-sm font-medium text-emerald-700 mb-2 flex items-center gap-1.5">
@@ -406,13 +405,11 @@ return (
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: u.family_color }}
                       />
-
-<span className="font-medium text-slate-900">
+                      <span className="font-medium text-slate-900">
                         {u.display_name ?? "?"}
                       </span>
                       <UsageIcon user={u} />
-
-{!u.password_changed && (
+                      {!u.password_changed && (
                         <span
                           title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
                           className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-100 flex-shrink-0"
@@ -420,8 +417,6 @@ return (
                           <KeyRound className="w-3 h-3 text-amber-700" />
                         </span>
                       )}
-                      {!u.password_changed && (
-                     
                       <span className="text-xs text-slate-500 truncate">
                         {u.email}
                       </span>
