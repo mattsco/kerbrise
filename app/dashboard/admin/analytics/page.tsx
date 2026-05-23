@@ -94,7 +94,6 @@ export default async function AdminAnalyticsPage() {
 
   // Adoption
   const neverConnected = users.filter((u) => !u.last_sign_in_at);
-  const connected = users.filter((u) => u.last_sign_in_at);
   const stillDefaultPassword = users.filter(
     (u) => !u.last_sign_in_at || !u.password_changed
   );
@@ -103,6 +102,13 @@ export default async function AdminAnalyticsPage() {
       u.last_sign_in_at &&
       (!u.last_seen_at || new Date(u.last_seen_at).getTime() < oneMonthAgo)
   );
+
+  // Connectés peu actifs (entre 7-30j)
+  const seenButNotActive = users.filter((u) => {
+    if (!u.last_seen_at) return false;
+    const lastSeenMs = new Date(u.last_seen_at).getTime();
+    return lastSeenMs > oneMonthAgo && lastSeenMs <= oneWeekAgo;
+  });
 
   // Engagement : top créateurs (depuis le lancement, hors imports admin)
   const { data: bookingsByUser } = await supabase
@@ -182,7 +188,7 @@ export default async function AdminAnalyticsPage() {
   }));
   const maxMonthly = Math.max(...monthlyData.map((m) => m.count), 1);
 
-// Devices des users connectés
+  // Devices des users connectés
   const { data: deviceData } = await supabase
     .from("users")
     .select("last_device, last_os, last_browser")
@@ -225,8 +231,7 @@ export default async function AdminAnalyticsPage() {
     .from("bookings")
     .select("*", { count: "exact", head: true })
     .eq("is_admin_created", true);
-
-  return (
+return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
         <div>
@@ -272,11 +277,71 @@ export default async function AdminAnalyticsPage() {
               color="slate"
             />
           </div>
+        </section>
 
+        {/* SECTION 2 : ADOPTION */}
+        <section className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <Users className="w-5 h-5 text-blue-600" />
+            Adoption des comptes
+          </h2>
+
+          {/* 2 stats : qui utilise vs qui n'utilise pas */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-emerald-700">
+                Utilisent l'app
+              </p>
+              <p className="text-2xl font-bold text-emerald-900 mt-1">
+                {activeWeek.length}
+                <span className="text-sm font-normal text-emerald-600">
+                  {" "}
+                  / {users.length}
+                </span>
+              </p>
+              <p className="text-[10px] text-emerald-600 mt-0.5">
+                actifs ces 7 derniers jours
+              </p>
+            </div>
+            <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-red-700">
+                N'utilisent pas
+              </p>
+              <p className="text-2xl font-bold text-red-900 mt-1">
+                {neverConnected.length + ghostUsers.length}
+                <span className="text-sm font-normal text-red-600">
+                  {" "}
+                  / {users.length}
+                </span>
+              </p>
+              <p className="text-[10px] text-red-600 mt-0.5">
+                jamais connectés ou inactifs 30j+
+              </p>
+            </div>
+          </div>
+
+          {/* Bandeau kerbrise2026 */}
+          {stillDefaultPassword.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+              <KeyRound className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 text-xs">
+                <p className="font-medium text-amber-900">
+                  {stillDefaultPassword.length} compte
+                  {stillDefaultPassword.length > 1 ? "s" : ""} utilise
+                  {stillDefaultPassword.length > 1 ? "nt" : ""} encore{" "}
+                  <code className="bg-amber-100 px-1 rounded">
+                    kerbrise2026
+                  </code>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Utilisateurs actifs */}
           {activeWeek.length > 0 && (
-            <div>
-              <h3 className="text-xs font-medium text-slate-600 mb-2 uppercase tracking-wide">
-                Actifs cette semaine
+            <div className="mb-5">
+              <h3 className="text-sm font-medium text-emerald-700 mb-2 flex items-center gap-1.5">
+                🟢 Utilisateurs actifs ({activeWeek.length})
               </h3>
               <ul className="space-y-1.5">
                 {activeWeek
@@ -297,10 +362,19 @@ export default async function AdminAnalyticsPage() {
                       <span className="font-medium text-slate-900">
                         {u.display_name ?? "?"}
                       </span>
+                      {!u.password_changed && (
+                        <span
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
+                          title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
+                        >
+                          <KeyRound className="w-2.5 h-2.5" />
+                          kerbrise2026
+                        </span>
+                      )}
                       <span className="text-xs text-slate-500 truncate">
                         {u.email}
                       </span>
-                      <span className="ml-auto text-xs text-slate-500">
+                      <span className="ml-auto text-xs text-emerald-600">
                         {formatRelative(new Date(u.last_seen_at!))}
                       </span>
                     </li>
@@ -308,31 +382,39 @@ export default async function AdminAnalyticsPage() {
               </ul>
             </div>
           )}
-        </section>
 
-        {/* SECTION 2 : ADOPTION */}
-        <section className="bg-white rounded-2xl border border-slate-100 p-5">
-          <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
-            Adoption des comptes
-          </h2>
-
-          {stillDefaultPassword.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-              <KeyRound className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 text-xs">
-                <p className="font-medium text-amber-900">
-                  {stillDefaultPassword.length} compte
-                  {stillDefaultPassword.length > 1 ? "s" : ""} utilise
-                  {stillDefaultPassword.length > 1 ? "nt" : ""} encore{" "}
-                  <code className="bg-amber-100 px-1 rounded">
-                    kerbrise2026
-                  </code>
-                </p>
-              </div>
+          {/* Connectés mais peu actifs (7-30j) */}
+          {seenButNotActive.length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-medium text-amber-700 mb-2 flex items-center gap-1.5">
+                🟡 Peu actifs ({seenButNotActive.length})
+              </h3>
+              <ul className="space-y-1.5">
+                {seenButNotActive.map((u) => (
+                  <li
+                    key={u.id}
+                    className="flex items-center gap-2 text-sm bg-amber-50 rounded-lg p-2"
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: u.family_color }}
+                    />
+                    <span className="font-medium text-slate-900">
+                      {u.display_name ?? "?"}
+                    </span>
+                    <span className="text-xs text-slate-500 truncate">
+                      {u.email}
+                    </span>
+                    <span className="ml-auto text-xs text-amber-600">
+                      {formatRelative(new Date(u.last_seen_at!))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
+          {/* Jamais connectés */}
           <div className="mb-5">
             <h3 className="text-sm font-medium text-red-700 mb-2 flex items-center gap-1.5">
               ⚪ Jamais connecté
@@ -366,60 +448,9 @@ export default async function AdminAnalyticsPage() {
             )}
           </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-emerald-700 mb-2">
-              ✅ Connectés au moins une fois ({connected.length})
-            </h3>
-            <ul className="space-y-1.5">
-              {connected
-                .sort((a, b) => {
-                  const aT = a.last_sign_in_at
-                    ? new Date(a.last_sign_in_at).getTime()
-                    : 0;
-                  const bT = b.last_sign_in_at
-                    ? new Date(b.last_sign_in_at).getTime()
-                    : 0;
-                  return bT - aT;
-                })
-                .map((u) => {
-                  const last = u.last_sign_in_at
-                    ? new Date(u.last_sign_in_at)
-                    : null;
-                  return (
-                    <li
-                      key={u.id}
-                      className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg p-2"
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: u.family_color }}
-                      />
-                      <span className="font-medium text-slate-900">
-                        {u.display_name ?? "?"}
-                      </span>
-                      {!u.password_changed && (
-                        <span
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
-                          title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
-                        >
-                          <KeyRound className="w-2.5 h-2.5" />
-                          kerbrise2026
-                        </span>
-                      )}
-                      <span className="text-xs text-slate-500 truncate">
-                        {u.email}
-                      </span>
-                      <span className="ml-auto text-xs text-slate-400">
-                        {last ? formatRelative(last) : "?"}
-                      </span>
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
-
+          {/* Ghost users (connectés mais pas vus depuis 30j) */}
           {ghostUsers.length > 0 && (
-            <div className="mt-5">
+            <div>
               <h3 className="text-sm font-medium text-slate-600 mb-2">
                 👻 Inactifs depuis 30+ jours ({ghostUsers.length})
               </h3>
@@ -554,8 +585,7 @@ export default async function AdminAnalyticsPage() {
             })}
           </div>
         </section>
-
-{/* SECTION 5 : DEVICES + WEBCAM */}
+    {/* SECTION 5 : DEVICES + WEBCAM */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             📱 Devices & Webcam
@@ -738,4 +768,3 @@ function formatDuration(seconds: number): string {
   const mins = minutes % 60;
   return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
 }
-
