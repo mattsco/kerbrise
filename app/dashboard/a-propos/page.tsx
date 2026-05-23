@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import AProposClient from "./AProposClient";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +49,27 @@ export default async function AProposPage() {
             Infos, liens et contacts utiles. Tout le monde peut modifier.
           </p>
         </div>
+
+<Link
+          href="/dashboard/a-propos/regles"
+          className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100/50 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-200 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">📜</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-900 text-sm">
+                Règles d'occupation
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Priorités, périodes été, et conventions familiales
+              </p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-amber-700 flex-shrink-0" />
+          </div>
+        </Link>
+
 
         <AProposClient
           initialIntro={intro}
