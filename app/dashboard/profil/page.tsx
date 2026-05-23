@@ -11,6 +11,12 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import {
+  getFamilyPriority,
+  getRelevantSummerYear,
+} from "@/lib/summer-priorities";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +54,12 @@ export default async function ProfilPage() {
     .eq("created_by", user.id)
     .gt("created_at", LAUNCH_DATE)
     .eq("is_admin_created", false);
+
+// Priorité été
+  const summerYear = getRelevantSummerYear();
+  const summerPriority = familyName
+    ? getFamilyPriority(summerYear, familyName)
+    : null;
 
   // Construction du label de rôle
   const roles: string[] = [];
@@ -148,11 +160,12 @@ export default async function ProfilPage() {
         </section>
 
         {/* Section : Stats */}
-        <section className="bg-white rounded-2xl border border-slate-100 p-5">
-          <h2 className="text-xs uppercase tracking-wide text-slate-400 font-medium mb-3">
+        <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
+          <h2 className="text-xs uppercase tracking-wide text-slate-400 font-medium">
             Mes stats
           </h2>
 
+          {/* Séjours créés */}
           <div className="flex items-center gap-3 bg-blue-50 rounded-xl p-3">
             <span className="text-2xl">🏖️</span>
             <div className="flex-1">
@@ -167,6 +180,30 @@ export default async function ProfilPage() {
               </p>
             </div>
           </div>
+
+          {/* Priorité été */}
+          {summerPriority && (
+            <Link
+              href="/dashboard/a-propos/regles"
+              className="flex items-center gap-3 bg-amber-50 rounded-xl p-3 hover:bg-amber-100 transition"
+            >
+              <span className="text-2xl">🌞</span>
+              <div className="flex-1">
+                <p className="text-xs text-slate-600">
+                  Priorité été {summerYear}
+                </p>
+                <p className="text-xl font-bold text-slate-900 mt-0.5">
+                  N°{summerPriority}
+                  <span className="text-sm font-normal text-slate-500 ml-1">
+                    {summerPriority === 1 && "· tu choisis en premier"}
+                    {summerPriority === 2 && "· tu choisis en 2e"}
+                    {summerPriority === 3 && "· tu choisis en 3e"}
+                  </span>
+                </p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            </Link>
+          )}
         </section>
 
         {/* Section : Mot de passe */}
