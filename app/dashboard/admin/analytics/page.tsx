@@ -395,16 +395,17 @@ return (
                         {u.display_name ?? "?"}
                       </span>
                       <UsageIcon user={u} />
-                      {!u.password_changed && (
-                     
+
+{!u.password_changed && (
                         <span
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
                           title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
+                          className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-100 flex-shrink-0"
                         >
-                          <KeyRound className="w-2.5 h-2.5" />
-                          kerbrise2026
+                          <KeyRound className="w-3 h-3 text-amber-700" />
                         </span>
                       )}
+                      {!u.password_changed && (
+                     
                       <span className="text-xs text-slate-500 truncate">
                         {u.email}
                       </span>
@@ -808,6 +809,7 @@ function formatDuration(seconds: number): string {
   return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
 }
 
+
 function UsageIcon({
   user,
 }: {
@@ -817,34 +819,21 @@ function UsageIcon({
 
   const isMobile =
     user.last_device === "mobile" || user.last_device === "tablet";
+  const isPwa = user.last_is_pwa;
 
-  if (user.last_is_pwa) {
-    // PWA installée → couleur emerald (signal positif)
-    if (isMobile) {
-      return (
-        <span title="PWA mobile installée" className="flex-shrink-0">
-          <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-        </span>
-      );
-    }
-    return (
-      <span title="PWA desktop installée" className="flex-shrink-0">
-        <Monitor className="w-3.5 h-3.5 text-emerald-600" />
-      </span>
-    );
-  }
+  const bgColor = isPwa ? "bg-emerald-100" : "bg-slate-200";
+  const textColor = isPwa ? "text-emerald-700" : "text-slate-500";
+  const Icon = isMobile ? Smartphone : Monitor;
+  const label = `${isPwa ? "PWA" : "Navigateur"} ${isMobile ? "mobile" : "desktop"}`;
 
-  // Navigateur classique → couleur slate (neutre)
-  if (isMobile) {
-    return (
-      <span title="Navigateur mobile" className="flex-shrink-0">
-        <Smartphone className="w-3.5 h-3.5 text-slate-400" />
-      </span>
-    );
-  }
   return (
-    <span title="Navigateur desktop" className="flex-shrink-0">
-      <Monitor className="w-3.5 h-3.5 text-slate-400" />
+    <span
+      title={label}
+      className={`inline-flex items-center justify-center w-5 h-5 rounded-md ${bgColor} flex-shrink-0`}
+    >
+      <Icon className={`w-3 h-3 ${textColor}`} />
     </span>
   );
 }
+
+
