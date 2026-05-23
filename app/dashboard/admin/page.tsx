@@ -100,9 +100,6 @@ export default async function AdminPage({
           <h1 className="text-2xl sm:text-3xl font-bold mt-2 flex items-center gap-2">
             🕵🏻‍♂️ Secret Admin Tools
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Tu es le seul à voir cette page.
-          </p>
         </div>
 
         {/* Encart de feedback */}
@@ -110,47 +107,46 @@ export default async function AdminPage({
           <FeedbackBanner status={status} message={decodeURIComponent(message)} />
         )}
 
-        {/* 3 gros boutons : Health (gauche) + Analytics (droite) et maps */}
+{/* 3 boutons : Health (matrix) + Analytics + Locations */}
         <div className="grid grid-cols-3 gap-3">
           <Link
             href="/dashboard/admin/health"
-            className="block bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono"
+            className="flex flex-col bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono min-h-[110px]"
           >
             <div className="flex items-center gap-2 text-emerald-400">
               <Activity className="w-5 h-5" />
               <span className="text-xs font-bold tracking-wider">HEALTH</span>
             </div>
             <p className="text-[10px] text-emerald-600 mt-1">
-              system diagnostics
+              diagnostics
             </p>
           </Link>
 
           <Link
             href="/dashboard/admin/analytics"
-            className="block bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition"
+            className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
           >
             <div className="flex items-center gap-2 text-purple-700">
               <BarChart3 className="w-5 h-5" />
-              <span className="text-sm font-bold">App Analytics</span>
+              <span className="text-sm font-bold">Analytics</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              activité, adoption, engagement
+              usage, adoption
             </p>
           </Link>
 
-<Link
+          <Link
             href="/dashboard/admin/locations"
-            className="block bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition"
+            className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
           >
             <div className="flex items-center gap-2 text-blue-700">
-              <span className="text-lg">🌍</span>
+              <span className="text-lg leading-none">🌍</span>
               <span className="text-sm font-bold">Locations</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
               dernières positions
             </p>
           </Link>
-
         </div>
 
         {/* Stats rapides */}
