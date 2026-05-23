@@ -265,10 +265,13 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+{/* Détection PWA installée vs navigateur (invisible) */}
+      <PWADetector />
 
       {/* Bandeau PWA Install (sticky bottom) - invisible si déjà installé / desktop / dismiss */}
       <PWAInstallPrompt />
     </main>
+     
   );
 }
 
