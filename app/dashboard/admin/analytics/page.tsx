@@ -296,25 +296,41 @@ return (
             Adoption des comptes
           </h2>
 
-          {/* Légende des icônes */}
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-500">
+
+{/* Légende des icônes */}
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-3 text-[10px] text-slate-500">
             <span className="flex items-center gap-1">
-              <Smartphone className="w-3 h-3 text-emerald-600" />
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-emerald-100">
+                <Smartphone className="w-2.5 h-2.5 text-emerald-700" />
+              </span>
               PWA mobile
             </span>
             <span className="flex items-center gap-1">
-              <Monitor className="w-3 h-3 text-emerald-600" />
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-emerald-100">
+                <Monitor className="w-2.5 h-2.5 text-emerald-700" />
+              </span>
               PWA desktop
             </span>
             <span className="flex items-center gap-1">
-              <Smartphone className="w-3 h-3 text-slate-400" />
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-200">
+                <Smartphone className="w-2.5 h-2.5 text-slate-500" />
+              </span>
               Browser mobile
             </span>
             <span className="flex items-center gap-1">
-              <Monitor className="w-3 h-3 text-slate-400" />
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-200">
+                <Monitor className="w-2.5 h-2.5 text-slate-500" />
+              </span>
               Browser desktop
             </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-amber-100">
+                <KeyRound className="w-2.5 h-2.5 text-amber-700" />
+              </span>
+              kerbrise2026
+            </span>
           </div>
+
 
           {/* 2 stats : qui utilise vs qui n'utilise pas */}
 
