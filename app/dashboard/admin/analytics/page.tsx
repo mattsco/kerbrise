@@ -182,6 +182,44 @@ export default async function AdminAnalyticsPage() {
   }));
   const maxMonthly = Math.max(...monthlyData.map((m) => m.count), 1);
 
+// Devices des users connectés
+  const { data: deviceData } = await supabase
+    .from("users")
+    .select("last_device, last_os, last_browser")
+    .not("last_device", "is", null);
+
+  const deviceCounts: Record<string, number> = {};
+  for (const d of deviceData ?? []) {
+    const key = (d as any).last_device ?? "unknown";
+    deviceCounts[key] = (deviceCounts[key] ?? 0) + 1;
+  }
+
+  const osCounts: Record<string, number> = {};
+  for (const d of deviceData ?? []) {
+    const key = (d as any).last_os ?? "Unknown";
+    osCounts[key] = (osCounts[key] ?? 0) + 1;
+  }
+
+  // Temps webcam par user
+  const { data: webcamData } = await supabase
+    .from("webcam_sessions")
+    .select("user_id, duration_seconds, users:user_id(display_name)");
+
+  const webcamByUser: Record<
+    string,
+    { name: string; total: number; sessions: number }
+  > = {};
+  for (const w of webcamData ?? []) {
+    const id = (w as any).user_id;
+    const name = (w as any).users?.display_name ?? "?";
+    if (!webcamByUser[id]) webcamByUser[id] = { name, total: 0, sessions: 0 };
+    webcamByUser[id].total += (w as any).duration_seconds;
+    webcamByUser[id].sessions += 1;
+  }
+  const topWebcamWatchers = Object.values(webcamByUser)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
   // Compteur d'imports historiques (pour info)
   const { count: historicalCount } = await supabase
     .from("bookings")
@@ -517,6 +555,108 @@ export default async function AdminAnalyticsPage() {
           </div>
         </section>
 
+{/* SECTION 5 : DEVICES + WEBCAM */}
+        <section className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            📱 Devices & Webcam
+          </h2>
+
+          {/* Devices */}
+          <div className="mb-5">
+            <h3 className="text-sm font-medium text-slate-700 mb-2">
+              Type d'appareil
+            </h3>
+            <div className="space-y-1.5">
+              {Object.entries(deviceCounts).map(([device, count]) => {
+                const total = Object.values(deviceCounts).reduce(
+                  (s, c) => s + c,
+                  0
+                );
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                const emoji =
+                  device === "mobile" ? "📱" : device === "tablet" ? "📊" : "💻";
+                return (
+                  <div
+                    key={device}
+                    className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg p-2"
+                  >
+                    <span className="text-lg">{emoji}</span>
+                    <span className="font-medium text-slate-900 capitalize">
+                      {device}
+                    </span>
+                    <span className="ml-auto text-xs text-slate-500">
+                      {count} ({pct}%)
+                    </span>
+                  </div>
+                );
+              })}
+              {Object.keys(deviceCounts).length === 0 && (
+                <p className="text-xs text-slate-500 italic">
+                  Aucune donnée encore.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* OS */}
+          {Object.keys(osCounts).length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-medium text-slate-700 mb-2">
+                Systèmes
+              </h3>
+              <div className="space-y-1.5">
+                {Object.entries(osCounts)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([os, count]) => (
+                    <div
+                      key={os}
+                      className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg p-2"
+                    >
+                      <span className="font-medium text-slate-900">{os}</span>
+                      <span className="ml-auto text-xs text-slate-500">
+                        {count}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Webcam */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-1.5">
+              📹 Top du temps passé sur la webcam
+            </h3>
+            {topWebcamWatchers.length === 0 ? (
+              <p className="text-xs text-slate-500 italic">
+                Personne n'a encore regardé la webcam.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {topWebcamWatchers.map((w, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center gap-2 text-sm bg-purple-50 rounded-lg p-2"
+                  >
+                    <span className="w-6 text-xs text-slate-400 text-center">
+                      #{i + 1}
+                    </span>
+                    <span className="font-medium text-slate-900 flex-1">
+                      {w.name}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {w.sessions} session{w.sessions > 1 ? "s" : ""}
+                    </span>
+                    <span className="text-xs font-medium text-slate-700">
+                      {formatDuration(w.total)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+
         <p className="text-xs text-slate-400 text-center pt-2 pb-6">
           Données depuis le lancement ({LAUNCH_DATE}) · ✨ {historicalCount ?? 0} séjour
           {(historicalCount ?? 0) > 1 ? "s" : ""} historique
@@ -588,3 +728,14 @@ function formatMonthLabel(key: string): string {
   ];
   return months[parseInt(m) - 1];
 }
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (minutes < 60) return `${minutes}m${secs > 0 ? ` ${secs}s` : ""}`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
+}
+
