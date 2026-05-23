@@ -12,6 +12,7 @@ import {
   AlertCircle,
   ArrowRight,
   TrendingUp,
+  Home
 } from "lucide-react";
 
 function parseLocalDate(iso: string): Date {
@@ -235,6 +236,13 @@ export default async function DashboardPage() {
             iconBg="bg-cyan-50 text-cyan-600"
             title="Webcam live"
             desc="Voir le Val en direct"
+          />
+      <ActionCard
+            href="/dashboard/a-propos"
+            icon={<Home className="w-5 h-5" />}
+            iconBg="bg-orange-50 text-orange-600"
+            title="À propos de la maison"
+            desc="Liens, contacts et infos pratiques"
           />
           <ActionCard
             href="/dashboard/profil"
