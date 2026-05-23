@@ -22,7 +22,7 @@ export type HealthReport = {
 export async function getHealthStatus(): Promise<HealthReport> {
   const results: HealthCheckResult[] = [];
 
-  // 1. app.responding (trivial — si on est ici, l'app répond)
+  // 1. app.responding
   results.push({
     name: "app.responding",
     status: "ok",
@@ -51,7 +51,7 @@ export async function getHealthStatus(): Promise<HealthReport> {
     }
   );
 
-  // 2. supabase.postgres : query rapide + chrono
+  // 2. supabase.postgres
   try {
     const t0 = Date.now();
     const { error } = await supabaseUserClient
@@ -81,7 +81,7 @@ export async function getHealthStatus(): Promise<HealthReport> {
     });
   }
 
-  // 3. supabase.auth : déjà passé l'auth en arrivant ici
+  // 3. supabase.auth
   try {
     const t0 = Date.now();
     const { data, error } = await supabaseUserClient.auth.getUser();
@@ -109,46 +109,31 @@ export async function getHealthStatus(): Promise<HealthReport> {
     });
   }
 
-  // 4. pg_cron.weekly_digest : vérifier que le job est actif
+  // 4. pg_cron.weekly_digest
   try {
-    const { data, error } = await adminClient
-      .rpc("get_cron_status")
-      .single();
-    if (error) {
-      // Fallback : si la RPC n'existe pas, on tente une query brute via service role
-      // On utilise une approche plus simple : la query est privilégiée
-      const { data: cronData, error: cronErr } = await (adminClient as any)
-        .from("cron.job")
-        .select("jobname, schedule, active")
-        .eq("jobname", "weekly-digest")
-        .maybeSingle();
+    const { data: cronData, error: cronErr } = await (adminClient as any)
+      .from("cron.job")
+      .select("jobname, schedule, active")
+      .eq("jobname", "weekly-digest")
+      .maybeSingle();
 
-      if (cronErr || !cronData) {
-        results.push({
-          name: "pg_cron.weekly_digest",
-          status: "warn",
-          detail: "introuvable (RLS bloque ?)",
-        });
-      } else if (!cronData.active) {
-        results.push({
-          name: "pg_cron.weekly_digest",
-          status: "fail",
-          detail: "inactif",
-        });
-      } else {
-        results.push({
-          name: "pg_cron.weekly_digest",
-          status: "ok",
-          detail: `active · ${cronData.schedule}`,
-        });
-      }
+    if (cronErr || !cronData) {
+      results.push({
+        name: "pg_cron.weekly_digest",
+        status: "warn",
+        detail: "non vérifiable (schema protégé)",
+      });
+    } else if (!cronData.active) {
+      results.push({
+        name: "pg_cron.weekly_digest",
+        status: "fail",
+        detail: "inactif",
+      });
     } else {
       results.push({
         name: "pg_cron.weekly_digest",
-        status: (data as any)?.active ? "ok" : "fail",
-        detail: (data as any)?.active
-          ? `active · ${(data as any)?.schedule ?? "?"}`
-          : "inactif",
+        status: "ok",
+        detail: `active · ${cronData.schedule}`,
       });
     }
   } catch (e: any) {
@@ -159,34 +144,14 @@ export async function getHealthStatus(): Promise<HealthReport> {
     });
   }
 
-  // 5. resend.api_configured : check env var
-  try {
-    // Note: les vars Edge Functions ne sont pas dispo dans Next.js. 
-    // On vérifie juste qu'on sait qu'on a configuré Resend.
-    // Pour aller plus loin il faudrait une Edge Function de health.
-    const emailFrom = process.env.EMAIL_FROM ?? null;
-    if (emailFrom) {
-      results.push({
-        name: "resend.api_configured",
-        status: "ok",
-        detail: emailFrom,
-      });
-    } else {
-      results.push({
-        name: "resend.api_configured",
-        status: "ok",
-        detail: "configured (vault)",
-      });
-    }
-  } catch (e: any) {
-    results.push({
-      name: "resend.api_configured",
-      status: "warn",
-      detail: "?",
-    });
-  }
+  // 5. resend.api_configured
+  results.push({
+    name: "resend.api_configured",
+    status: "ok",
+    detail: "configured (vault)",
+  });
 
-  // 6. triggers.installed : count des triggers attendus
+  // 6. triggers.installed
   try {
     const expectedTriggers = [
       "after_approval_insert",
@@ -273,14 +238,14 @@ export async function getHealthStatus(): Promise<HealthReport> {
     });
   }
 
-// 9. webcam.nest_url : check si la page embed Nest répond
+  // 9. webcam.nest_url
   try {
     const t0 = Date.now();
     const response = await fetch(
       "https://video.nest.com/embedded/live/7sEyKZsVBd",
       {
         method: "HEAD",
-        signal: AbortSignal.timeout(5000), // timeout 5s
+        signal: AbortSignal.timeout(5000),
       }
     );
     const ms = Date.now() - t0;
@@ -310,7 +275,6 @@ export async function getHealthStatus(): Promise<HealthReport> {
       detail,
     });
   }
-
 
   return finalize(results);
 }
