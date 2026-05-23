@@ -10,6 +10,8 @@ import {
   KeyRound,
   Crown,
   CheckCircle2,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -45,13 +47,15 @@ export default async function AdminAnalyticsPage() {
   const { data: authData } = await adminClient.auth.admin.listUsers();
   const allAuthUsers = authData?.users ?? [];
 
-  const { data: dbUsers } = await supabase
+
+const { data: dbUsers } = await supabase
     .from("users")
     .select(
-      "id, email, display_name, password_changed, last_seen_at, families(name, color)"
+      "id, email, display_name, password_changed, last_seen_at, last_device, last_is_pwa, families(name, color)"
     );
 
-  type UserRow = {
+
+type UserRow = {
     id: string;
     email: string;
     display_name: string | null;
@@ -60,9 +64,12 @@ export default async function AdminAnalyticsPage() {
     last_sign_in_at: string | null;
     last_seen_at: string | null;
     password_changed: boolean;
+    last_device: string | null;
+    last_is_pwa: boolean | null;
   };
 
-  const users: UserRow[] = (dbUsers ?? []).map((u: any) => {
+
+const users: UserRow[] = (dbUsers ?? []).map((u: any) => {
     const authMatch = allAuthUsers.find((a: any) => a.id === u.id);
     return {
       id: u.id,
@@ -73,6 +80,8 @@ export default async function AdminAnalyticsPage() {
       last_sign_in_at: authMatch?.last_sign_in_at ?? null,
       last_seen_at: u.last_seen_at ?? null,
       password_changed: u.password_changed ?? false,
+      last_device: u.last_device ?? null,
+      last_is_pwa: u.last_is_pwa ?? null,
     };
   });
 
@@ -279,14 +288,36 @@ return (
           </div>
         </section>
 
-        {/* SECTION 2 : ADOPTION */}
+
+{/* SECTION 2 : ADOPTION */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
             Adoption des comptes
           </h2>
 
+          {/* Légende des icônes */}
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-3 text-[10px] text-slate-500">
+            <span className="flex items-center gap-1">
+              <Smartphone className="w-3 h-3 text-emerald-600" />
+              PWA mobile
+            </span>
+            <span className="flex items-center gap-1">
+              <Monitor className="w-3 h-3 text-emerald-600" />
+              PWA desktop
+            </span>
+            <span className="flex items-center gap-1">
+              <Smartphone className="w-3 h-3 text-slate-400" />
+              Browser mobile
+            </span>
+            <span className="flex items-center gap-1">
+              <Monitor className="w-3 h-3 text-slate-400" />
+              Browser desktop
+            </span>
+          </div>
+
           {/* 2 stats : qui utilise vs qui n'utilise pas */}
+
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
               <p className="text-xs font-medium text-emerald-700">
@@ -359,10 +390,13 @@ return (
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: u.family_color }}
                       />
-                      <span className="font-medium text-slate-900">
+
+<span className="font-medium text-slate-900">
                         {u.display_name ?? "?"}
                       </span>
+                      <UsageIcon user={u} />
                       {!u.password_changed && (
+                     
                         <span
                           className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
                           title="Le mot de passe n'a pas été modifié depuis kerbrise2026"
@@ -399,13 +433,17 @@ return (
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: u.family_color }}
                     />
-                    <span className="font-medium text-slate-900">
+
+<span className="font-medium text-slate-900">
                       {u.display_name ?? "?"}
                     </span>
+                    <UsageIcon user={u} />
                     <span className="text-xs text-slate-500 truncate">
                       {u.email}
                     </span>
                     <span className="ml-auto text-xs text-amber-600">
+
+              
                       {formatRelative(new Date(u.last_seen_at!))}
                     </span>
                   </li>
@@ -435,11 +473,12 @@ return (
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: u.family_color }}
                     />
-                    <span className="font-medium text-slate-900">
+<span className="font-medium text-slate-900">
                       {u.display_name ?? "?"}
                     </span>
-                    <span className="text-xs text-slate-500">· {u.email}</span>
-                    <span className="ml-auto text-xs text-slate-400">
+                    <UsageIcon user={u} />
+                    <span className="ml-auto text-slate-400">
+                  
                       {u.family_name}
                     </span>
                   </li>
@@ -767,4 +806,45 @@ function formatDuration(seconds: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
+}
+
+function UsageIcon({
+  user,
+}: {
+  user: { last_device: string | null; last_is_pwa: boolean | null };
+}) {
+  if (user.last_is_pwa === null || user.last_device === null) return null;
+
+  const isMobile =
+    user.last_device === "mobile" || user.last_device === "tablet";
+
+  if (user.last_is_pwa) {
+    // PWA installée → couleur emerald (signal positif)
+    if (isMobile) {
+      return (
+        <span title="PWA mobile installée" className="flex-shrink-0">
+          <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+        </span>
+      );
+    }
+    return (
+      <span title="PWA desktop installée" className="flex-shrink-0">
+        <Monitor className="w-3.5 h-3.5 text-emerald-600" />
+      </span>
+    );
+  }
+
+  // Navigateur classique → couleur slate (neutre)
+  if (isMobile) {
+    return (
+      <span title="Navigateur mobile" className="flex-shrink-0">
+        <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+      </span>
+    );
+  }
+  return (
+    <span title="Navigateur desktop" className="flex-shrink-0">
+      <Monitor className="w-3.5 h-3.5 text-slate-400" />
+    </span>
+  );
 }
