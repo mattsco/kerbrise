@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import {
   Calendar,
   Inbox,
@@ -110,7 +111,7 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 py-5 pb-32 space-y-5">
         {/* Bannière demandes en attente */}
         {pendingCount > 0 && (
           <Link
@@ -221,7 +222,7 @@ export default async function DashboardPage() {
             title="Nouvelle demande"
             desc="Demander un séjour à Kerbrise"
           />
-<ActionCard
+          <ActionCard
             href="/dashboard/stats"
             icon={<TrendingUp className="w-5 h-5" />}
             iconBg="bg-purple-50 text-purple-600"
@@ -243,7 +244,7 @@ export default async function DashboardPage() {
             desc="Changer mon mot de passe"
           />
 
-{profile.is_admin && (
+          {profile.is_admin && (
             <ActionCard
               href="/dashboard/admin"
               icon={<span className="text-base">🕵🏻‍♂️</span>}
@@ -252,9 +253,11 @@ export default async function DashboardPage() {
               desc="Outils admin (seulement toi)"
             />
           )}
-
         </div>
       </div>
+
+      {/* Bandeau PWA Install (sticky bottom) - invisible si déjà installé / desktop / dismiss */}
+      <PWAInstallPrompt />
     </main>
   );
 }
