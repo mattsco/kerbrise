@@ -12,6 +12,7 @@ import {
   AlertCircle,
   ArrowRight,
   TrendingUp,
+  User, 
   Home
 } from "lucide-react";
 
@@ -246,10 +247,10 @@ export default async function DashboardPage() {
           />
           <ActionCard
             href="/dashboard/profil"
-            icon={<KeyRound className="w-5 h-5" />}
+            icon={<User className="w-5 h-5" />}
             iconBg="bg-slate-100 text-slate-600"
-            title="Mot de passe"
-            desc="Changer mon mot de passe"
+            title="Mon profil"
+            desc="Mes infos, stats et mot de passe"
           />
 
           {profile.is_admin && (
