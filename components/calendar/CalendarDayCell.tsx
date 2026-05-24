@@ -140,11 +140,11 @@ export default function CalendarDayCell({
   return (
     <div
       className={`
-        h-14 relative cursor-pointer rounded
+        h-[52px] relative cursor-pointer rounded
         ${
           isSpecialDay &&
           !isSelected
-            ? "bg-slate-100/70"
+            ? "bg-slate-50"
             : ""
         }
       `}
@@ -193,7 +193,7 @@ export default function CalendarDayCell({
       {/* Placeholder été */}
       {placeholder && (
         <div
-          className="absolute bottom-1 left-0 right-0 h-6 text-[11px] text-slate-500 font-medium flex items-center px-1 truncate bg-slate-200/80 border-2 border-dashed border-slate-400"
+          className="absolute bottom-1 left-0 right-0 h-6 text-[11px] text-slate-500 font-medium flex items-center px-1.5 truncate bg-slate-200/80 border-2 border-dashed border-slate-400"
           style={{
             borderTopLeftRadius:
               isFirstOfPlaceholder
@@ -274,7 +274,7 @@ export default function CalendarDayCell({
           <div
             className={`
               absolute bottom-1 right-0 w-1/2 h-6 text-[11px] text-white font-medium
-              flex items-center px-1 truncate
+              flex items-center px-1.5 truncate
               ${
                 startingEvent.status ===
                 "pending"
@@ -322,7 +322,7 @@ export default function CalendarDayCell({
             <div
               className={`
                 absolute bottom-1 left-0 right-0 h-6 text-[11px] text-white font-medium
-                flex items-center px-1 truncate
+                flex items-center px-1.5 truncate
                 ${
                   mainEvent.status ===
                   "pending"
