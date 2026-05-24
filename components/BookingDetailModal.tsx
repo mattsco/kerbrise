@@ -204,11 +204,6 @@ export default function BookingDetailModal({
     !isAuthor && // si auteur, on garde le mode normal
     (booking.status === "pending" || booking.status === "approved");
 
-  // Mode admin actif : si admin ET (pas auteur OU séjour cancelled/rejected)
-  const showAdminActions =
-    isCalendarAdmin &&
-    (canEditOrCancelAdmin ||
-      (isCalendarAdmin && !canEditOrCancelNormal && booking.status !== "cancelled"));
 
   // Sections affichées uniquement pour les statuts non-finaux
   const showValidations = booking.status === "pending";
