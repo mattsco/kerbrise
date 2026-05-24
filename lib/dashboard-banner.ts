@@ -3,6 +3,8 @@
  * Pas de JSX, juste du calcul.
  */
 
+import { parseLocalDate, daysBetween, todayISO } from "./dates";
+
 export type UpcomingBooking = {
   id: string;
   start_date: string;
@@ -22,10 +24,6 @@ export type BannerContext = {
   relayDiffDays: number;
 };
 
-export function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
 
 export function computeBannerContext(
   allUpcoming: UpcomingBooking[],
@@ -52,24 +50,18 @@ export function computeBannerContext(
   let relayDiffDays = 0;
 
   if (myActiveOrNextStay) {
-    const myEndDate = parseLocalDate(myActiveOrNextStay.end_date);
-    const myEndPlus10 = new Date(myEndDate);
-    myEndPlus10.setDate(myEndPlus10.getDate() + 10);
+  const myEnd = myActiveOrNextStay.end_date;
+  relayBooking =
+    allUpcoming.find((b) => {
+      if (b.family_id === myFamilyId) return false;
+      const gap = daysBetween(myEnd, b.start_date);
+      return gap > 0 && gap <= 10;
+    }) ?? null;
 
-    relayBooking =
-      allUpcoming.find((b) => {
-        if (b.family_id === myFamilyId) return false;
-        const start = parseLocalDate(b.start_date);
-        return start > myEndDate && start <= myEndPlus10;
-      }) ?? null;
-
-    if (relayBooking) {
-      const relayStart = parseLocalDate(relayBooking.start_date);
-      relayDiffDays = Math.round(
-        (relayStart.getTime() - myEndDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-    }
+  if (relayBooking) {
+    relayDiffDays = daysBetween(myEnd, relayBooking.start_date);
   }
+}
 
   // Détermine le cas
   let bannerCase: BannerCase;
@@ -103,13 +95,7 @@ export function getRelayPhrase(diffDays: number, familyName: string): string {
 }
 
 export function getRelativeFromNow(isoDate: string): string {
-  const target = parseLocalDate(isoDate);
-  target.setHours(0, 0, 0, 0);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const diffDays = Math.round(
-    (target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const diffDays = daysBetween(todayISO(), isoDate);
   if (diffDays === 0) return "aujourd'hui";
   if (diffDays === 1) return "demain";
   if (diffDays < 14) return `dans ${diffDays} jours`;
@@ -117,18 +103,17 @@ export function getRelativeFromNow(isoDate: string): string {
   return `dans ${Math.round(diffDays / 30)} mois`;
 }
 
+
 export function formatEndDate(isoDate: string): string {
   const d = parseLocalDate(isoDate);
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 }
 
+
 export function getDaysRemaining(endIso: string): number {
-  const end = parseLocalDate(endIso);
-  end.setHours(0, 0, 0, 0);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return daysBetween(todayISO(), endIso);
 }
+
 
 export function formatRange(start: string, end: string): string {
   const s = parseLocalDate(start);
