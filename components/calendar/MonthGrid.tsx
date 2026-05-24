@@ -75,7 +75,8 @@ export default function MonthGrid({
   onDayHover,
   holidaySet,
 }: Props) {
-  const year = monthDate.getFullYear();
+  const year =
+    monthDate.getFullYear();
 
   const month =
     monthDate.getMonth();
@@ -87,7 +88,9 @@ export default function MonthGrid({
     new Date(year, month + 1, 0);
 
   const offsetStart =
-    dayIndex(firstDayOfMonth);
+    dayIndex(
+      firstDayOfMonth
+    );
 
   const daysInMonth =
     lastDayOfMonth.getDate();
@@ -99,78 +102,102 @@ export default function MonthGrid({
         7
     ) * 7;
 
-  // Index ultra rapide :
-  // Map<dateStr, CalendarEvent[]>
-  const eventsByDate = useMemo(() => {
-    const map = new Map<
-      string,
-      CalendarEvent[]
-    >();
+  // Map rapide :
+  // date -> events[]
+  const eventsByDate =
+    useMemo(() => {
+      const map =
+        new Map<
+          string,
+          CalendarEvent[]
+        >();
 
-    for (const event of events) {
-      let current = new Date(
-        event.start_date
-      );
+      for (const event of events) {
+        let current =
+          new Date(
+            event.start_date
+          );
 
-      const end = new Date(
-        event.end_date
-      );
+        const end =
+          new Date(
+            event.end_date
+          );
 
-      while (current <= end) {
-        const key =
-          dateToISO(current);
+        while (
+          current <= end
+        ) {
+          const key =
+            dateToISO(
+              current
+            );
 
-        const existing =
-          map.get(key) ?? [];
+          const existing =
+            map.get(key) ??
+            [];
 
-        existing.push(event);
+          existing.push(
+            event
+          );
 
-        map.set(
-          key,
-          existing
-        );
+          map.set(
+            key,
+            existing
+          );
 
-        current.setDate(
-          current.getDate() + 1
-        );
+          current.setDate(
+            current.getDate() +
+              1
+          );
+        }
       }
-    }
 
-    return map;
-  }, [events]);
+      return map;
+    }, [events]);
 
-  // Index placeholders :
-  // Map<dateStr, Placeholder>
+  // Map rapide :
+  // date -> placeholder
   const placeholdersByDate =
     useMemo(() => {
-      const map = new Map<
-        string,
-        Placeholder
-      >();
+      const map =
+        new Map<
+          string,
+          Placeholder
+        >();
 
       for (const p of placeholders) {
         if (
-          p.status !== "free"
+          p.status !==
+          "free"
         ) {
           continue;
         }
 
-        let current = new Date(
-          p.startDate
-        );
+        let current =
+          new Date(
+            p.startDate
+          );
 
-        const end = new Date(
-          p.endDate
-        );
+        const end =
+          new Date(
+            p.endDate
+          );
 
-        while (current <= end) {
+        while (
+          current <= end
+        ) {
           const key =
-            dateToISO(current);
+            dateToISO(
+              current
+            );
 
-          map.set(key, p);
+          map.set(
+            key,
+            p
+          );
 
           current.setDate(
-            current.getDate() + 1
+            current.getDate() +
+              1
           );
         }
       }
@@ -181,7 +208,11 @@ export default function MonthGrid({
   return (
     <div>
       <h3 className="text-base font-semibold text-slate-900 mb-3 text-center">
-        {FRENCH_MONTHS[month]}{" "}
+        {
+          FRENCH_MONTHS[
+            month
+          ]
+        }{" "}
         {year}
       </h3>
 
@@ -191,7 +222,9 @@ export default function MonthGrid({
             <div
               key={d}
               className={`text-xs font-medium text-center py-1 ${
-                isWeekendIndex(i)
+                isWeekendIndex(
+                  i
+                )
                   ? "text-slate-400"
                   : "text-slate-500"
               }`}
@@ -204,7 +237,8 @@ export default function MonthGrid({
 
       <div className="grid grid-cols-7 gap-y-1">
         {Array.from({
-          length: totalCells,
+          length:
+            totalCells,
         }).map((_, i) => {
           const dayNum =
             i -
@@ -220,7 +254,7 @@ export default function MonthGrid({
             return (
               <div
                 key={i}
-                className="h-14"
+                className="h-[52px]"
               />
             );
           }
@@ -233,19 +267,22 @@ export default function MonthGrid({
             );
 
           const dateStr =
-            dateToISO(date);
+            dateToISO(
+              date
+            );
 
           const dayEvents =
             eventsByDate.get(
               dateStr
             ) ?? [];
 
-          // Safety guard DEV
+          // Safety DEV
           if (
             process.env
               .NODE_ENV ===
               "development" &&
-            dayEvents.length > 2
+            dayEvents.length >
+              2
           ) {
             console.warn(
               "[Calendar] Overlapping events detected:",
@@ -276,9 +313,10 @@ export default function MonthGrid({
             isWeekend ||
             isHoliday;
 
-          // Placeholder seulement si aucun event
+          // Placeholder seulement si aucun booking
           const placeholder =
-            dayEvents.length === 0
+            dayEvents.length ===
+            0
               ? placeholdersByDate.get(
                   dateStr
                 )
@@ -287,9 +325,13 @@ export default function MonthGrid({
           return (
             <CalendarDayCell
               key={i}
-              dayNum={dayNum}
+              dayNum={
+                dayNum
+              }
               date={date}
-              dateStr={dateStr}
+              dateStr={
+                dateStr
+              }
               today={today}
               isSpecialDay={
                 isSpecialDay
