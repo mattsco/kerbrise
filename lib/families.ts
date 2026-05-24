@@ -14,10 +14,12 @@ export type Family = {
   color: string; // hex pour styles inline
 };
 
+
+
 export const FAMILIES = [
-  { name: "Antoine",  color: "#1E4E8C" }, // bleu océan profond (remplace blue-500)
-  { name: "Vincent",  color: "#A38800" }, // ambre doux (remplace amber-500)
-  { name: "François", color: "#1F5C26" }, // vert forêt (remplace emerald-500)
+{ name: "Antoine",  color: "#3b82f6" }, // ≈ blue-500
+{ name: "Vincent",  color: "#f59e0b" }, // ≈ amber-500
+{ name: "François", color: "#10b981" }, // ≈ emerald-500
 ] as const satisfies readonly Family[];
 
 
