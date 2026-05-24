@@ -13,25 +13,12 @@ import {
   AlertCircle,
   ArrowRight,
   TrendingUp,
-  User, 
-  Home
+  User,
+  Home,
 } from "lucide-react";
-
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function formatRange(start: string, end: string): string {
-  const s = parseLocalDate(start);
-  const e = parseLocalDate(end);
-  const sameMonth = s.getMonth() === e.getMonth();
-  const sameYear = s.getFullYear() === e.getFullYear();
-  const sShort = s.toLocaleDateString("fr-FR", { day: "numeric", month: sameMonth ? undefined : "short" });
-  const eShort = e.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-  if (sameMonth && sameYear) return `${s.getDate()} → ${eShort}`;
-  return `${sShort} → ${eShort}`;
-}
+import { computeBannerContext } from "@/lib/dashboard-banner";
+import ContextualBanner from "./ContextualBanner";
+import UpcomingStaysList from "./UpcomingStaysList";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -45,7 +32,9 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("display_name, family_id, is_family_head, is_admin, families(name, color)")
+    .select(
+      "display_name, family_id, is_family_head, is_admin, families(name, color)"
+    )
     .eq("id", user.id)
     .single();
 
@@ -76,32 +65,39 @@ export default async function DashboardPage() {
   }
 
   // Prochains séjours approuvés
-  const today = new Date();
-  const todayISO = today.toISOString().split("T")[0];
+  const todayISO = new Date().toISOString().split("T")[0];
   const { data: upcoming } = await supabase
     .from("bookings")
-    .select("id, start_date, end_date, families(name, color)")
+    .select("id, start_date, end_date, family_id, families(name, color)")
     .eq("status", "approved")
     .gte("end_date", todayISO)
     .order("start_date")
-    .limit(3);
+    .limit(5);
 
-  const upcomingBookings = (upcoming ?? []).map((b: any) => ({
+  const allUpcoming = (upcoming ?? []).map((b: any) => ({
     id: b.id,
     start_date: b.start_date,
     end_date: b.end_date,
+    family_id: b.family_id,
     family_name: b.families?.name ?? "?",
     family_color: b.families?.color ?? "#888",
   }));
+
+  const bannerContext = computeBannerContext(
+    allUpcoming,
+    profile.family_id,
+    todayISO
+  );
+
+  // Top 3 prochains séjours pour la liste
+  const upcomingBookings = allUpcoming.slice(0, 3);
 
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-30 backdrop-blur-md bg-white/90">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-slate-900">
-            Kerbrise
-          </h1>
+          <h1 className="text-lg font-semibold text-slate-900">Kerbrise</h1>
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
@@ -146,9 +142,7 @@ export default async function DashboardPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-            <p className="text-sm font-medium text-white/90">
-              Bonjour 👋
-            </p>
+            <p className="text-sm font-medium text-white/90">Bonjour 👋</p>
             <h2 className="text-2xl font-bold mt-0.5">{displayName}</h2>
             <div className="flex items-center gap-2 mt-2 text-xs text-white/90">
               <span
@@ -165,43 +159,16 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-{/* Prochains séjours - liste (uniquement cas C : Kerbrise libre + séjour à venir) */}
-        {bannerCase === "C" && upcomingBookings.length > 0 && (
-          <section className="bg-white rounded-2xl border border-slate-100 p-4">
+        {/* Bannière contextuelle (cas A, B ou D selon le contexte) */}
+        <ContextualBanner
+          context={bannerContext}
+          displayName={displayName}
+          familyName={familyName}
+        />
 
-
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-slate-900">
-                Prochains séjours
-              </h3>
-              <Link
-                href="/dashboard/calendrier"
-                className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-0.5"
-              >
-                Voir tout
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <ul className="space-y-2.5">
-              {upcomingBookings.map((b) => (
-                <li
-                  key={b.id}
-                  className="flex items-center gap-3 text-sm"
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: b.family_color }}
-                  />
-                  <span className="font-medium text-slate-900 min-w-[80px]">
-                    {b.family_name}
-                  </span>
-                  <span className="text-slate-600">
-                    {formatRange(b.start_date, b.end_date)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
+        {/* Liste des prochains séjours (uniquement cas C) */}
+        {bannerContext.bannerCase === "C" && (
+          <UpcomingStaysList bookings={upcomingBookings} />
         )}
 
         {/* Cartes d'actions */}
@@ -241,7 +208,7 @@ export default async function DashboardPage() {
             title="Webcam live"
             desc="Voir le Val en direct"
           />
-      <ActionCard
+          <ActionCard
             href="/dashboard/a-propos"
             icon={<Home className="w-5 h-5" />}
             iconBg="bg-orange-50 text-orange-600"
@@ -267,13 +234,13 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
-{/* Détection PWA installée vs navigateur (invisible) */}
+
+      {/* Détection PWA installée vs navigateur (invisible) */}
       <PWADetector />
 
       {/* Bandeau PWA Install (sticky bottom) - invisible si déjà installé / desktop / dismiss */}
       <PWAInstallPrompt />
     </main>
-     
   );
 }
 
