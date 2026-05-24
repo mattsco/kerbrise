@@ -52,12 +52,6 @@ export default function Calendar({
   return d;
 }, []);
 
-  today.setHours(
-    0,
-    0,
-    0,
-    0
-  );
 
   const [
     anchorMonth,
@@ -154,44 +148,60 @@ export default function Calendar({
     );
   }, [months]);
 
-  // Placeholders été
-  const placeholders =
-    useMemo(() => {
-      const bookingsMinimal: BookingMinimal[] =
-        events.map((e) => ({
-          start_date:
-            e.start_date,
 
-          end_date:
-            e.end_date,
+// Placeholders été
+  const placeholders = useMemo(() => {
+    const bookingsMinimal: BookingMinimal[] = events.map((e) => ({
+      start_date: e.start_date,
+      end_date: e.end_date,
+      family_id: e.family_id,
+      family_name: e.family_name,
+      family_color: e.color,
+      status: e.status,
+    }));
 
-          family_id:
-            e.family_id,
+    const minYear = months[0].getFullYear();
+    const maxYear = months[months.length - 1].getFullYear();
 
-          family_name:
-            e.family_name,
+    return getAllUpcomingPlaceholders(
+      bookingsMinimal,
+      minYear,
+      maxYear
+    );
+  }, [events, months]);
 
-          family_color:
-            e.color,
-
-          status: e.status,
-        }));
-
-const eventsByDate = useMemo(() => {
-  const map = new Map<string, CalendarEvent[]>();
-  for (const event of events) {
-    let current = new Date(event.start_date);
-    const end = new Date(event.end_date);
-    while (current <= end) {
-      const key = dateToISO(current);
-      const existing = map.get(key) ?? [];
-      existing.push(event);
-      map.set(key, existing);
-      current.setDate(current.getDate() + 1);
+  // ⬇️ NOUVEAU : les 2 maps OUT du useMemo précédent
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const event of events) {
+      let current = new Date(event.start_date);
+      const end = new Date(event.end_date);
+      while (current <= end) {
+        const key = dateToISO(current);
+        const existing = map.get(key) ?? [];
+        existing.push(event);
+        map.set(key, existing);
+        current.setDate(current.getDate() + 1);
+      }
     }
-  }
-  return map;
-}, [events]);
+    return map;
+  }, [events]);
+
+  const placeholdersByDate = useMemo(() => {
+    const map = new Map<string, Placeholder>();
+    for (const p of placeholders) {
+      if (p.status !== "free") continue;
+      let current = new Date(p.startDate);
+      const end = new Date(p.endDate);
+      while (current <= end) {
+        map.set(dateToISO(current), p);
+        current.setDate(current.getDate() + 1);
+      }
+    }
+    return map;
+  }, [placeholders]);
+
+  
 
 const placeholdersByDate = useMemo(() => {
   const map = new Map<string, Placeholder>();
