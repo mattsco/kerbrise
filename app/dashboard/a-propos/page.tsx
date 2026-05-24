@@ -52,23 +52,24 @@ export default async function AProposPage() {
 
 <Link
           href="/dashboard/a-propos/regles"
-          className="block bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100/50 transition"
+          className="block bg-white border border-slate-100 rounded-2xl p-4 hover:border-slate-200 hover:shadow-sm transition"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-200 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
               <span className="text-lg">📜</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-amber-900 text-sm">
+              <p className="font-semibold text-slate-900 text-sm">
                 Règles d'occupation
               </p>
-              <p className="text-xs text-amber-700 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Priorités, périodes été, et conventions familiales
               </p>
             </div>
-            <ArrowRight className="w-4 h-4 text-amber-700 flex-shrink-0" />
+            <ArrowRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
           </div>
         </Link>
+
 <NextCollections />
 
         <AProposClient
