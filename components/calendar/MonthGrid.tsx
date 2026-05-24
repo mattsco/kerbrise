@@ -1,18 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-
 import type { Placeholder } from "@/lib/summer-placeholders";
 
 import CalendarDayCell, {
   type CalendarEvent,
 } from "./CalendarDayCell";
 
-import {
-  dateToISO,
-  dayIndex,
-  isWeekendIndex,
-} from "./calendar-utils";
+import { dateToISO, dayIndex, isWeekendIndex } from "./calendar-utils";
 
 const FRENCH_MONTHS = [
   "Janvier",
@@ -41,248 +35,77 @@ const FRENCH_DAYS_SHORT = [
 
 type Props = {
   monthDate: Date;
-
-  events: CalendarEvent[];
-  placeholders: Placeholder[];
-
+  eventsByDate: Map<string, CalendarEvent[]>;
+  placeholdersByDate: Map<string, Placeholder>;
   today: Date;
-
-  isInSelection: (
-    dateStr: string
-  ) => boolean;
-
+  isInSelection: (dateStr: string) => boolean;
   onDayClick: (
     dateStr: string,
     hasEvent: boolean,
     eventBookingId?: string,
     placeholder?: Placeholder
   ) => void;
-
-  onDayHover: (
-    dateStr: string
-  ) => void;
-
+  onDayHover: (dateStr: string) => void;
   holidaySet: Set<string>;
 };
 
 export default function MonthGrid({
   monthDate,
-  events,
-  placeholders,
+  eventsByDate,
+  placeholdersByDate,
   today,
   isInSelection,
   onDayClick,
   onDayHover,
   holidaySet,
 }: Props) {
-  const year =
-    monthDate.getFullYear();
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
 
-  const month =
-    monthDate.getMonth();
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
 
-  const firstDayOfMonth =
-    new Date(year, month, 1);
+  const offsetStart = dayIndex(firstDayOfMonth);
+  const daysInMonth = lastDayOfMonth.getDate();
 
-  const lastDayOfMonth =
-    new Date(year, month + 1, 0);
-
-  const offsetStart =
-    dayIndex(
-      firstDayOfMonth
-    );
-
-  const daysInMonth =
-    lastDayOfMonth.getDate();
-
-  const totalCells =
-    Math.ceil(
-      (offsetStart +
-        daysInMonth) /
-        7
-    ) * 7;
-
-  // Map :
-  // date -> events[]
-  const eventsByDate =
-    useMemo(() => {
-      const map =
-        new Map<
-          string,
-          CalendarEvent[]
-        >();
-
-      for (const event of events) {
-        let current =
-          new Date(
-            event.start_date
-          );
-
-        const end =
-          new Date(
-            event.end_date
-          );
-
-        while (
-          current <= end
-        ) {
-          const key =
-            dateToISO(
-              current
-            );
-
-          const existing =
-            map.get(key) ??
-            [];
-
-          existing.push(
-            event
-          );
-
-          map.set(
-            key,
-            existing
-          );
-
-          current.setDate(
-            current.getDate() +
-              1
-          );
-        }
-      }
-
-      return map;
-    }, [events]);
-
-  // Map :
-  // date -> placeholder
-  const placeholdersByDate =
-    useMemo(() => {
-      const map =
-        new Map<
-          string,
-          Placeholder
-        >();
-
-      for (const p of placeholders) {
-        if (
-          p.status !==
-          "free"
-        ) {
-          continue;
-        }
-
-        let current =
-          new Date(
-            p.startDate
-          );
-
-        const end =
-          new Date(
-            p.endDate
-          );
-
-        while (
-          current <= end
-        ) {
-          const key =
-            dateToISO(
-              current
-            );
-
-          map.set(
-            key,
-            p
-          );
-
-          current.setDate(
-            current.getDate() +
-              1
-          );
-        }
-      }
-
-      return map;
-    }, [placeholders]);
+  const totalCells = Math.ceil((offsetStart + daysInMonth) / 7) * 7;
 
   return (
     <div>
       <h3 className="text-base font-semibold text-slate-900 mb-3 text-center">
-        {
-          FRENCH_MONTHS[
-            month
-          ]
-        }{" "}
-        {year}
+        {FRENCH_MONTHS[month]} {year}
       </h3>
 
       <div className="grid grid-cols-7 mb-1">
-        {FRENCH_DAYS_SHORT.map(
-          (d, i) => (
-            <div
-              key={d}
-              className={`text-xs font-medium text-center py-1 ${
-                isWeekendIndex(
-                  i
-                )
-                  ? "text-slate-400"
-                  : "text-slate-500"
-              }`}
-            >
-              {d}
-            </div>
-          )
-        )}
+        {FRENCH_DAYS_SHORT.map((d, i) => (
+          <div
+            key={d}
+            className={`text-xs font-medium text-center py-1 ${
+              isWeekendIndex(i) ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
+            {d}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-7 gap-y-1">
-        {Array.from({
-          length:
-            totalCells,
-        }).map((_, i) => {
-          const dayNum =
-            i -
-            offsetStart +
-            1;
-
-          const inMonth =
-            dayNum >= 1 &&
-            dayNum <=
-              daysInMonth;
+        {Array.from({ length: totalCells }).map((_, i) => {
+          const dayNum = i - offsetStart + 1;
+          const inMonth = dayNum >= 1 && dayNum <= daysInMonth;
 
           if (!inMonth) {
-            return (
-              <div
-                key={i}
-                className="h-[52px]"
-              />
-            );
+            return <div key={i} className="h-[52px]" />;
           }
 
-          const date =
-            new Date(
-              year,
-              month,
-              dayNum
-            );
+          const date = new Date(year, month, dayNum);
+          const dateStr = dateToISO(date);
+          const dayEvents = eventsByDate.get(dateStr) ?? [];
 
-          const dateStr =
-            dateToISO(
-              date
-            );
-
-          const dayEvents =
-            eventsByDate.get(
-              dateStr
-            ) ?? [];
-
-          // DEV safety
+          // DEV safety: warn si plus de 2 events overlappent (cas anormal)
           if (
-            process.env
-              .NODE_ENV ===
-              "development" &&
-            dayEvents.length >
-              2
+            process.env.NODE_ENV === "development" &&
+            dayEvents.length > 2
           ) {
             console.warn(
               "[Calendar] Overlapping events detected:",
@@ -291,65 +114,30 @@ export default function MonthGrid({
             );
           }
 
-          const isSelected =
-            isInSelection(
-              dateStr
-            );
-
-          const weekIndex =
-            i % 7;
-
-          const isWeekend =
-            isWeekendIndex(
-              weekIndex
-            );
-
-          const isHoliday =
-            holidaySet.has(
-              dateStr
-            );
-
-          const isSpecialDay =
-            isWeekend ||
-            isHoliday;
+          const isSelected = isInSelection(dateStr);
+          const weekIndex = i % 7;
+          const isWeekend = isWeekendIndex(weekIndex);
+          const isHoliday = holidaySet.has(dateStr);
+          const isSpecialDay = isWeekend || isHoliday;
 
           const placeholder =
-            dayEvents.length ===
-            0
-              ? placeholdersByDate.get(
-                  dateStr
-                )
+            dayEvents.length === 0
+              ? placeholdersByDate.get(dateStr)
               : undefined;
 
           return (
             <CalendarDayCell
               key={dateStr}
-              dayNum={
-                dayNum
-              }
+              dayNum={dayNum}
               date={date}
-              dateStr={
-                dateStr
-              }
+              dateStr={dateStr}
               today={today}
-              isSpecialDay={
-                isSpecialDay
-              }
-              isSelected={
-                isSelected
-              }
-              dayEvents={
-                dayEvents
-              }
-              placeholder={
-                placeholder
-              }
-              onDayClick={
-                onDayClick
-              }
-              onDayHover={
-                onDayHover
-              }
+              isSpecialDay={isSpecialDay}
+              isSelected={isSelected}
+              dayEvents={dayEvents}
+              placeholder={placeholder}
+              onDayClick={onDayClick}
+              onDayHover={onDayHover}
             />
           );
         })}
