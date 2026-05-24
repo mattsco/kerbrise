@@ -52,13 +52,13 @@ export function getYearPriorities(year: number): {
   2: FamilyName;
   3: FamilyName;
 } {
-  const offset = (((year - 2024) % 3) + 3) % 3;
-  return {
-    1: FAMILY_ROTATION[offset],
-    2: FAMILY_ROTATION[(offset + 1) % 3],
-    3: FAMILY_ROTATION[(offset + 2) % 3],
-  };
-}
+
+const offset = (((year - 2024) % 3) + 3) % 3;
+return {
+  1: FAMILIES[offset].name,
+  2: FAMILIES[(offset + 1) % 3].name,
+  3: FAMILIES[(offset + 2) % 3].name,
+};
 
 /**
  * Retourne la priorité d'une famille pour une année donnée (1, 2 ou 3).
