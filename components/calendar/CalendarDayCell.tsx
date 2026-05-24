@@ -1,0 +1,272 @@
+"use client";
+
+import type { Placeholder } from "@/lib/summer-placeholders";
+import { isSameDay } from "./calendar-utils";
+
+export type CalendarEvent = {
+  id: string;
+  bookingId: string;
+  start_date: string;
+  end_date: string;
+  family_id: string;
+  family_name: string;
+  color: string;
+  status: "pending" | "approved";
+};
+
+type Props = {
+  i: number;
+  dayNum: number;
+  date: Date;
+  dateStr: string;
+
+  today: Date;
+
+  isSpecialDay: boolean;
+  isSelected: boolean;
+
+  dayEvents: CalendarEvent[];
+
+  placeholder?: Placeholder;
+
+  onDayClick: (
+    dateStr: string,
+    hasEvent: boolean,
+    eventBookingId?: string
+  ) => void;
+
+  onDayHover: (dateStr: string) => void;
+};
+
+export default function CalendarDayCell({
+  i,
+  dayNum,
+  date,
+  dateStr,
+  today,
+  isSpecialDay,
+  isSelected,
+  dayEvents,
+  placeholder,
+  onDayClick,
+  onDayHover,
+}: Props) {
+  const isToday = isSameDay(date, today);
+  const isPast = date < today;
+
+  // Pivot detection
+  const endingEvent = dayEvents.find(
+    (e) => e.end_date === dateStr
+  );
+
+  const startingEvent = dayEvents.find(
+    (e) => e.start_date === dateStr
+  );
+
+  const isPivot =
+    !!endingEvent &&
+    !!startingEvent &&
+    endingEvent.bookingId !== startingEvent.bookingId;
+
+  const mainEvent = dayEvents[0];
+
+  const isFirstOfPlaceholder =
+    placeholder?.startDate === dateStr;
+
+  const isLastOfPlaceholder =
+    placeholder?.endDate === dateStr;
+
+  function handleClick() {
+    if (isPivot && startingEvent) {
+      onDayClick(
+        dateStr,
+        true,
+        startingEvent.bookingId
+      );
+
+      return;
+    }
+
+    if (mainEvent) {
+      onDayClick(
+        dateStr,
+        true,
+        mainEvent.bookingId
+      );
+
+      return;
+    }
+
+    onDayClick(dateStr, false);
+  }
+
+  return (
+    <div
+      key={i}
+      className={`
+        h-14 relative cursor-pointer rounded
+        ${isSpecialDay && !isSelected ? "bg-slate-100/70" : ""}
+      `}
+      onClick={handleClick}
+      onMouseEnter={() => onDayHover(dateStr)}
+      onTouchStart={() => onDayHover(dateStr)}
+    >
+      {/* Numéro du jour */}
+      <div
+        className={`
+          absolute top-1 left-1/2 -translate-x-1/2 z-10
+          w-7 h-7 flex items-center justify-center text-xs font-medium rounded-full
+          ${isToday ? "bg-slate-900 text-white" : ""}
+          ${!isToday && isPast ? "text-slate-300" : ""}
+          ${!isToday && !isPast ? "text-slate-900" : ""}
+        `}
+      >
+        {dayNum}
+      </div>
+
+      {/* Sélection en cours */}
+      {isSelected && dayEvents.length === 0 && (
+        <div className="absolute inset-0 bg-blue-100/60 rounded" />
+      )}
+
+      {/* Placeholder été */}
+      {placeholder && (
+        <div
+          className="absolute bottom-1 left-0 right-0 h-6 text-[11px] text-slate-500 font-medium flex items-center px-1 truncate bg-slate-200/80 border-2 border-dashed border-slate-400"
+          style={{
+            borderTopLeftRadius:
+              isFirstOfPlaceholder ? 12 : 0,
+            borderBottomLeftRadius:
+              isFirstOfPlaceholder ? 12 : 0,
+            borderTopRightRadius:
+              isLastOfPlaceholder ? 12 : 0,
+            borderBottomRightRadius:
+              isLastOfPlaceholder ? 12 : 0,
+            marginLeft: isFirstOfPlaceholder ? 4 : 0,
+            marginRight: isLastOfPlaceholder ? 4 : 0,
+          }}
+        >
+          {isFirstOfPlaceholder && (
+            <span className="truncate">
+              {placeholder.period.label}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* === RENDU DES EVENTS === */}
+
+      {isPivot &&
+      endingEvent &&
+      startingEvent ? (
+        <>
+          <div
+            className={`
+              absolute bottom-1 left-0 w-1/2 h-6
+              ${
+                endingEvent.status === "pending"
+                  ? "border-2 border-dashed border-white/70"
+                  : ""
+              }
+            `}
+            style={{
+              backgroundColor: endingEvent.color,
+              opacity:
+                endingEvent.status === "pending"
+                  ? 0.75
+                  : 1,
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderTopRightRadius: 12,
+              borderBottomRightRadius: 12,
+              marginRight: 1,
+            }}
+          />
+
+          <div
+            className={`
+              absolute bottom-1 right-0 w-1/2 h-6 text-[11px] text-white font-medium
+              flex items-center px-1 truncate
+              ${
+                startingEvent.status === "pending"
+                  ? "border-2 border-dashed border-white/70"
+                  : ""
+              }
+            `}
+            style={{
+              backgroundColor:
+                startingEvent.color,
+              opacity:
+                startingEvent.status === "pending"
+                  ? 0.75
+                  : 1,
+              borderTopLeftRadius: 12,
+              borderBottomLeftRadius: 12,
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
+              marginLeft: 1,
+            }}
+          >
+            <span className="truncate">
+              {startingEvent.family_name}
+              {startingEvent.status === "pending"
+                ? " ⏳"
+                : ""}
+            </span>
+          </div>
+        </>
+      ) : mainEvent ? (
+        (() => {
+          const isFirstOfEvent =
+            mainEvent.start_date === dateStr;
+
+          const isLastOfEvent =
+            mainEvent.end_date === dateStr;
+
+          return (
+            <div
+              className={`
+                absolute bottom-1 left-0 right-0 h-6 text-[11px] text-white font-medium
+                flex items-center px-1 truncate
+                ${
+                  mainEvent.status === "pending"
+                    ? "border-2 border-dashed border-white/70"
+                    : ""
+                }
+              `}
+              style={{
+                backgroundColor:
+                  mainEvent.color,
+                opacity:
+                  mainEvent.status === "pending"
+                    ? 0.75
+                    : 1,
+                borderTopLeftRadius:
+                  isFirstOfEvent ? 12 : 0,
+                borderBottomLeftRadius:
+                  isFirstOfEvent ? 12 : 0,
+                borderTopRightRadius:
+                  isLastOfEvent ? 12 : 0,
+                borderBottomRightRadius:
+                  isLastOfEvent ? 12 : 0,
+                marginLeft:
+                  isFirstOfEvent ? 4 : 0,
+                marginRight:
+                  isLastOfEvent ? 4 : 0,
+              }}
+            >
+              {isFirstOfEvent && (
+                <span className="truncate">
+                  {mainEvent.family_name}
+                  {mainEvent.status === "pending"
+                    ? " ⏳"
+                    : ""}
+                </span>
+              )}
+            </div>
+          );
+        })()
+      ) : null}
+    </div>
+  );
+}
