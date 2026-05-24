@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Kerbrise",
@@ -37,6 +38,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className="bg-slate-50 text-slate-900 antialiased">
         {children}
+       <SpeedInsights />
       </body>
     </html>
   );
