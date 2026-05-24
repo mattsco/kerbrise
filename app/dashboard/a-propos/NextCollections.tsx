@@ -25,11 +25,23 @@ export default function NextCollections() {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Ordures ménagères */}
-        <div className="bg-amber-900/5 border border-amber-900/20 rounded-xl p-3">
+        {/* Ordures ménagères - Bac vert */}
+        <div
+          className="rounded-xl p-3 border"
+          style={{
+            backgroundColor: "#3A823E15",
+            borderColor: "#3A823E40",
+          }}
+        >
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-3 h-3 rounded-full bg-amber-900" />
-            <span className="text-xs font-medium text-amber-900">
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: "#3A823E" }}
+            />
+            <span
+              className="text-xs font-medium"
+              style={{ color: "#3A823E" }}
+            >
               Ordures ménagères
             </span>
           </div>
@@ -41,12 +53,21 @@ export default function NextCollections() {
           </p>
         </div>
 
-        {/* Recyclables */}
+        {/* Recyclables - Bac jaune */}
         {collections.recyclables ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <div
+            className="rounded-xl p-3 border"
+            style={{
+              backgroundColor: "#E9DB1520",
+              borderColor: "#E9DB1560",
+            }}
+          >
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-3 h-3 rounded-full bg-amber-400" />
-              <span className="text-xs font-medium text-amber-700">
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: "#E9DB15" }}
+              />
+              <span className="text-xs font-medium text-yellow-700">
                 Recyclables
               </span>
             </div>
