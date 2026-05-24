@@ -102,7 +102,7 @@ export default function MonthGrid({
         7
     ) * 7;
 
-  // Map rapide :
+  // Map :
   // date -> events[]
   const eventsByDate =
     useMemo(() => {
@@ -154,7 +154,7 @@ export default function MonthGrid({
       return map;
     }, [events]);
 
-  // Map rapide :
+  // Map :
   // date -> placeholder
   const placeholdersByDate =
     useMemo(() => {
@@ -276,7 +276,7 @@ export default function MonthGrid({
               dateStr
             ) ?? [];
 
-          // Safety DEV
+          // DEV safety
           if (
             process.env
               .NODE_ENV ===
@@ -313,7 +313,6 @@ export default function MonthGrid({
             isWeekend ||
             isHoliday;
 
-          // Placeholder seulement si aucun booking
           const placeholder =
             dayEvents.length ===
             0
@@ -324,7 +323,7 @@ export default function MonthGrid({
 
           return (
             <CalendarDayCell
-              key={i}
+              key={dateStr}
               dayNum={
                 dayNum
               }
