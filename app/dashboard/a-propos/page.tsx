@@ -4,6 +4,7 @@ import BackButton from "@/components/BackButton";
 import AProposClient from "./AProposClient";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
@@ -14,8 +15,8 @@ export default async function AProposPage() {
 
   if (!user) redirect("/login");
 
-  // Récupère intro, links, contacts en parallèle
-  const [introRes, linksRes, contactsRes] = await Promise.all([
+  // Récupère intro, links, contacts + family_id user
+  const [introRes, linksRes, contactsRes, userProfileRes] = await Promise.all([
     supabase
       .from("house_intro")
       .select("id, content, updated_at, users:updated_by(display_name)")
@@ -30,11 +31,43 @@ export default async function AProposPage() {
       .from("house_contacts")
       .select("id, label, name, phone, icon, position")
       .order("position"),
+    supabase
+      .from("users")
+      .select("family_id")
+      .eq("id", user.id)
+      .single(),
   ]);
 
   const intro = introRes.data ?? null;
   const links = linksRes.data ?? [];
   const contacts = contactsRes.data ?? [];
+  const familyId = userProfileRes.data?.family_id ?? null;
+
+  // Détermine si la famille de l'user a un séjour approved en cours
+  // ou qui commence dans les 3 prochains jours.
+  let showCollections = false;
+  if (familyId) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString().slice(0, 10);
+
+    const in3Days = new Date(today);
+    in3Days.setDate(in3Days.getDate() + 3);
+    const in3DaysISO = in3Days.toISOString().slice(0, 10);
+
+    // Query : un membre de la famille a-t-il une résa approved qui :
+    // - termine dans le futur (end_date >= today)
+    // - commence dans <= 3 jours (start_date <= today + 3)
+    const { count } = await supabase
+      .from("bookings")
+      .select("id, users!inner(family_id)", { count: "exact", head: true })
+      .eq("status", "approved")
+      .eq("users.family_id", familyId)
+      .gte("end_date", todayISO)
+      .lte("start_date", in3DaysISO);
+
+    showCollections = (count ?? 0) > 0;
+  }
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -49,7 +82,7 @@ export default async function AProposPage() {
           </p>
         </div>
 
-<Link
+        <Link
           href="/dashboard/a-propos/regles"
           className="block bg-white border border-slate-100 rounded-2xl p-4 hover:border-slate-200 hover:shadow-sm transition"
         >
@@ -69,13 +102,12 @@ export default async function AProposPage() {
           </div>
         </Link>
 
-
-
         <AProposClient
           initialIntro={intro}
           initialLinks={links}
           initialContacts={contacts}
           currentUserId={user.id}
+          showCollections={showCollections}
         />
       </div>
     </main>
