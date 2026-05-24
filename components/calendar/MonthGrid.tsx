@@ -70,7 +70,11 @@ export default function MonthGrid({
 
   const totalCells = Math.ceil((offsetStart + daysInMonth) / 7) * 7;
 
-const todayStr = dateToISO(today);
+  // String stable pour passer à chaque cellule (évite 90 × dateToISO())
+  const todayStr = dateToISO(today);
+
+  // Préfixe ISO du mois pour construire dateStr sans new Date()
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
 
   return (
     <div>
@@ -100,9 +104,7 @@ const todayStr = dateToISO(today);
             return <div key={i} className="h-[52px]" />;
           }
 
-          
-          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-
+          const dateStr = `${monthPrefix}-${String(dayNum).padStart(2, "0")}`;
           const dayEvents = eventsByDate.get(dateStr) ?? [];
 
           // DEV safety: warn si plus de 2 events overlappent (cas anormal)
@@ -132,7 +134,6 @@ const todayStr = dateToISO(today);
             <CalendarDayCell
               key={dateStr}
               dayNum={dayNum}
-              date={date}
               dateStr={dateStr}
               todayStr={todayStr}
               isSpecialDay={isSpecialDay}
