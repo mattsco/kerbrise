@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { todayISO as getTodayISO } from "@/lib/dates";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWADetector from "@/components/PWADetector";
 import {
@@ -65,7 +66,8 @@ export default async function DashboardPage() {
   }
 
   // Prochains séjours approuvés
-  const todayISO = new Date().toISOString().split("T")[0];
+const todayISO = getTodayISO();
+
   const { data: upcoming } = await supabase
     .from("bookings")
     .select("id, start_date, end_date, family_id, families(name, color)")
