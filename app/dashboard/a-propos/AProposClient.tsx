@@ -87,10 +87,6 @@ export default function AProposClient({
     router.refresh();
   }
 
-{/* SECTION COLLECTES */}
-      <NextCollections />
-
-     
   // ===========================
   // SECTION 2 : LINKS
   // ===========================
@@ -357,6 +353,9 @@ export default function AProposClient({
         )}
       </section>
 
+      {/* SECTION COLLECTES */}
+      <NextCollections />
+
       {/* SECTION 2 : LINKS */}
       <section className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center justify-between mb-3">
@@ -482,7 +481,7 @@ export default function AProposClient({
         )}
       </section>
 
-{/* SECTION 3 : CONTACTS */}
+      {/* SECTION 3 : CONTACTS */}
       <section className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
