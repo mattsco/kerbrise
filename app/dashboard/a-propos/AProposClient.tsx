@@ -12,6 +12,7 @@ import {
   Plus,
   X,
   Check,
+  Wifi,
 } from "lucide-react";
 
 type Intro = {
@@ -44,6 +45,7 @@ type Props = {
   initialLinks: Link[];
   initialContacts: Contact[];
   currentUserId: string;
+  showCollections: boolean;
 };
 
 export default function AProposClient({
@@ -51,8 +53,32 @@ export default function AProposClient({
   initialLinks,
   initialContacts,
   currentUserId,
+  showCollections,
 }: Props) {
   const router = useRouter();
+
+// ===========================
+  // WIFI
+  // ===========================
+  const [wifiCopied, setWifiCopied] = useState(false);
+
+  async function copyWifiPassword() {
+    try {
+      await navigator.clipboard.writeText("kerbrise35400");
+      setWifiCopied(true);
+      setTimeout(() => setWifiCopied(false), 2000);
+    } catch {
+      // Fallback navigateurs anciens
+      const textArea = document.createElement("textarea");
+      textArea.value = "kerbrise35400";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setWifiCopied(true);
+      setTimeout(() => setWifiCopied(false), 2000);
+    }
+  }
 
   // ===========================
   // SECTION 1 : INTRO
@@ -333,7 +359,8 @@ export default function AProposClient({
                 Aucun contenu encore. Clique "Modifier" pour ajouter une présentation.
               </p>
             )}
-            {(() => {
+
+{(() => {
               const updater = Array.isArray(intro?.users)
                 ? intro?.users[0]
                 : intro?.users;
@@ -349,13 +376,25 @@ export default function AProposClient({
                 </p>
               );
             })()}
+
+            {/* Bouton wifi */}
+            <button
+              onClick={copyWifiPassword}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
+            >
+              <Wifi className="w-3.5 h-3.5" />
+              {wifiCopied
+                ? "Mot de passe copié ✓"
+                : "Copier le mot de passe wifi"}
+            </button>
           </>
         )}
       </section>
 
-      {/* SECTION COLLECTES */}
-      <NextCollections />
+      {/* SECTION COLLECTES (conditionnel) */}
+      <NextCollections compact={!showCollections} />
 
+            
       {/* SECTION 2 : LINKS */}
       <section className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center justify-between mb-3">
