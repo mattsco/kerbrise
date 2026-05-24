@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useState,
+} from "react";
 
 import BookingDetailModal from "./BookingDetailModal";
 import NewBookingModal from "./NewBookingModal";
@@ -43,26 +46,37 @@ export default function Calendar({
 }: Props) {
   const today = new Date();
 
-  today.setHours(0, 0, 0, 0);
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
 
-  const [anchorMonth, setAnchorMonth] =
-    useState(
-      new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1
-      )
-    );
+  const [
+    anchorMonth,
+    setAnchorMonth,
+  ] = useState(
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    )
+  );
 
   const [
     selectedBookingId,
     setSelectedBookingId,
-  ] = useState<string | null>(null);
+  ] = useState<string | null>(
+    null
+  );
 
   const [
     selectedPlaceholder,
     setSelectedPlaceholder,
-  ] = useState<Placeholder | null>(null);
+  ] = useState<Placeholder | null>(
+    null
+  );
 
   const [
     newBookingRange,
@@ -79,83 +93,105 @@ export default function Calendar({
     useState<string | null>(null);
 
   // 3 mois affichés
-  const months: Date[] = [];
-
-  for (let i = 0; i < 3; i++) {
-    months.push(
-      new Date(
-        anchorMonth.getFullYear(),
-        anchorMonth.getMonth() + i,
-        1
-      )
-    );
-  }
-
-  // Jours fériés
-  const holidaySet = useMemo(() => {
-    const startMonth = months[0];
-
-    const endMonth =
-      months[months.length - 1];
-
-    const startISO = dateToISO(
-      new Date(
-        startMonth.getFullYear(),
-        startMonth.getMonth(),
-        1
-      )
-    );
-
-    const endISO = dateToISO(
-      new Date(
-        endMonth.getFullYear(),
-        endMonth.getMonth() + 1,
-        0
-      )
-    );
-
-    const list = getHolidaysInRange(
-      startISO,
-      endISO
-    );
-
-    return new Set(
-      list.map((h) => h.date)
+  const months = useMemo(() => {
+    return Array.from(
+      { length: 3 },
+      (_, i) =>
+        new Date(
+          anchorMonth.getFullYear(),
+          anchorMonth.getMonth() +
+            i,
+          1
+        )
     );
   }, [anchorMonth]);
 
-  // Placeholders été
-  const placeholders = useMemo(() => {
-    const bookingsMinimal: BookingMinimal[] =
-      events.map((e) => ({
-        start_date: e.start_date,
-        end_date: e.end_date,
-        family_id: e.family_id,
-        family_name: e.family_name,
-        family_color: e.color,
-        status: e.status,
-      }));
+  // Jours fériés
+  const holidaySet = useMemo(() => {
+    const startMonth =
+      months[0];
 
-    const minYear =
-      months[0].getFullYear();
-
-    const maxYear =
+    const endMonth =
       months[
         months.length - 1
-      ].getFullYear();
+      ];
 
-    return getAllUpcomingPlaceholders(
-      bookingsMinimal,
-      minYear,
-      maxYear
+    const startISO =
+      dateToISO(
+        new Date(
+          startMonth.getFullYear(),
+          startMonth.getMonth(),
+          1
+        )
+      );
+
+    const endISO =
+      dateToISO(
+        new Date(
+          endMonth.getFullYear(),
+          endMonth.getMonth() +
+            1,
+          0
+        )
+      );
+
+    const list =
+      getHolidaysInRange(
+        startISO,
+        endISO
+      );
+
+    return new Set(
+      list.map(
+        (h) => h.date
+      )
     );
-  }, [events, anchorMonth]);
+  }, [months]);
+
+  // Placeholders été
+  const placeholders =
+    useMemo(() => {
+      const bookingsMinimal: BookingMinimal[] =
+        events.map((e) => ({
+          start_date:
+            e.start_date,
+
+          end_date:
+            e.end_date,
+
+          family_id:
+            e.family_id,
+
+          family_name:
+            e.family_name,
+
+          family_color:
+            e.color,
+
+          status: e.status,
+        }));
+
+      const minYear =
+        months[0].getFullYear();
+
+      const maxYear =
+        months[
+          months.length - 1
+        ].getFullYear();
+
+      return getAllUpcomingPlaceholders(
+        bookingsMinimal,
+        minYear,
+        maxYear
+      );
+    }, [events, months]);
 
   function goPrevMonth() {
     setAnchorMonth(
       new Date(
         anchorMonth.getFullYear(),
-        anchorMonth.getMonth() - 1,
+        anchorMonth.getMonth() -
+          1,
         1
       )
     );
@@ -165,7 +201,8 @@ export default function Calendar({
     setAnchorMonth(
       new Date(
         anchorMonth.getFullYear(),
-        anchorMonth.getMonth() + 1,
+        anchorMonth.getMonth() +
+          1,
         1
       )
     );
@@ -195,9 +232,14 @@ export default function Calendar({
   function handleDayClick(
     dateStr: string,
     hasEvent: boolean,
-    eventBookingId?: string
+    eventBookingId?: string,
+    placeholder?: Placeholder
   ) {
-    if (hasEvent && eventBookingId) {
+    // Booking existant
+    if (
+      hasEvent &&
+      eventBookingId
+    ) {
       setSelectedBookingId(
         eventBookingId
       );
@@ -207,28 +249,25 @@ export default function Calendar({
       return;
     }
 
-    const placeholderHit =
-      placeholders.find(
-        (p) =>
-          p.status === "free" &&
-          dateStr >= p.startDate &&
-          dateStr <= p.endDate
-      );
-
-    if (placeholderHit) {
+    // Placeholder été
+    if (placeholder) {
       handlePlaceholderClick(
-        placeholderHit
+        placeholder
       );
 
       return;
     }
 
+    // Début sélection
     if (!rangeStart) {
-      setRangeStart(dateStr);
+      setRangeStart(
+        dateStr
+      );
 
       return;
     }
 
+    // Fin sélection
     const start =
       rangeStart < dateStr
         ? rangeStart
@@ -263,13 +302,14 @@ export default function Calendar({
 
   function isInSelection(
     dateStr: string
-  ): boolean {
+  ) {
     if (!rangeStart) {
       return false;
     }
 
     const end =
-      hoverDate ?? rangeStart;
+      hoverDate ??
+      rangeStart;
 
     const min =
       rangeStart < end
@@ -289,10 +329,12 @@ export default function Calendar({
 
   return (
     <>
-      {/* Header */}
+      {/* Header navigation */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
         <button
-          onClick={goPrevMonth}
+          onClick={
+            goPrevMonth
+          }
           className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 transition"
           aria-label="Mois précédent"
         >
@@ -319,7 +361,9 @@ export default function Calendar({
         </button>
 
         <button
-          onClick={goNextMonth}
+          onClick={
+            goNextMonth
+          }
           className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 transition"
           aria-label="Mois suivant"
         >
@@ -358,7 +402,9 @@ export default function Calendar({
 
         <div className="flex items-center gap-1.5 ml-auto">
           <span className="w-3 h-3 rounded-full border-2 border-dashed border-slate-400" />
-          <span>En attente</span>
+          <span>
+            En attente
+          </span>
         </div>
       </div>
 
@@ -366,8 +412,9 @@ export default function Calendar({
       {rangeStart && (
         <div className="mb-3 bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-900 flex items-center justify-between">
           <span>
-            📅 Touche une seconde
-            date pour terminer la
+            📅 Touche une
+            seconde date pour
+            terminer la
             sélection
           </span>
 
@@ -382,10 +429,13 @@ export default function Calendar({
         </div>
       )}
 
-      {/* Grille */}
+      {/* Mois */}
       <div className="grid gap-6 lg:grid-cols-2">
         {months.map(
-          (monthDate, idx) => (
+          (
+            monthDate,
+            idx
+          ) => (
             <MonthGrid
               key={idx}
               monthDate={
@@ -413,7 +463,7 @@ export default function Calendar({
         )}
       </div>
 
-      {/* Modal détail booking */}
+      {/* Modal booking */}
       {selectedBookingId && (
         <BookingDetailModal
           bookingId={
@@ -445,7 +495,9 @@ export default function Calendar({
           familyId={
             currentFamilyId
           }
-          userId={currentUserId}
+          userId={
+            currentUserId
+          }
           initialStart={
             newBookingRange.start
           }
@@ -460,7 +512,7 @@ export default function Calendar({
         />
       )}
 
-      {/* Modal placeholder été */}
+      {/* Modal placeholder */}
       {selectedPlaceholder && (
         <SummerPlaceholderModal
           placeholder={
