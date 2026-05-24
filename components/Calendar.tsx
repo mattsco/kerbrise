@@ -46,7 +46,11 @@ export default function Calendar({
   isFamilyHead,
   isCalendarAdmin = false,
 }: Props) {
-  const today = new Date();
+  const today = useMemo(() => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}, []);
 
   today.setHours(
     0,
@@ -172,6 +176,36 @@ export default function Calendar({
 
           status: e.status,
         }));
+
+const eventsByDate = useMemo(() => {
+  const map = new Map<string, CalendarEvent[]>();
+  for (const event of events) {
+    let current = new Date(event.start_date);
+    const end = new Date(event.end_date);
+    while (current <= end) {
+      const key = dateToISO(current);
+      const existing = map.get(key) ?? [];
+      existing.push(event);
+      map.set(key, existing);
+      current.setDate(current.getDate() + 1);
+    }
+  }
+  return map;
+}, [events]);
+
+const placeholdersByDate = useMemo(() => {
+  const map = new Map<string, Placeholder>();
+  for (const p of placeholders) {
+    if (p.status !== "free") continue;
+    let current = new Date(p.startDate);
+    const end = new Date(p.endDate);
+    while (current <= end) {
+      map.set(dateToISO(current), p);
+      current.setDate(current.getDate() + 1);
+    }
+  }
+  return map;
+}, [placeholders]);
 
       const minYear =
         months[0].getFullYear();
@@ -437,10 +471,9 @@ export default function Calendar({
               monthDate={
                 monthDate
               }
-              events={events}
-              placeholders={
-                placeholders
-              }
+           eventsByDate={eventsByDate}
+          placeholdersByDate={placeholdersByDate}
+         
               today={today}
               isInSelection={
                 isInSelection
