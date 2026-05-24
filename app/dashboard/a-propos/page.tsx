@@ -4,7 +4,7 @@ import BackButton from "@/components/BackButton";
 import AProposClient from "./AProposClient";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-
+import NextCollections from "./NextCollections";
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
@@ -69,7 +69,7 @@ export default async function AProposPage() {
             <ArrowRight className="w-4 h-4 text-amber-700 flex-shrink-0" />
           </div>
         </Link>
-
+<NextCollections />
 
         <AProposClient
           initialIntro={intro}
