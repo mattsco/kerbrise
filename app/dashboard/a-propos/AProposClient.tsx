@@ -66,7 +66,6 @@ export default function AProposClient({
 // ===========================
   // WIFI
   // ===========================
-  const [wifiCopied, setWifiCopied] = useState(false);
 
 const [wifiCopied, setWifiCopied] = useState(false);
   const [nextCollection, setNextCollection] = useState(getNextCollection());
