@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NextCollections from "./NextCollections";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  getNextCollection,
+  formatDateLabel,
+  formatRelativeDate,
+} from "@/lib/garbage-collection";
+
 import {
   ExternalLink,
   Phone,
@@ -61,6 +67,17 @@ export default function AProposClient({
   // WIFI
   // ===========================
   const [wifiCopied, setWifiCopied] = useState(false);
+
+const [wifiCopied, setWifiCopied] = useState(false);
+  const [nextCollection, setNextCollection] = useState(getNextCollection());
+
+  // Re-calcule la collecte toutes les minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNextCollection(getNextCollection());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function copyWifiPassword() {
     try {
@@ -377,24 +394,47 @@ export default function AProposClient({
               );
             })()}
 
-            {/* Bouton wifi */}
-            <button
-              onClick={copyWifiPassword}
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
-            >
-              <Wifi className="w-3.5 h-3.5" />
-              {wifiCopied
-                ? "Mot de passe copié ✓"
-                : "Copier le mot de passe wifi"}
-            </button>
+            {/* Quick actions : wifi + prochaine collecte (mode compact) */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <button
+                onClick={copyWifiPassword}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
+              >
+                <Wifi className="w-3.5 h-3.5" />
+                {wifiCopied
+                  ? "Mot de passe copié ✓"
+                  : "Copier le mot de passe wifi"}
+              </button>
+
+              {!showCollections && (
+                <div className="inline-flex items-center gap-1.5 text-xs text-slate-600">
+                  <Trash2
+                    className="w-3.5 h-3.5"
+                    style={{
+                      color:
+                        nextCollection.type === "recyclables"
+                          ? "#C9A800"
+                          : "#1F5C26",
+                    }}
+                  />
+                  <span>
+                    Prochaine collecte :{" "}
+                    <strong className="text-slate-700 capitalize">
+                      {formatDateLabel(nextCollection.date)}
+                    </strong>
+                  </span>
+                </div>
+              )}
+            </div>
+
           </>
         )}
       </section>
 
-      {/* SECTION COLLECTES (conditionnel) */}
-      <NextCollections compact={!showCollections} />
-
-            
+       
+{/* SECTION COLLECTES (seulement si famille concernée) */}
+      {showCollections && <NextCollections />}
+     
       {/* SECTION 2 : LINKS */}
       <section className="bg-white rounded-2xl border border-slate-100 p-5">
         <div className="flex items-center justify-between mb-3">
