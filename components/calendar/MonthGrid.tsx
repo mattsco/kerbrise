@@ -70,6 +70,8 @@ export default function MonthGrid({
 
   const totalCells = Math.ceil((offsetStart + daysInMonth) / 7) * 7;
 
+const todayStr = dateToISO(today);
+
   return (
     <div>
       <h3 className="text-base font-semibold text-slate-900 mb-3 text-center">
@@ -98,8 +100,9 @@ export default function MonthGrid({
             return <div key={i} className="h-[52px]" />;
           }
 
-          const date = new Date(year, month, dayNum);
-          const dateStr = dateToISO(date);
+          
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+
           const dayEvents = eventsByDate.get(dateStr) ?? [];
 
           // DEV safety: warn si plus de 2 events overlappent (cas anormal)
@@ -131,7 +134,7 @@ export default function MonthGrid({
               dayNum={dayNum}
               date={date}
               dateStr={dateStr}
-              today={today}
+              todayStr={todayStr}
               isSpecialDay={isSpecialDay}
               isSelected={isSelected}
               dayEvents={dayEvents}
