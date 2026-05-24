@@ -70,7 +70,7 @@ export default async function AProposPage() {
           </div>
         </Link>
 
-<NextCollections />
+
 
         <AProposClient
           initialIntro={intro}
