@@ -159,12 +159,14 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+
         {/* Bannière contextuelle (cas A, B ou D selon le contexte) */}
-        <ContextualBanner
+
+<ContextualBanner
           context={bannerContext}
           displayName={displayName}
-          familyName={familyName}
         />
+
 
         {/* Liste des prochains séjours (uniquement cas C) */}
         {bannerContext.bannerCase === "C" && (
