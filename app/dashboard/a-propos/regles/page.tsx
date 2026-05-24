@@ -6,7 +6,6 @@ import {
   getFamilyPriority,
   getRelevantSummerYear,
   SUMMER_PERIODS,
-  FAMILY_ROTATION,
 } from "@/lib/summer-priorities";
 
 export const dynamic = "force-dynamic";
