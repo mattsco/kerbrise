@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import Calendar from "@/components/Calendar";
 import BackButton from "@/components/BackButton";
-
 
 export default async function CalendrierPage() {
   const supabase = await createClient();
@@ -17,7 +15,7 @@ export default async function CalendrierPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("family_id, is_family_head, is_calendar_admin")
+    .select("family_id, is_family_head, is_calendar_admin, families(name)")
     .eq("id", user.id)
     .single();
 
@@ -25,11 +23,14 @@ export default async function CalendrierPage() {
     redirect("/login");
   }
 
+  // @ts-ignore
+  const familyName: string = profile.families?.name ?? "?";
+
   const { data: bookings } = await supabase
     .from("bookings")
     .select(
       `
-      id, start_date, end_date, status,
+      id, start_date, end_date, status, family_id,
       families(name, color)
     `
     )
@@ -42,6 +43,7 @@ export default async function CalendrierPage() {
       bookingId: b.id,
       start_date: b.start_date,
       end_date: b.end_date,
+      family_id: b.family_id,
       family_name: b.families?.name ?? "?",
       color: b.families?.color ?? "#888",
       status: b.status as "pending" | "approved",
@@ -74,6 +76,7 @@ export default async function CalendrierPage() {
             events={events}
             currentUserId={user.id}
             currentFamilyId={profile.family_id}
+            currentFamilyName={familyName}
             isFamilyHead={profile.is_family_head}
             isCalendarAdmin={profile.is_calendar_admin ?? false}
           />
