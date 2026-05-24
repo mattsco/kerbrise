@@ -416,12 +416,22 @@ const [wifiCopied, setWifiCopied] = useState(false);
                           : "#1F5C26",
                     }}
                   />
-                  <span>
-                    Prochaine collecte :{" "}
-                    <strong className="text-slate-700 capitalize">
-                      {formatDateLabel(nextCollection.date)}
-                    </strong>
-                  </span>
+<span>
+  Prochaine collecte :{" "}
+  <strong className="text-slate-700 capitalize">
+    {formatDateLabel(nextCollection.date)}
+  </strong>{" "}
+  <span
+    className="ml-1 text-[10px] font-medium"
+    style={{
+      color:
+        nextCollection.type === "recyclables" ? "#A38800" : "#1F5C26",
+    }}
+  >
+    ({nextCollection.type === "recyclables" ? "Recyclables" : "Ordures"})
+  </span>
+</span>
+
                 </div>
               )}
             </div>
