@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ApprovalButtons from "@/components/ApprovalButtons";
 import BookingActions from "@/components/BookingActions";
+import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 import BackButton from "@/components/BackButton";
 import { isStayActiveOrFuture } from "@/lib/dates";
 
@@ -229,7 +230,8 @@ function BookingCard({
           <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">
             Validations
           </p>
-          {["Antoine", "François", "Vincent"].map((fam) => {
+
+{FAMILY_NAMES.map((fam) => {
             if (fam === familyName) {
               return (
                 <ApprovalStatus
@@ -247,7 +249,7 @@ function BookingCard({
               <ApprovalStatus
                 key={fam}
                 familyName={fam}
-                color={approval?.families?.color ?? familyColorFor(fam)}
+                color={approval?.families?.color ?? getFamilyColor(fam)}
                 decision={approval?.decision ?? null}
               />
             );
@@ -342,9 +344,3 @@ function formatDate(iso: string): string {
   });
 }
 
-function familyColorFor(name: string): string {
-  if (name === "Antoine") return "#3b82f6";
-  if (name === "François") return "#10b981";
-  if (name === "Vincent") return "#f59e0b";
-  return "#888";
-}
