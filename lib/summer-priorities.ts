@@ -8,8 +8,9 @@
  *   2027 : Antoine (1), ... (cycle)
  */
 
-export const FAMILY_ROTATION = ["Antoine", "Vincent", "François"] as const;
-export type FamilyName = (typeof FAMILY_ROTATION)[number];
+import { FAMILIES, type FamilyName } from "./families";
+
+export type { FamilyName }; // re-export pour rétro-compat
 
 export const SUMMER_PERIODS = [
   {
