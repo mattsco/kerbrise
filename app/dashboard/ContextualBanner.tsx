@@ -12,13 +12,11 @@ import {
 type Props = {
   context: BannerContext;
   displayName: string;
-  familyName: string;
 };
 
 export default function ContextualBanner({
   context,
   displayName,
-  familyName,
 }: Props) {
   const { bannerCase, currentlyAt, myFamilyNextStay, relayBooking, relayDiffDays } =
     context;
@@ -32,7 +30,7 @@ export default function ContextualBanner({
           🌊 Bienvenue à Kerbrise, {displayName} !
         </p>
         <p className="text-xs text-slate-600 mt-1">
-          Famille {familyName} jusqu'au {formatEndDate(currentlyAt.end_date)} ·{" "}
+          Séjour jusqu'au {formatEndDate(currentlyAt.end_date)} ·{" "}
           {remaining === 0
             ? "dernier jour"
             : remaining === 1
@@ -57,7 +55,7 @@ export default function ContextualBanner({
             className="w-2.5 h-2.5 rounded-full inline-block"
             style={{ backgroundColor: currentlyAt.family_color }}
           />
-          La famille {currentlyAt.family_name} est à Kerbrise
+          {currentlyAt.family_name} est à Kerbrise
         </p>
         <p className="text-xs text-slate-600 mt-1">
           jusqu'au {formatEndDate(currentlyAt.end_date)}
