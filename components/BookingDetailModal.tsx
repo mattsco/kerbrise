@@ -362,9 +362,3 @@ export default function BookingDetailModal({
   );
 }
 
-function familyColor(name: string): string {
-  if (name === "Antoine") return "#3b82f6";
-  if (name === "François") return "#10b981";
-  if (name === "Vincent") return "#f59e0b";
-  return "#888";
-}
