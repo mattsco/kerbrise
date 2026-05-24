@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import BookingDetailModal from "./BookingDetailModal";
 import NewBookingModal from "./NewBookingModal";
@@ -153,51 +153,51 @@ export default function Calendar({
     setAnchorMonth(new Date(today.getFullYear(), today.getMonth(), 1));
   }
 
-  function handlePlaceholderClick(placeholder: Placeholder) {
-    setSelectedPlaceholder(placeholder);
-    setRangeStart(null);
-    setHoverDate(null);
-  }
+  // Stable callbacks → permet à CalendarDayCell (memo) de skip re-render
+  const handleDayClick = useCallback(
+    (
+      dateStr: string,
+      hasEvent: boolean,
+      eventBookingId?: string,
+      placeholder?: Placeholder
+    ) => {
+      // Booking existant
+      if (hasEvent && eventBookingId) {
+        setSelectedBookingId(eventBookingId);
+        setRangeStart(null);
+        return;
+      }
 
-  function handleDayClick(
-    dateStr: string,
-    hasEvent: boolean,
-    eventBookingId?: string,
-    placeholder?: Placeholder
-  ) {
-    // Booking existant
-    if (hasEvent && eventBookingId) {
-      setSelectedBookingId(eventBookingId);
+      // Placeholder été
+      if (placeholder) {
+        setSelectedPlaceholder(placeholder);
+        setRangeStart(null);
+        setHoverDate(null);
+        return;
+      }
+
+      // Début sélection
+      if (!rangeStart) {
+        setRangeStart(dateStr);
+        return;
+      }
+
+      // Fin sélection
+      const start = rangeStart < dateStr ? rangeStart : dateStr;
+      const end = rangeStart < dateStr ? dateStr : rangeStart;
+      setNewBookingRange({ start, end });
       setRangeStart(null);
-      return;
-    }
+      setHoverDate(null);
+    },
+    [rangeStart]
+  );
 
-    // Placeholder été
-    if (placeholder) {
-      handlePlaceholderClick(placeholder);
-      return;
-    }
-
-    // Début sélection
-    if (!rangeStart) {
-      setRangeStart(dateStr);
-      return;
-    }
-
-    // Fin sélection
-    const start = rangeStart < dateStr ? rangeStart : dateStr;
-    const end = rangeStart < dateStr ? dateStr : rangeStart;
-
-    setNewBookingRange({ start, end });
-    setRangeStart(null);
-    setHoverDate(null);
-  }
-
-  function handleDayHover(dateStr: string) {
-    if (rangeStart) {
-      setHoverDate(dateStr);
-    }
-  }
+  const handleDayHover = useCallback(
+    (dateStr: string) => {
+      if (rangeStart) setHoverDate(dateStr);
+    },
+    [rangeStart]
+  );
 
   function cancelSelection() {
     setRangeStart(null);
