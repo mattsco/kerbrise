@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import ApprovalButtons from "./ApprovalButtons";
 import BookingActions from "./BookingActions";
+import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 
 type Props = {
   bookingId: string;
@@ -273,7 +274,8 @@ export default function BookingDetailModal({
                 Validations
               </p>
               <div className="space-y-1.5 text-sm">
-                {["Antoine", "François", "Vincent"].map((famName) => {
+
+{FAMILY_NAMES.map((famName) => {
                   const isAuthorFam = booking.family_name === famName;
                   const approval = booking.approvals.find(
                     (a) => a.family_name === famName
@@ -282,7 +284,7 @@ export default function BookingDetailModal({
                     <div key={famName} className="flex items-center gap-2">
                       <span
                         className="inline-block w-2 h-2 rounded-full"
-                        style={{ backgroundColor: familyColor(famName) }}
+                        style={{ backgroundColor: getFamilyColor(famName) }}
                       />
                       <strong>{famName}</strong>
                       {isAuthorFam ? (
