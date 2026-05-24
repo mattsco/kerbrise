@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { parseLocalDate, dateToISO, daysInRangeInclusive } from "@/lib/dates";
 import BackButton from "@/components/BackButton";
+import { FAMILY_NAMES, FAMILY_COLORS } from "@/lib/families";
 import {
   Home,
   TrendingUp,
@@ -12,13 +13,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-const FAMILY_COLORS: Record<string, string> = {
-  Antoine: "#3b82f6",
-  François: "#10b981",
-  Vincent: "#f59e0b",
-};
-
-const FAMILY_NAMES = ["Antoine", "François", "Vincent"] as const;
 
 const FRENCH_MONTHS_SHORT = [
   "Jan",
