@@ -49,6 +49,15 @@ type Props = {
   ) => void;
 };
 
+function getFamilyShortName(
+  familyName: string
+) {
+  return familyName
+    ?.trim()
+    ?.charAt(0)
+    ?.toUpperCase();
+}
+
 export default function CalendarDayCell({
   dayNum,
   date,
@@ -69,11 +78,9 @@ export default function CalendarDayCell({
     today
   );
 
-  // Comparaison ISO = plus robuste timezone
   const isPast =
     dateStr < todayStr;
 
-  // Pivot detection
   const endingEvent =
     dayEvents.find(
       (e) =>
@@ -156,9 +163,11 @@ export default function CalendarDayCell({
       {/* Numéro du jour */}
       <div
         className={`
-          absolute top-1 left-1/2 -translate-x-1/2 z-10
-          min-w-[28px] h-7 flex items-center justify-center text-xs rounded-full
-          
+          absolute top-1 left-1/2 -translate-x-1/2
+          min-w-[28px] h-7 flex items-center justify-center
+          text-xs rounded-full
+          z-[1]
+
           ${
             isToday
               ? "font-bold text-slate-900 bg-slate-100"
@@ -193,7 +202,14 @@ export default function CalendarDayCell({
       {/* Placeholder été */}
       {placeholder && (
         <div
-          className="absolute bottom-1 left-0 right-0 h-6 text-[11px] text-slate-500 font-medium flex items-center px-1.5 truncate bg-slate-200/80 border-2 border-dashed border-slate-400"
+          className="
+            absolute bottom-1 left-0 right-0 h-6
+            text-[11px] text-slate-500 font-medium
+            flex items-center px-1.5 truncate
+            bg-slate-200/80
+            border-2 border-dashed border-slate-400
+            z-[2]
+          "
           style={{
             borderTopLeftRadius:
               isFirstOfPlaceholder
@@ -213,6 +229,16 @@ export default function CalendarDayCell({
             borderBottomRightRadius:
               isLastOfPlaceholder
                 ? 12
+                : 0,
+
+            borderLeftWidth:
+              isFirstOfPlaceholder
+                ? 2
+                : 0,
+
+            borderRightWidth:
+              isLastOfPlaceholder
+                ? 2
                 : 0,
 
             marginLeft:
@@ -247,11 +273,11 @@ export default function CalendarDayCell({
           {/* Fin booking */}
           <div
             className={`
-              absolute bottom-1 left-0 w-1/2 h-6
+              absolute bottom-1 left-0 w-1/2 h-6 z-[2]
               ${
                 endingEvent.status ===
                 "pending"
-                  ? "border-2 border-dashed border-white/70"
+                  ? "border-y-2 border-l-2 border-dashed border-white/70"
                   : ""
               }
             `}
@@ -273,12 +299,15 @@ export default function CalendarDayCell({
           {/* Début booking */}
           <div
             className={`
-              absolute bottom-1 right-0 w-1/2 h-6 text-[11px] text-white font-medium
+              absolute bottom-1 right-0 w-1/2 h-6
+              text-[11px] text-white font-medium
               flex items-center px-1.5 truncate
+              z-[2]
+
               ${
                 startingEvent.status ===
                 "pending"
-                  ? "border-2 border-dashed border-white/70"
+                  ? "border-y-2 border-r-2 border-dashed border-white/70"
                   : ""
               }
             `}
@@ -297,9 +326,9 @@ export default function CalendarDayCell({
             }}
           >
             <span className="truncate">
-              {
+              {getFamilyShortName(
                 startingEvent.family_name
-              }
+              )}
 
               {startingEvent.status ===
               "pending"
@@ -321,12 +350,19 @@ export default function CalendarDayCell({
           return (
             <div
               className={`
-                absolute bottom-1 left-0 right-0 h-6 text-[11px] text-white font-medium
+                absolute bottom-1 left-0 right-0 h-6
+                text-[11px] text-white font-medium
                 flex items-center px-1.5 truncate
+                z-[2]
+
                 ${
                   mainEvent.status ===
                   "pending"
-                    ? "border-2 border-dashed border-white/70"
+                    ? `
+                      border-y-2 border-dashed border-white/70
+                      ${isFirstOfEvent ? "border-l-2" : "border-l-0"}
+                      ${isLastOfEvent ? "border-r-2" : "border-r-0"}
+                    `
                     : ""
                 }
               `}
@@ -373,9 +409,9 @@ export default function CalendarDayCell({
             >
               {isFirstOfEvent && (
                 <span className="truncate">
-                  {
+                  {getFamilyShortName(
                     mainEvent.family_name
-                  }
+                  )}
 
                   {mainEvent.status ===
                   "pending"
