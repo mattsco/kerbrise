@@ -4,6 +4,7 @@ import BackButton from "@/components/BackButton";
 import AProposClient from "./AProposClient";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { dateToISO } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -47,13 +48,11 @@ export default async function AProposPage() {
   // ou qui commence dans les 3 prochains jours.
   let showCollections = false;
   if (familyId) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayISO = today.toISOString().slice(0, 10);
-
-    const in3Days = new Date(today);
-    in3Days.setDate(in3Days.getDate() + 3);
-    const in3DaysISO = in3Days.toISOString().slice(0, 10);
+const today = new Date();
+const in3Days = new Date(today);
+in3Days.setDate(in3Days.getDate() + 3);
+const todayISO = dateToISO(today);
+const in3DaysISO = dateToISO(in3Days);
 
     // Query : un membre de la famille a-t-il une résa approved qui :
     // - termine dans le futur (end_date >= today)
