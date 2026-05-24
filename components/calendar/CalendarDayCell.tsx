@@ -157,18 +157,21 @@ export default function CalendarDayCell({
       <div
         className={`
           absolute top-1 left-1/2 -translate-x-1/2 z-10
-          w-7 h-7 flex items-center justify-center text-xs font-medium rounded-full
+          min-w-[28px] h-7 flex items-center justify-center text-xs rounded-full
+          
           ${
             isToday
-              ? "bg-slate-900 text-white"
+              ? "font-bold text-slate-900 bg-slate-100"
               : ""
           }
+
           ${
             !isToday &&
             isPast
               ? "text-slate-300"
               : ""
           }
+
           ${
             !isToday &&
             !isPast
