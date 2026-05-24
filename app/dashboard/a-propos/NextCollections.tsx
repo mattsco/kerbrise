@@ -8,7 +8,11 @@ import {
   type Collection,
 } from "@/lib/garbage-collection";
 
-export default function NextCollections() {
+export default function NextCollections({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const [collections, setCollections] = useState(getNextCollections());
 
   useEffect(() => {
@@ -18,6 +22,22 @@ export default function NextCollections() {
     return () => clearInterval(interval);
   }, []);
 
+  // Mode super compact : une seule ligne minimaliste
+  if (compact) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 px-4 py-2.5 flex items-center gap-2 text-xs text-slate-500">
+        <span>🗑️</span>
+        <span className="capitalize">
+          Prochaine collecte : <strong className="text-slate-700">{formatDateLabel(collections.menageres.date)}</strong>
+        </span>
+        <span className="text-slate-400 ml-auto">
+          {formatRelativeDate(collections.menageres.date)}
+        </span>
+      </div>
+    );
+  }
+
+  // Mode complet : 2 cartes côte à côte
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-2">
       <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
