@@ -1,5 +1,5 @@
 "use client";
-
+import { parseLocalDate, dateToISO } from "@/lib/dates";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import ApprovalButtons from "./ApprovalButtons";
@@ -42,10 +42,6 @@ type BookingDetail = {
   }>;
 };
 
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
 
 export default function BookingDetailModal({
   bookingId,
@@ -97,20 +93,13 @@ export default function BookingDetailModal({
       const after = new Date(endDate);
       after.setDate(after.getDate() + 7);
 
-      function toISO(d: Date) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${y}-${m}-${day}`;
-      }
-
       const { data: adj } = await supabase
         .from("bookings")
         .select("id, start_date, end_date, families(name, color)")
         .in("status", ["pending", "approved"])
         .neq("id", bookingId)
-        .gte("end_date", toISO(before))
-        .lte("start_date", toISO(after))
+        .gte("end_date", dateToISO(before))
+        .lte("start_date", dateToISO(after))   
         .order("start_date");
 
       const adjacent = (adj ?? [])
