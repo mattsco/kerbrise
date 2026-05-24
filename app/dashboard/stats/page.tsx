@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { parseLocalDate, dateToISO, daysInRangeInclusive } from "@/lib/dates";
 import BackButton from "@/components/BackButton";
 import {
   Home,
@@ -35,25 +36,6 @@ const FRENCH_MONTHS_SHORT = [
 ];
 
 const MIN_YEAR = 2015;
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function dateToISO(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function daysBetween(startISO: string, endISO: string): number {
-  const start = parseLocalDate(startISO);
-  const end = parseLocalDate(endISO);
-  return Math.floor((end.getTime() - start.getTime()) / MS_PER_DAY) + 1;
-}
 
 function daysInRange(
   startISO: string,
@@ -61,18 +43,12 @@ function daysInRange(
   rangeStartISO: string,
   rangeEndISO: string
 ): number {
-  const start = parseLocalDate(startISO);
-  const end = parseLocalDate(endISO);
-  const rangeStart = parseLocalDate(rangeStartISO);
-  const rangeEnd = parseLocalDate(rangeEndISO);
-
-  const overlapStart = start > rangeStart ? start : rangeStart;
-  const overlapEnd = end < rangeEnd ? end : rangeEnd;
-
+  const overlapStart = startISO > rangeStartISO ? startISO : rangeStartISO;
+  const overlapEnd = endISO < rangeEndISO ? endISO : rangeEndISO;
   if (overlapStart > overlapEnd) return 0;
-
-  return Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / MS_PER_DAY) + 1;
+  return daysInRangeInclusive(overlapStart, overlapEnd);
 }
+
 
 type BookingRow = {
   id: string;
@@ -124,11 +100,11 @@ export default async function StatsPage({
   const startOfYear = `${year}-01-01`;
   const endOfYear = `${year}-12-31`;
 
-  const daysInYear = daysBetween(startOfYear, endOfYear);
+  const daysInYear = daysInRangeInclusive(startOfYear, endOfYear)
 
   const springStart = `${year}-04-01`;
   const springEnd = `${year}-09-30`;
-  const springDays = daysBetween(springStart, springEnd);
+  const springDays = daysInRangeInclusive(springStart, springEnd)
 
   const { data: bookings } = await supabase
     .from("bookings")
@@ -148,7 +124,7 @@ export default async function StatsPage({
       end_date: b.end_date,
       family_name: b.families?.name ?? "?",
       days_in_year: daysInRange(effectiveStart, effectiveEnd, startOfYear, endOfYear),
-      duration: daysBetween(b.start_date, b.end_date),
+      duration:  daysInRangeInclusive(b.start_date, b.end_date) ,
     };
   });
 
