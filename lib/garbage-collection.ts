@@ -134,3 +134,15 @@ export function formatDateLabel(date: Date): string {
     month: "short",
   });
 }
+
+/**
+ * Retourne la prochaine collecte tous types confondus (ordures ou recyclables),
+ * celle qui arrive en premier.
+ */
+export function getNextCollection(from: Date = new Date()): Collection {
+  const { menageres, recyclables } = getNextCollections(from);
+
+  if (!recyclables) return menageres;
+
+  return menageres.date <= recyclables.date ? menageres : recyclables;
+}
