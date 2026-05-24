@@ -165,9 +165,11 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Prochains séjours */}
-        {upcomingBookings.length > 0 && (
+{/* Prochains séjours - liste (uniquement cas C : Kerbrise libre + séjour à venir) */}
+        {bannerCase === "C" && upcomingBookings.length > 0 && (
           <section className="bg-white rounded-2xl border border-slate-100 p-4">
+
+
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-slate-900">
                 Prochains séjours
