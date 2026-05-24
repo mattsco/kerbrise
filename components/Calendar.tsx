@@ -13,6 +13,8 @@ import MonthGrid from "./calendar/MonthGrid";
 
 import { getHolidaysInRange } from "@/lib/holidays";
 
+import { FAMILIES } from "@/lib/families";
+
 import {
   getAllUpcomingPlaceholders,
   type Placeholder,
@@ -383,30 +385,24 @@ export default function Calendar({
         </button>
       </div>
 
-      {/* Légende */}
-      <div className="flex flex-wrap gap-3 mb-5 text-xs text-slate-600">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-blue-500" />
-          <span>Antoine</span>
-        </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span>François</span>
-        </div>
+{/* Légende */}
+<div className="flex flex-wrap gap-3 mb-5 text-xs text-slate-600">
+  {FAMILIES.map((f) => (
+    <div key={f.name} className="flex items-center gap-1.5">
+      <span
+        className="w-3 h-3 rounded-full"
+        style={{ backgroundColor: f.color }}
+      />
+      <span>{f.name}</span>
+    </div>
+  ))}
+  <div className="flex items-center gap-1.5 ml-auto">
+    <span className="w-3 h-3 rounded-full border-2 border-dashed border-slate-400" />
+    <span>En attente</span>
+  </div>
+</div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-500" />
-          <span>Vincent</span>
-        </div>
-
-        <div className="flex items-center gap-1.5 ml-auto">
-          <span className="w-3 h-3 rounded-full border-2 border-dashed border-slate-400" />
-          <span>
-            En attente
-          </span>
-        </div>
-      </div>
 
       {/* Bandeau sélection */}
       {rangeStart && (
