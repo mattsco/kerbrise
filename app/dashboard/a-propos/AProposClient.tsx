@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import NextCollections from "./NextCollections";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -86,6 +87,10 @@ export default function AProposClient({
     router.refresh();
   }
 
+{/* SECTION COLLECTES */}
+      <NextCollections />
+
+     
   // ===========================
   // SECTION 2 : LINKS
   // ===========================
