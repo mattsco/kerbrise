@@ -4,7 +4,6 @@ import BackButton from "@/components/BackButton";
 import AProposClient from "./AProposClient";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import NextCollections from "./NextCollections";
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
