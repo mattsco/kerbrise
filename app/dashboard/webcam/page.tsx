@@ -2,17 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import NestCamera from "@/components/NestCamera";
 import WebcamTimer from "@/components/WebcamTimer";
+import { requireAuthUser } from "@/lib/supabase/auth";
 import BackButton from "@/components/BackButton";
 
 export default async function WebcamPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
 
   return (
     <main className="min-h-screen bg-slate-50">
