@@ -7,6 +7,7 @@ import {
   Home,
   TrendingUp,
   Calendar,
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -274,12 +275,12 @@ export default async function StatsPage({
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
         
 
-        <Link
+       <Link
   href="/dashboard"
-  className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition"
+  className="inline-flex items-center gap-1.5 -ml-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
 >
   <ArrowLeft className="w-4 h-4" />
-  Retour
+  <span>Retour</span>
 </Link>
 
 
