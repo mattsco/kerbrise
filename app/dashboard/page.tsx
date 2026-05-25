@@ -31,6 +31,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // PHASE 1 : on a besoin du profil pour savoir si on fetch pending
   const { data: profile } = await supabase
     .from("users")
     .select(
@@ -43,38 +44,42 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // @ts-ignore
-  const familyName: string = profile.families?.name ?? "?";
-  // @ts-ignore
-  const familyColor: string = profile.families?.color ?? "#888";
-  const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "ami";
+  // PHASE 2 : les 2 queries restantes en parallèle
+  const todayISO = getTodayISO();
 
-  // Demandes en attente pour le chef
-  let pendingCount = 0;
-  if (profile.is_family_head) {
-    const { data: pending } = await supabase
-      .from("bookings")
-      .select("id, approvals(family_id)")
-      .eq("status", "pending")
-      .neq("family_id", profile.family_id);
-
-    pendingCount =
-      pending?.filter(
-        (b: any) =>
-          !b.approvals?.some((a: any) => a.family_id === profile.family_id)
-      ).length ?? 0;
-  }
-
-  // Prochains séjours approuvés
-const todayISO = getTodayISO();
-
-  const { data: upcoming } = await supabase
+  const upcomingPromise = supabase
     .from("bookings")
     .select("id, start_date, end_date, family_id, families(name, color)")
     .eq("status", "approved")
     .gte("end_date", todayISO)
     .order("start_date")
     .limit(5);
+
+  const pendingPromise = profile.is_family_head
+    ? supabase
+        .from("bookings")
+        .select("id, approvals(family_id)")
+        .eq("status", "pending")
+        .neq("family_id", profile.family_id)
+    : Promise.resolve({ data: null });
+
+  const [
+    { data: upcoming },
+    { data: pending },
+  ] = await Promise.all([upcomingPromise, pendingPromise]);
+
+  // @ts-ignore
+  const familyName: string = profile.families?.name ?? "?";
+  // @ts-ignore
+  const familyColor: string = profile.families?.color ?? "#888";
+  const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "ami";
+
+  const pendingCount = profile.is_family_head
+    ? pending?.filter(
+        (b: any) =>
+          !b.approvals?.some((a: any) => a.family_id === profile.family_id)
+      ).length ?? 0
+    : 0;
 
   const allUpcoming = (upcoming ?? []).map((b: any) => ({
     id: b.id,
@@ -161,14 +166,11 @@ const todayISO = getTodayISO();
           </div>
         </div>
 
-
         {/* Bannière contextuelle (cas A, B ou D selon le contexte) */}
-
-<ContextualBanner
+        <ContextualBanner
           context={bannerContext}
           displayName={displayName}
         />
-
 
         {/* Liste des prochains séjours (uniquement cas C) */}
         {bannerContext.bannerCase === "C" && (
