@@ -55,6 +55,7 @@ export async function getSummerSnapshot(
 
   for (const period of SUMMER_PERIODS) {
     const { start, end } = getPeriodDates(year, period);
+
     const match = (bookings ?? []).find(
       (b: any) => b.start_date === start && b.end_date === end
     );
@@ -62,7 +63,9 @@ export async function getSummerSnapshot(
     if (match) {
       // @ts-ignore
       const familyName = match.families?.name as FamilyName;
+
       pickedNames.add(familyName);
+
       periods[period.id as 1 | 2 | 3] = {
         state: "taken",
         period,
@@ -71,11 +74,15 @@ export async function getSummerSnapshot(
         bookingId: match.id,
       };
     } else {
-      periods[period.id as 1 | 2 | 3] = { state: "free", period };
+      periods[period.id as 1 | 2 | 3] = {
+        state: "free",
+        period,
+      };
     }
   }
 
   const priorities = getYearPriorities(year);
+
   const allFamiliesInOrder: FamilyName[] = [
     priorities[1],
     priorities[2],
@@ -85,11 +92,17 @@ export async function getSummerSnapshot(
   const pickedFamilies = allFamiliesInOrder.filter((f) =>
     pickedNames.has(f)
   );
+
   const remainingFamilies = allFamiliesInOrder.filter(
     (f) => !pickedNames.has(f)
   );
 
-  return { year, periods, pickedFamilies, remainingFamilies };
+  return {
+    year,
+    periods,
+    pickedFamilies,
+    remainingFamilies,
+  };
 }
 
 /**
@@ -104,6 +117,7 @@ export function checkPriorityToReserve(
   snapshot: SummerSnapshot
 ): string | null {
   const priorities = getYearPriorities(snapshot.year);
+
   const myPriority =
     priorities[1] === familyName
       ? 1
@@ -120,6 +134,7 @@ export function checkPriorityToReserve(
   // Vérifie que toutes les familles avec priorité < la mienne ont pické
   for (let p = 1; p < myPriority; p++) {
     const higherFam = priorities[p as 1 | 2 | 3];
+
     if (!snapshot.pickedFamilies.includes(higherFam)) {
       return `${higherFam} (priorité ${p}) doit d'abord choisir sa période.`;
     }
@@ -132,7 +147,9 @@ export function checkPriorityToReserve(
  * Récupère family_id + user_id du chef d'une famille par son nom.
  * Utilisé pour l'auto-assignment de la prio 3.
  */
-export async function getFamilyHeadByName(familyName: FamilyName): Promise<{
+export async function getFamilyHeadByName(
+  familyName: FamilyName
+): Promise<{
   familyId: string;
   headUserId: string;
 } | null> {
@@ -151,10 +168,14 @@ export async function getFamilyHeadByName(familyName: FamilyName): Promise<{
     .select("id")
     .eq("family_id", family.id)
     .eq("is_family_head", true)
+    .order("id")
     .limit(1)
     .maybeSingle();
 
   if (!head) return null;
 
-  return { familyId: family.id, headUserId: head.id };
+  return {
+    familyId: family.id,
+    headUserId: head.id,
+  };
 }
