@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuthUser } from "@/lib/supabase/auth";
 import Calendar from "@/components/Calendar";
 import BackButton from "@/components/BackButton";
-import { requireAuthUser } from "@/lib/supabase/auth";
-
 
 export default async function CalendrierPage() {
   const user = await requireAuthUser();
@@ -16,11 +14,24 @@ export default async function CalendrierPage() {
     .single();
 
   if (!profile) {
-    redirect("/login");
+    // Profil incomplet → on laisse Next gérer (impossible en pratique avec requireAuthUser)
+    return null;
   }
 
   // @ts-ignore
   const familyName: string = profile.families?.name ?? "?";
+
+  // Fetch tous les chefs de MA famille (sauf moi), pour l'UX du modal d'été
+  const { data: heads } = await supabase
+    .from("users")
+    .select("display_name")
+    .eq("family_id", profile.family_id)
+    .eq("is_family_head", true)
+    .neq("id", user.id);
+
+  const familyHeadNames: string[] = (heads ?? [])
+    .map((h: any) => h.display_name)
+    .filter(Boolean);
 
   const { data: bookings } = await supabase
     .from("bookings")
@@ -64,7 +75,7 @@ export default async function CalendrierPage() {
             voir les détails.
             {profile.is_calendar_admin && (
               <span className="block mt-1 text-purple-700">
-                🛡️ Mode admin actif : tu peux modifier ou supprimer n'importe quel séjour.
+                🛡️ Mode admin actif : tu peux modifier ou supprimer n&apos;importe quel séjour.
               </span>
             )}
           </p>
@@ -74,6 +85,7 @@ export default async function CalendrierPage() {
             currentFamilyId={profile.family_id}
             currentFamilyName={familyName}
             isFamilyHead={profile.is_family_head}
+            familyHeadNames={familyHeadNames}
             isCalendarAdmin={profile.is_calendar_admin ?? false}
           />
         </div>
