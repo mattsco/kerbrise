@@ -5,16 +5,16 @@ import AProposClient from "./AProposClient";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { dateToISO } from "@/lib/dates";
+import { requireAuthUser } from "@/lib/supabase/auth";
+
 
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+const user = await requireAuthUser();
+const supabase = await createClient(); 
+  
 
   // Récupère intro, links, contacts + family_id user
   const [introRes, linksRes, contactsRes, userProfileRes] = await Promise.all([
