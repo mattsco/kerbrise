@@ -8,6 +8,7 @@ import BackButton from "@/components/BackButton";
 import { redirect } from "next/navigation";
 import AdminBookingForm from "@/components/AdminBookingForm";
 import Link from "next/link";
+import { requireAuthUser } from "@/lib/supabase/auth";
 import {
   Database,
   Mail,
@@ -39,14 +40,8 @@ export default async function AdminPage({
   const status = params.status;
   const message = params.message;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
 
   const { data: profile } = await supabase
     .from("users")
