@@ -3,17 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import NewBookingForm from "@/components/NewBookingForm";
 import BackButton from "@/components/BackButton";
+import { requireAuthUser } from "@/lib/supabase/auth";
 
 export default async function NouvelleDemandePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
+  
   const { data: profile } = await supabase
     .from("users")
     .select("family_id")
