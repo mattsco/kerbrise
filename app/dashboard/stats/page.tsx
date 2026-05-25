@@ -274,7 +274,10 @@ export default async function StatsPage({
           </div>
         </div>
 
-        <div key={`cards-${year}`} className="grid grid-cols-2 gap-3">
+        <div
+          key={`cards-${year}`}
+          className="grid grid-cols-2 gap-3 animate-[yearFade_350ms_ease-out]"
+        >
           <BigStatCard
             icon={<Home className="w-4 h-4" />}
             label="Taux d'occupation"
@@ -292,7 +295,7 @@ export default async function StatsPage({
 
         <section
           key={`families-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[yearFade_350ms_ease-out]"
         >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Répartition par famille
@@ -301,7 +304,7 @@ export default async function StatsPage({
           {totalDaysReserved > 0 ? (
             <div className="space-y-4">
               <div className="h-3 rounded-full overflow-hidden bg-slate-100">
-                <div className="h-full flex animate-[growBars_1400ms_cubic-bezier(.22,1,.36,1)] origin-left">
+                <div className="h-full flex">
                   {familyStats.map((f) =>
                     f.totalDays > 0 ? (
                       <div
@@ -320,7 +323,7 @@ export default async function StatsPage({
               </div>
 
               <div className="space-y-2.5">
-                {familyStats.map((f, index) => {
+                {familyStats.map((f) => {
                   const pct =
                     totalDaysReserved > 0
                       ? Math.round((f.totalDays / totalDaysReserved) * 100)
@@ -329,10 +332,7 @@ export default async function StatsPage({
                   return (
                     <div
                       key={f.name}
-                      className="flex items-center gap-3 text-sm animate-[fadeUp_650ms_cubic-bezier(.22,1,.36,1)_both]"
-                      style={{
-                        animationDelay: `${index * 60}ms`,
-                      }}
+                      className="flex items-center gap-3 text-sm"
                     >
                       <span
                         className="w-3 h-3 rounded-full flex-shrink-0"
@@ -366,27 +366,24 @@ export default async function StatsPage({
 
         <section
           key={`months-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[yearFade_350ms_ease-out]"
         >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Occupation par mois
           </h2>
 
           <div className="space-y-2.5">
-            {monthsStats.map((m, index) => (
+            {monthsStats.map((m) => (
               <div
                 key={m.month}
-                className="flex items-center gap-3 text-xs animate-[fadeUp_650ms_cubic-bezier(.22,1,.36,1)_both]"
-                style={{
-                  animationDelay: `${index * 32}ms`,
-                }}
+                className="flex items-center gap-3 text-xs"
               >
                 <span className="text-slate-500 w-9 text-right">
                   {m.label}
                 </span>
 
                 <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden">
-                  <div className="h-full flex animate-[growBars_1400ms_cubic-bezier(.22,1,.36,1)] origin-left">
+                  <div className="h-full flex">
                     {familyStats.map((f) => {
                       const days = m.families[f.name];
 
@@ -414,7 +411,7 @@ export default async function StatsPage({
 
         <section
           key={`records-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[yearFade_350ms_ease-out]"
         >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Records {year}
@@ -457,25 +454,14 @@ export default async function StatsPage({
       </div>
 
       <style>{`
-        @keyframes fadeUp {
+        @keyframes yearFade {
           from {
             opacity: 0;
-            transform: translateY(14px);
+            transform: scale(0.99);
           }
-
           to {
             opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes growBars {
-          from {
-            transform: scaleX(0);
-          }
-
-          to {
-            transform: scaleX(1);
+            transform: scale(1);
           }
         }
       `}</style>
@@ -495,7 +481,7 @@ function BigStatCard({
   sub?: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]">
+    <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4">
       <div className="flex items-center gap-1.5 text-slate-500 text-[11px] sm:text-xs mb-1.5 whitespace-nowrap">
         {icon}
         <span className="leading-none">{label}</span>
