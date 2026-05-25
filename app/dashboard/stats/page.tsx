@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { requireAuthUser } from "@/lib/supabase/auth";
 import { parseLocalDate, dateToISO, daysInRangeInclusive } from "@/lib/dates";
 import BackButton from "@/components/BackButton";
 import { FAMILY_NAMES, FAMILY_COLORS } from "@/lib/families";
@@ -75,12 +76,8 @@ export default async function StatsPage({
 }) {
   const params = await searchParams;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
 
   const currentYear = new Date().getFullYear();
 
