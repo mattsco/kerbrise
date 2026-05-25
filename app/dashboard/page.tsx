@@ -19,17 +19,15 @@ import {
 } from "lucide-react";
 import { computeBannerContext } from "@/lib/dashboard-banner";
 import ContextualBanner from "./ContextualBanner";
+import { requireAuthUser } from "@/lib/supabase/auth";
+
 import UpcomingStaysList from "./UpcomingStaysList";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  
+const user = await requireAuthUser();
+const supabase = await createClient(); 
 
-  if (!user) {
-    redirect("/login");
-  }
 
   // PHASE 1 : on a besoin du profil pour savoir si on fetch pending
   const { data: profile } = await supabase
