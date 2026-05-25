@@ -2,16 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Calendar from "@/components/Calendar";
 import BackButton from "@/components/BackButton";
+import { requireAuthUser } from "@/lib/supabase/auth";
+
 
 export default async function CalendrierPage() {
+  const user = await requireAuthUser();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
 
   const { data: profile } = await supabase
     .from("users")
