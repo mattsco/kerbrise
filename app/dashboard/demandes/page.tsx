@@ -6,6 +6,8 @@ import BookingActions from "@/components/BookingActions";
 import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 import BackButton from "@/components/BackButton";
 import { isStayActiveOrFuture } from "@/lib/dates";
+import { requireAuthUser } from "@/lib/supabase/auth";
+
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +30,8 @@ type BookingWithApprovals = {
 };
 
 export default async function PendingBookingsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
 
   const { data: profile } = await supabase
     .from("users")
