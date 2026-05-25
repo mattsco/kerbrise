@@ -2,16 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import LocationsMap from "./LocationsMap";
+import { requireAuthUser } from "@/lib/supabase/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function LocationsPage() {
+  const user = await requireAuthUser();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
 
   const { data: profile } = await supabase
     .from("users")
