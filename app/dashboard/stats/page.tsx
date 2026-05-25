@@ -274,7 +274,7 @@ export default async function StatsPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div key={`cards-${year}`} className="grid grid-cols-2 gap-3">
           <BigStatCard
             icon={<Home className="w-4 h-4" />}
             label="Taux d'occupation"
@@ -290,7 +290,10 @@ export default async function StatsPage({
           />
         </div>
 
-        <section className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]">
+        <section
+          key={`families-${year}`}
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+        >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Répartition par famille
           </h2>
@@ -361,7 +364,10 @@ export default async function StatsPage({
           )}
         </section>
 
-        <section className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]">
+        <section
+          key={`months-${year}`}
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+        >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Occupation par mois
           </h2>
@@ -406,7 +412,10 @@ export default async function StatsPage({
           </div>
         </section>
 
-        <section className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]">
+        <section
+          key={`records-${year}`}
+          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_700ms_cubic-bezier(.22,1,.36,1)]"
+        >
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Records {year}
           </h2>
