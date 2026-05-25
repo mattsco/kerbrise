@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 
 /**
  * Composant invisible qui tracke le temps passé sur la page webcam.
- * Au démontage du composant (changement de page, fermeture, etc.),
- * on log la durée écoulée dans webcam_sessions.
+ * - Sur navigation Next.js (route change) → insert Supabase classique
+ * - Sur fermeture d'onglet / app en background → sendBeacon vers /api/webcam-session
+ *   (navigator.sendBeacon survit à l'unload, contrairement à un fetch normal)
  */
 export default function WebcamTimer() {
   const startedRef = useRef<number>(Date.now());
@@ -16,13 +17,16 @@ export default function WebcamTimer() {
     startedRef.current = Date.now();
     sentRef.current = false;
 
-    async function logSession() {
-      if (sentRef.current) return;
-      sentRef.current = true;
+    function getDuration() {
+      return Math.round((Date.now() - startedRef.current) / 1000);
+    }
 
-      const duration = Math.round((Date.now() - startedRef.current) / 1000);
-      // Ignorer les sessions trop courtes (<3s, probablement un toucher accidentel)
+    // Cas 1 : navigation interne (route change Next.js) → on a le temps
+    async function logSessionAsync() {
+      if (sentRef.current) return;
+      const duration = getDuration();
       if (duration < 3) return;
+      sentRef.current = true;
 
       try {
         const supabase = createClient();
@@ -35,27 +39,32 @@ export default function WebcamTimer() {
           user_id: user.id,
           duration_seconds: duration,
         });
-      } catch (e) {
-        // Silencieux : ne pas perturber la nav
+      } catch {
+        // silencieux : ne pas perturber la nav
       }
     }
 
-    // Si l'utilisateur ferme l'onglet / quitte
-    function handleBeforeUnload() {
-      // Note : `beforeunload` ne permet plus d'await en async, on fait sendBeacon
-      const duration = Math.round((Date.now() - startedRef.current) / 1000);
-      if (duration < 3 || sentRef.current) return;
+    // Cas 2 : fermeture d'onglet ou mise en arrière-plan
+    function logSessionBeacon() {
+      if (sentRef.current) return;
+      const duration = getDuration();
+      if (duration < 3) return;
       sentRef.current = true;
+
+      const data = JSON.stringify({ duration_seconds: duration });
+      const blob = new Blob([data], { type: "application/json" });
+      navigator.sendBeacon("/api/webcam-session", blob);
     }
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    // `pagehide` est plus fiable que `beforeunload` sur mobile/PWA
+    // (beforeunload est souvent silencé sur iOS Safari notamment)
+    window.addEventListener("pagehide", logSessionBeacon);
 
-    // Au démontage du composant (changement de route Next), on log
     return () => {
-      logSession();
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", logSessionBeacon);
+      logSessionAsync();
     };
   }, []);
 
-  return null; // composant invisible
+  return null;
 }
