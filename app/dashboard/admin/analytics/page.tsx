@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
+import { requireAuthUser } from "@/lib/supabase/auth";
 import BackButton from "@/components/BackButton";
 import {
   Activity,
@@ -20,12 +21,9 @@ export const dynamic = "force-dynamic";
 const LAUNCH_DATE = "2026-05-22";
 
 export default async function AdminAnalyticsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
+  const user = await requireAuthUser();
+  const supabase = await createClient(); 
+  
 
   const { data: profile } = await supabase
     .from("users")
