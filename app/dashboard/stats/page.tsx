@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireAuthUser } from "@/lib/supabase/auth";
-import { parseLocalDate, dateToISO, daysInRangeInclusive } from "@/lib/dates";
+import { dateToISO, daysInRangeInclusive } from "@/lib/dates";
 import BackButton from "@/components/BackButton";
 import { FAMILY_NAMES, FAMILY_COLORS } from "@/lib/families";
 import {
@@ -39,7 +38,9 @@ function daysInRange(
 ): number {
   const overlapStart = startISO > rangeStartISO ? startISO : rangeStartISO;
   const overlapEnd = endISO < rangeEndISO ? endISO : rangeEndISO;
+
   if (overlapStart > overlapEnd) return 0;
+
   return daysInRangeInclusive(overlapStart, overlapEnd);
 }
 
@@ -74,7 +75,8 @@ export default async function StatsPage({
 }) {
   const params = await searchParams;
 
-  const user = await requireAuthUser();
+  await requireAuthUser();
+
   const supabase = await createClient();
 
   const currentYear = new Date().getFullYear();
@@ -82,20 +84,31 @@ export default async function StatsPage({
   const rawYear = Array.isArray(params?.year)
     ? params.year[0]
     : params?.year;
+
   const parsedYear = Number(rawYear);
 
-  let year = Number.isFinite(parsedYear) ? parsedYear : currentYear;
+  let year = Number.isFinite(parsedYear)
+    ? parsedYear
+    : currentYear;
+
   if (year < MIN_YEAR) year = MIN_YEAR;
   if (year > currentYear) year = currentYear;
 
   const startOfYear = `${year}-01-01`;
   const endOfYear = `${year}-12-31`;
 
-  const daysInYear = daysInRangeInclusive(startOfYear, endOfYear);
+  const daysInYear = daysInRangeInclusive(
+    startOfYear,
+    endOfYear
+  );
 
   const springStart = `${year}-04-01`;
   const springEnd = `${year}-09-30`;
-  const springDays = daysInRangeInclusive(springStart, springEnd);
+
+  const springDays = daysInRangeInclusive(
+    springStart,
+    springEnd
+  );
 
   const { data: bookings } = await supabase
     .from("bookings")
@@ -105,27 +118,36 @@ export default async function StatsPage({
     .gte("end_date", startOfYear)
     .order("start_date");
 
-  const allBookings: BookingRow[] = (bookings ?? []).map((b: any) => {
-    const effectiveStart =
-      b.start_date < startOfYear ? startOfYear : b.start_date;
+  const allBookings: BookingRow[] = (bookings ?? []).map(
+    (b: any) => {
+      const effectiveStart =
+        b.start_date < startOfYear
+          ? startOfYear
+          : b.start_date;
 
-    const effectiveEnd =
-      b.end_date > endOfYear ? endOfYear : b.end_date;
+      const effectiveEnd =
+        b.end_date > endOfYear
+          ? endOfYear
+          : b.end_date;
 
-    return {
-      id: b.id,
-      start_date: b.start_date,
-      end_date: b.end_date,
-      family_name: b.families?.name ?? "?",
-      days_in_year: daysInRange(
-        effectiveStart,
-        effectiveEnd,
-        startOfYear,
-        endOfYear
-      ),
-      duration: daysInRangeInclusive(b.start_date, b.end_date),
-    };
-  });
+      return {
+        id: b.id,
+        start_date: b.start_date,
+        end_date: b.end_date,
+        family_name: b.families?.name ?? "?",
+        days_in_year: daysInRange(
+          effectiveStart,
+          effectiveEnd,
+          startOfYear,
+          endOfYear
+        ),
+        duration: daysInRangeInclusive(
+          b.start_date,
+          b.end_date
+        ),
+      };
+    }
+  );
 
   const familyStatsMap: Record<string, FamilyStats> = {};
 
@@ -152,9 +174,12 @@ export default async function StatsPage({
     }
   }
 
-  const familyStats = Object.values(familyStatsMap).sort(
+  const familyStats = Object.values(
+    familyStatsMap
+  ).sort(
     (a, b) =>
-      b.totalDays - a.totalDays || a.name.localeCompare(b.name)
+      b.totalDays - a.totalDays ||
+      a.name.localeCompare(b.name)
   );
 
   const totalDaysReserved = familyStats.reduce(
@@ -166,17 +191,20 @@ export default async function StatsPage({
     (totalDaysReserved / daysInYear) * 100
   );
 
-  const springDaysReserved = allBookings.reduce((sum, b) => {
-    return (
-      sum +
-      daysInRange(
-        b.start_date,
-        b.end_date,
-        springStart,
-        springEnd
-      )
-    );
-  }, 0);
+  const springDaysReserved = allBookings.reduce(
+    (sum, b) => {
+      return (
+        sum +
+        daysInRange(
+          b.start_date,
+          b.end_date,
+          springStart,
+          springEnd
+        )
+      );
+    },
+    0
+  );
 
   const springRate = Math.round(
     (springDaysReserved / springDays) * 100
@@ -193,8 +221,13 @@ export default async function StatsPage({
 
     let total = 0;
 
-    const monthStart = dateToISO(new Date(year, m, 1));
-    const monthEnd = dateToISO(new Date(year, m + 1, 0));
+    const monthStart = dateToISO(
+      new Date(year, m, 1)
+    );
+
+    const monthEnd = dateToISO(
+      new Date(year, m + 1, 0)
+    );
 
     for (const b of allBookings) {
       const days = daysInRange(
@@ -204,7 +237,10 @@ export default async function StatsPage({
         monthEnd
       );
 
-      if (days > 0 && families[b.family_name] !== undefined) {
+      if (
+        days > 0 &&
+        families[b.family_name] !== undefined
+      ) {
         families[b.family_name] += days;
         total += days;
       }
@@ -237,7 +273,7 @@ export default async function StatsPage({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
-        <BackButton />
+        <BackButton href="/dashboard" />
 
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
@@ -295,31 +331,33 @@ export default async function StatsPage({
           />
         </div>
 
-        <section
-          key={`family-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_320ms_ease-out]"
-        >
+        <section className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_320ms_ease-out]">
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Répartition par famille
           </h2>
 
           {totalDaysReserved > 0 ? (
             <div className="space-y-4">
-              <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
-                {familyStats.map((f, index) =>
-                  f.totalDays > 0 ? (
-                    <div
-                      key={f.name}
-                      className="origin-left animate-[growX_650ms_cubic-bezier(.22,1,.36,1)_both]"
-                      style={{
-                        width: `${(f.totalDays / totalDaysReserved) * 100}%`,
-                        backgroundColor: f.color,
-                        animationDelay: `${index * 70}ms`,
-                      }}
-                      title={`${f.name} : ${f.totalDays} jours`}
-                    />
-                  ) : null
-                )}
+              <div className="h-3 rounded-full overflow-hidden bg-slate-100">
+                <div className="h-full flex">
+                  {familyStats.map((f) =>
+                    f.totalDays > 0 ? (
+                      <div
+                        key={f.name}
+                        className="transition-all duration-700 ease-out"
+                        style={{
+                          width: `${
+                            (f.totalDays /
+                              totalDaysReserved) *
+                            100
+                          }%`,
+                          backgroundColor: f.color,
+                        }}
+                        title={`${f.name} : ${f.totalDays} jours`}
+                      />
+                    ) : null
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2.5">
@@ -327,7 +365,9 @@ export default async function StatsPage({
                   const pct =
                     totalDaysReserved > 0
                       ? Math.round(
-                          (f.totalDays / totalDaysReserved) * 100
+                          (f.totalDays /
+                            totalDaysReserved) *
+                            100
                         )
                       : 0;
 
@@ -369,10 +409,7 @@ export default async function StatsPage({
           )}
         </section>
 
-        <section
-          key={`months-${year}`}
-          className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_360ms_ease-out]"
-        >
+        <section className="bg-white rounded-2xl border border-slate-100 p-5 animate-[fadeUp_360ms_ease-out]">
           <h2 className="text-base font-semibold text-slate-900 mb-4">
             Occupation par mois
           </h2>
@@ -391,12 +428,7 @@ export default async function StatsPage({
                 </span>
 
                 <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden">
-                  <div
-                    className="h-full flex origin-left animate-[growX_850ms_cubic-bezier(.22,1,.36,1)_both]"
-                    style={{
-                      animationDelay: `${index * 24}ms`,
-                    }}
-                  >
+                  <div className="h-full flex">
                     {familyStats.map((f) => {
                       const days = m.families[f.name];
 
@@ -408,6 +440,7 @@ export default async function StatsPage({
                       return (
                         <div
                           key={f.name}
+                          className="transition-all duration-700 ease-out"
                           style={{
                             width: `${segmentPct}%`,
                             backgroundColor: f.color,
@@ -430,7 +463,9 @@ export default async function StatsPage({
 
           <div className="space-y-3 text-sm">
             <RecordLine
-              icon={<Calendar className="w-4 h-4 text-blue-500" />}
+              icon={
+                <Calendar className="w-4 h-4 text-blue-500" />
+              }
               label="Mois le plus prisé"
               value={
                 topMonth.total > 0
@@ -440,7 +475,9 @@ export default async function StatsPage({
             />
 
             <RecordLine
-              icon={<TrendingUp className="w-4 h-4 text-emerald-500" />}
+              icon={
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              }
               label="Séjour le plus long"
               value={
                 longestStay
@@ -450,7 +487,9 @@ export default async function StatsPage({
             />
 
             <RecordLine
-              icon={<Home className="w-4 h-4 text-amber-500" />}
+              icon={
+                <Home className="w-4 h-4 text-amber-500" />
+              }
               label="Total séjours"
               value={`${allBookings.length} séjour${
                 allBookings.length > 1 ? "s" : ""
@@ -474,16 +513,6 @@ export default async function StatsPage({
           to {
             opacity: 1;
             transform: translateY(0);
-          }
-        }
-
-        @keyframes growX {
-          from {
-            transform: scaleX(0);
-          }
-
-          to {
-            transform: scaleX(1);
           }
         }
       `}</style>
