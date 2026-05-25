@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-
 const FRENCH_MONTHS_SHORT = [
   "Jan",
   "Fév",
@@ -43,7 +42,6 @@ function daysInRange(
   if (overlapStart > overlapEnd) return 0;
   return daysInRangeInclusive(overlapStart, overlapEnd);
 }
-
 
 type BookingRow = {
   id: string;
@@ -77,11 +75,13 @@ export default async function StatsPage({
   const params = await searchParams;
 
   const user = await requireAuthUser();
-  const supabase = await createClient(); 
+  const supabase = await createClient();
 
   const currentYear = new Date().getFullYear();
 
-  const rawYear = Array.isArray(params?.year) ? params.year[0] : params?.year;
+  const rawYear = Array.isArray(params?.year)
+    ? params.year[0]
+    : params?.year;
   const parsedYear = Number(rawYear);
 
   let year = Number.isFinite(parsedYear) ? parsedYear : currentYear;
@@ -91,11 +91,11 @@ export default async function StatsPage({
   const startOfYear = `${year}-01-01`;
   const endOfYear = `${year}-12-31`;
 
-  const daysInYear = daysInRangeInclusive(startOfYear, endOfYear)
+  const daysInYear = daysInRangeInclusive(startOfYear, endOfYear);
 
   const springStart = `${year}-04-01`;
   const springEnd = `${year}-09-30`;
-  const springDays = daysInRangeInclusive(springStart, springEnd)
+  const springDays = daysInRangeInclusive(springStart, springEnd);
 
   const { data: bookings } = await supabase
     .from("bookings")
@@ -106,20 +106,29 @@ export default async function StatsPage({
     .order("start_date");
 
   const allBookings: BookingRow[] = (bookings ?? []).map((b: any) => {
-    const effectiveStart = b.start_date < startOfYear ? startOfYear : b.start_date;
-    const effectiveEnd = b.end_date > endOfYear ? endOfYear : b.end_date;
+    const effectiveStart =
+      b.start_date < startOfYear ? startOfYear : b.start_date;
+
+    const effectiveEnd =
+      b.end_date > endOfYear ? endOfYear : b.end_date;
 
     return {
       id: b.id,
       start_date: b.start_date,
       end_date: b.end_date,
       family_name: b.families?.name ?? "?",
-      days_in_year: daysInRange(effectiveStart, effectiveEnd, startOfYear, endOfYear),
-      duration:  daysInRangeInclusive(b.start_date, b.end_date) ,
+      days_in_year: daysInRange(
+        effectiveStart,
+        effectiveEnd,
+        startOfYear,
+        endOfYear
+      ),
+      duration: daysInRangeInclusive(b.start_date, b.end_date),
     };
   });
 
   const familyStatsMap: Record<string, FamilyStats> = {};
+
   for (const name of FAMILY_NAMES) {
     familyStatsMap[name] = {
       name,
@@ -132,26 +141,49 @@ export default async function StatsPage({
 
   for (const b of allBookings) {
     const stat = familyStatsMap[b.family_name];
+
     if (stat) {
       stat.totalDays += b.days_in_year;
       stat.nbStays += 1;
-      if (b.duration > stat.longestStay) stat.longestStay = b.duration;
+
+      if (b.duration > stat.longestStay) {
+        stat.longestStay = b.duration;
+      }
     }
   }
 
   const familyStats = Object.values(familyStatsMap).sort(
-    (a, b) => b.totalDays - a.totalDays || a.name.localeCompare(b.name)
+    (a, b) =>
+      b.totalDays - a.totalDays || a.name.localeCompare(b.name)
   );
 
-  const totalDaysReserved = familyStats.reduce((sum, f) => sum + f.totalDays, 0);
-  const occupationRate = Math.round((totalDaysReserved / daysInYear) * 100);
+  const totalDaysReserved = familyStats.reduce(
+    (sum, f) => sum + f.totalDays,
+    0
+  );
+
+  const occupationRate = Math.round(
+    (totalDaysReserved / daysInYear) * 100
+  );
 
   const springDaysReserved = allBookings.reduce((sum, b) => {
-    return sum + daysInRange(b.start_date, b.end_date, springStart, springEnd);
+    return (
+      sum +
+      daysInRange(
+        b.start_date,
+        b.end_date,
+        springStart,
+        springEnd
+      )
+    );
   }, 0);
-  const springRate = Math.round((springDaysReserved / springDays) * 100);
+
+  const springRate = Math.round(
+    (springDaysReserved / springDays) * 100
+  );
 
   const monthsStats: MonthStats[] = [];
+
   for (let m = 0; m < 12; m++) {
     const families: Record<string, number> = {
       Antoine: 0,
@@ -160,11 +192,18 @@ export default async function StatsPage({
     };
 
     let total = 0;
+
     const monthStart = dateToISO(new Date(year, m, 1));
     const monthEnd = dateToISO(new Date(year, m + 1, 0));
 
     for (const b of allBookings) {
-      const days = daysInRange(b.start_date, b.end_date, monthStart, monthEnd);
+      const days = daysInRange(
+        b.start_date,
+        b.end_date,
+        monthStart,
+        monthEnd
+      );
+
       if (days > 0 && families[b.family_name] !== undefined) {
         families[b.family_name] += days;
         total += days;
@@ -179,9 +218,18 @@ export default async function StatsPage({
     });
   }
 
-  const topMonth = [...monthsStats].sort((a, b) => b.total - a.total)[0];
-  const longestStay = [...allBookings].sort((a, b) => b.duration - a.duration)[0];
-  const maxMonth = Math.max(...monthsStats.map((m) => m.total), 1);
+  const topMonth = [...monthsStats].sort(
+    (a, b) => b.total - a.total
+  )[0];
+
+  const longestStay = [...allBookings].sort(
+    (a, b) => b.duration - a.duration
+  )[0];
+
+  const maxMonth = Math.max(
+    ...monthsStats.map((m) => m.total),
+    1
+  );
 
   const canGoPrev = year > MIN_YEAR;
   const canGoNext = year < currentYear;
@@ -238,6 +286,7 @@ export default async function StatsPage({
             value={`${occupationRate}%`}
             sub={`${totalDaysReserved} / ${daysInYear} j`}
           />
+
           <BigStatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Printemps-été"
@@ -261,7 +310,7 @@ export default async function StatsPage({
                   f.totalDays > 0 ? (
                     <div
                       key={f.name}
-                      className="origin-left animate-[growX_650ms_cubic-bezier(.2,.8,.2,1)_both]"
+                      className="origin-left animate-[growX_650ms_cubic-bezier(.22,1,.36,1)_both]"
                       style={{
                         width: `${(f.totalDays / totalDaysReserved) * 100}%`,
                         backgroundColor: f.color,
@@ -277,25 +326,34 @@ export default async function StatsPage({
                 {familyStats.map((f, index) => {
                   const pct =
                     totalDaysReserved > 0
-                      ? Math.round((f.totalDays / totalDaysReserved) * 100)
+                      ? Math.round(
+                          (f.totalDays / totalDaysReserved) * 100
+                        )
                       : 0;
 
                   return (
                     <div
                       key={f.name}
                       className="flex items-center gap-3 text-sm animate-[fadeUp_420ms_ease-out_both]"
-                      style={{ animationDelay: `${index * 45}ms` }}
+                      style={{
+                        animationDelay: `${index * 45}ms`,
+                      }}
                     >
                       <span
                         className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: f.color }}
+                        style={{
+                          backgroundColor: f.color,
+                        }}
                       />
+
                       <span className="font-medium text-slate-900 min-w-[80px]">
                         {f.name}
                       </span>
+
                       <span className="text-slate-500 flex-1">
                         {f.totalDays} j
                       </span>
+
                       <span className="font-semibold text-slate-900">
                         {pct}%
                       </span>
@@ -324,31 +382,41 @@ export default async function StatsPage({
               <div
                 key={m.month}
                 className="flex items-center gap-3 text-xs animate-[fadeUp_380ms_ease-out_both]"
-                style={{ animationDelay: `${index * 24}ms` }}
+                style={{
+                  animationDelay: `${index * 24}ms`,
+                }}
               >
                 <span className="text-slate-500 w-9 text-right">
                   {m.label}
                 </span>
 
-                <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden flex">
-                  {familyStats.map((f) => {
-                    const days = m.families[f.name];
-                    if (days === 0) return null;
+                <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden">
+                  <div
+                    className="h-full flex origin-left animate-[growX_850ms_cubic-bezier(.22,1,.36,1)_both]"
+                    style={{
+                      animationDelay: `${index * 24}ms`,
+                    }}
+                  >
+                    {familyStats.map((f) => {
+                      const days = m.families[f.name];
 
-                    const segmentPct = (days / maxMonth) * 100;
+                      if (days === 0) return null;
 
-                    return (
-                      <div
-                        key={f.name}
-                        className="origin-left animate-[growX_700ms_cubic-bezier(.2,.8,.2,1)_both]"
-                        style={{
-                          width: `${segmentPct}%`,
-                          backgroundColor: f.color,
-                        }}
-                        title={`${f.name} : ${days} j`}
-                      />
-                    );
-                  })}
+                      const segmentPct =
+                        (days / maxMonth) * 100;
+
+                      return (
+                        <div
+                          key={f.name}
+                          style={{
+                            width: `${segmentPct}%`,
+                            backgroundColor: f.color,
+                          }}
+                          title={`${f.name} : ${days} j`}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
@@ -370,6 +438,7 @@ export default async function StatsPage({
                   : "—"
               }
             />
+
             <RecordLine
               icon={<TrendingUp className="w-4 h-4 text-emerald-500" />}
               label="Séjour le plus long"
@@ -379,10 +448,13 @@ export default async function StatsPage({
                   : "—"
               }
             />
+
             <RecordLine
               icon={<Home className="w-4 h-4 text-amber-500" />}
               label="Total séjours"
-              value={`${allBookings.length} séjour${allBookings.length > 1 ? "s" : ""}`}
+              value={`${allBookings.length} séjour${
+                allBookings.length > 1 ? "s" : ""
+              }`}
             />
           </div>
         </section>
@@ -398,6 +470,7 @@ export default async function StatsPage({
             opacity: 0;
             transform: translateY(8px);
           }
+
           to {
             opacity: 1;
             transform: translateY(0);
@@ -408,6 +481,7 @@ export default async function StatsPage({
           from {
             transform: scaleX(0);
           }
+
           to {
             transform: scaleX(1);
           }
@@ -434,10 +508,16 @@ function BigStatCard({
         {icon}
         <span className="leading-none">{label}</span>
       </div>
+
       <p className="text-[26px] sm:text-3xl leading-none font-bold text-slate-900">
         {value}
       </p>
-      {sub && <p className="text-[11px] sm:text-xs text-slate-500 mt-1">{sub}</p>}
+
+      {sub && (
+        <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
+          {sub}
+        </p>
+      )}
     </div>
   );
 }
@@ -454,8 +534,14 @@ function RecordLine({
   return (
     <div className="flex items-center gap-2.5">
       <span className="flex-shrink-0">{icon}</span>
-      <span className="text-slate-500 flex-1">{label}</span>
-      <span className="text-slate-900 font-medium">{value}</span>
+
+      <span className="text-slate-500 flex-1">
+        {label}
+      </span>
+
+      <span className="text-slate-900 font-medium">
+        {value}
+      </span>
     </div>
   );
 }
