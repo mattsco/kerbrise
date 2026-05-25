@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BackButton from "@/components/BackButton";
+import { requireAuthUser } from "@/lib/supabase/auth";
+
 import {
   getYearPriorities,
   getFamilyPriority,
@@ -17,11 +19,10 @@ const FAMILY_COLORS: Record<string, string> = {
 };
 
 export default async function ReglesOccupationPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+
+const user = await requireAuthUser();
+const supabase = await createClient(); 
+  
 
   const { data: profile } = await supabase
     .from("users")
