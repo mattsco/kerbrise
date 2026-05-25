@@ -10,6 +10,7 @@ import {
 } from "@/lib/summer-state";
 import { SUMMER_CHOICE_FREEDOM } from "@/lib/config";
 import type { FamilyName } from "@/lib/families";
+import { requireAuthUser } from "@/lib/supabase/auth";
 
 type ReserveResult =
   | { ok: true; autoAssigned: boolean }
@@ -30,13 +31,10 @@ export async function reservePlaceholder(
   year: number,
   periodId: number
 ): Promise<ReserveResult> {
+  
+  // 1. Auth (middleware a déjà validé le JWT, on lit juste le cookie)
+  const user = await requireAuthUser();
   const supabase = await createClient();
-
-  // 1. Auth
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non authentifié." };
 
   // 2. Profil + famille
   const { data: profile } = await supabase
