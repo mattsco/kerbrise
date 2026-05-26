@@ -117,7 +117,7 @@ const supabase = await createClient();
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-5 pb-20 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 py-5 pb-6 space-y-5">
         {/* Bannière demandes en attente */}
         {pendingCount > 0 && (
           <Link
