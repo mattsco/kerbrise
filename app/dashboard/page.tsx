@@ -26,6 +26,7 @@ import UpcomingStaysList from "./UpcomingStaysList";
 
 export default async function DashboardPage() {
   
+const APP_VERSION = "1.0.0";
 const user = await requireAuthUser();
 const supabase = await createClient(); 
 
@@ -241,11 +242,10 @@ const supabase = await createClient();
 {/* Footer "About" — accès aux notes de version et suggestions */}
         <Link
           href="/dashboard/about"
-          className="block text-center py-4 text-xs text-slate-400 hover:text-slate-600 transition"
+          className="block text-center pt-6 pb-2 text-xs text-slate-400 hover:text-slate-600 transition"
         >
           <span className="inline-flex items-center gap-1.5">
-            <Info className="w-3 h-3" />
-            À propos de cette app
+            <Info className="w-3 h-3" />À propos de cette app · v{APP_VERSION}
           </span>
         </Link>
 
