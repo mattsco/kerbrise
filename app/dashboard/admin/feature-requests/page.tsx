@@ -24,7 +24,7 @@ export type FeatureRequestRow = {
 
 async function getChangelog(): Promise<string> {
   try {
-    const filePath = path.join(process.cwd(), "docs", "CHANGELOG.md");
+    const filePath = path.join(process.cwd(), "CHANGELOG.md");
     return await readFile(filePath, "utf-8");
   } catch {
     return "_Pas de CHANGELOG.md trouvé dans docs/_";
