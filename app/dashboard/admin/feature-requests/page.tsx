@@ -1,8 +1,11 @@
+import { readFile } from "fs/promises";
+import path from "path";
+import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import BackButton from "@/components/BackButton";
-import { MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus, Map } from "lucide-react";
 import FeatureRequestsAdminList from "./FeatureRequestsAdminList";
 
 export const dynamic = "force-dynamic";
@@ -19,11 +22,19 @@ export type FeatureRequestRow = {
   user_family_name: string | null;
 };
 
+async function getChangelog(): Promise<string> {
+  try {
+    const filePath = path.join(process.cwd(), "docs", "CHANGELOG.md");
+    return await readFile(filePath, "utf-8");
+  } catch {
+    return "_Pas de CHANGELOG.md trouvé dans docs/_";
+  }
+}
+
 export default async function FeatureRequestsAdminPage() {
   const user = await requireAuthUser();
   const supabase = await createClient();
 
-  // Vérifie qu'on est admin (la RLS protège déjà, mais on redirige aussi côté UI)
   const { data: profile } = await supabase
     .from("users")
     .select("is_admin")
@@ -34,7 +45,6 @@ export default async function FeatureRequestsAdminPage() {
     redirect("/dashboard");
   }
 
-  // Fetch toutes les feature requests avec infos de l'auteur
   const { data: requests } = await supabase
     .from("feature_requests")
     .select(
@@ -60,6 +70,8 @@ export default async function FeatureRequestsAdminPage() {
   const pendingCount = rows.filter((r) => r.status === "pending").length;
   const inProgressCount = rows.filter((r) => r.status === "in_progress").length;
 
+  const changelog = await getChangelog();
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
@@ -68,34 +80,52 @@ export default async function FeatureRequestsAdminPage() {
         <header>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
             <MessageSquarePlus className="w-6 h-6 text-blue-500" />
-            Feature requests
+            Product
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            {rows.length} suggestion{rows.length > 1 ? "s" : ""} reçue
-            {rows.length > 1 ? "s" : ""}
-            {pendingCount > 0 && (
-              <>
-                {" "}· <strong className="text-amber-700">{pendingCount} en attente</strong>
-              </>
-            )}
-            {inProgressCount > 0 && (
-              <>
-                {" "}· <strong className="text-blue-700">{inProgressCount} en cours</strong>
-              </>
-            )}
+            Roadmap, journal de dev et suggestions des users.
           </p>
         </header>
 
-        {rows.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
-            <p className="text-sm text-slate-500">
-              Aucune suggestion pour l&apos;instant. Quand un user en envoie une depuis
-              <strong> À propos de cette app</strong>, elle apparaîtra ici.
-            </p>
+        {/* Section : suggestions des users */}
+        <section>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">
+            Suggestions ({rows.length})
+            {pendingCount > 0 && (
+              <span className="ml-2 text-sm font-normal text-amber-700">
+                · {pendingCount} en attente
+              </span>
+            )}
+            {inProgressCount > 0 && (
+              <span className="ml-2 text-sm font-normal text-blue-700">
+                · {inProgressCount} en cours
+              </span>
+            )}
+          </h2>
+
+          {rows.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 text-center">
+              <p className="text-sm text-slate-500">
+                Aucune suggestion pour l&apos;instant.
+              </p>
+            </div>
+          ) : (
+            <FeatureRequestsAdminList rows={rows} />
+          )}
+        </section>
+
+        {/* Section : roadmap & journal de dev */}
+        <section>
+          <h2 className="text-base font-semibold text-slate-900 mb-2 flex items-center gap-2">
+            <Map className="w-4 h-4 text-purple-500" />
+            Roadmap & journal de dev
+          </h2>
+          <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-h1:hidden prose-h2:text-base prose-h2:mt-4 prose-h2:mb-2 prose-h2:text-slate-900 prose-h3:text-sm prose-h3:text-slate-800 prose-p:text-slate-700 prose-li:text-slate-700 prose-li:my-0.5 prose-ul:my-2 prose-strong:text-slate-900 prose-hr:my-4">
+              <ReactMarkdown>{changelog}</ReactMarkdown>
+            </div>
           </div>
-        ) : (
-          <FeatureRequestsAdminList rows={rows} />
-        )}
+        </section>
       </div>
     </main>
   );
