@@ -40,7 +40,9 @@ export async function middleware(
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
+
           response = NextResponse.next({ request });
+
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -68,35 +70,42 @@ export async function middleware(
 
       // Géoloc via Vercel headers
       const country = request.headers.get("x-vercel-ip-country") ?? null;
+
       const cityRaw = request.headers.get("x-vercel-ip-city") ?? null;
       const city = cityRaw ? decodeURIComponent(cityRaw) : null;
+
       const latRaw = request.headers.get("x-vercel-ip-latitude");
       const lngRaw = request.headers.get("x-vercel-ip-longitude");
+
       const lat = latRaw ? parseFloat(latRaw) : null;
       const lng = lngRaw ? parseFloat(lngRaw) : null;
 
       // UPDATE en arrière-plan via waitUntil :
-      // la réponse part tout de suite au browser, mais l'UPDATE est garanti
-      // d'arriver à terme (Vercel garde l'invocation vivante jusqu'à sa fin)
+      // la réponse part tout de suite au browser, mais l'UPDATE continue
+      // côté Edge Runtime.
       event.waitUntil(
-        supabase
-          .from("users")
-          .update({
-            last_seen_at: new Date().toISOString(),
-            last_device: device,
-            last_os: os,
-            last_browser: browser,
-            last_country: country,
-            last_city: city,
-            last_lat: lat,
-            last_lng: lng,
-          })
-          .eq("id", user.id)
-          .then(({ error }) => {
-            if (error) {
-              console.error("[middleware] last_seen update failed:", error);
-            }
-          })
+        (async () => {
+          const { error } = await supabase
+            .from("users")
+            .update({
+              last_seen_at: new Date().toISOString(),
+              last_device: device,
+              last_os: os,
+              last_browser: browser,
+              last_country: country,
+              last_city: city,
+              last_lat: lat,
+              last_lng: lng,
+            })
+            .eq("id", user.id);
+
+          if (error) {
+            console.error(
+              "[middleware] last_seen update failed:",
+              error
+            );
+          }
+        })()
       );
     }
   }
