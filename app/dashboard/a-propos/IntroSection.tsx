@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useDailyValue } from "@/lib/hooks";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSyncedState } from "@/lib/hooks";
@@ -9,7 +10,7 @@ import {
   getNextCollection,
   formatDateLabel,
 } from "@/lib/garbage-collection";
-import { useEffect } from "react";
+
 
 export type Intro = {
   id: string;
@@ -43,13 +44,10 @@ export default function IntroSection({
   const [wifiCopied, setWifiCopied] = useState(false);
 
   // Prochaine collecte (affichage compact si pas la grosse section)
-  const [nextCollection, setNextCollection] = useState(getNextCollection());
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNextCollection(getNextCollection());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+
+
+// ...
+const nextCollection = useDailyValue(getNextCollection);
 
   async function copyWifiPassword() {
     try {
