@@ -13,6 +13,8 @@ import {
   Database,
   Mail,
   ExternalLink,
+  MessageSquarePlus, 
+  ArrowRight,
   Crown,
   CheckCircle2,
   Users,
@@ -64,6 +66,11 @@ export default async function AdminPage({
   }
 
   // Stats rapides
+  const { count: pendingFeatureRequests } = await supabase
+  .from("feature_requests")
+  .select("*", { count: "exact", head: true })
+  .eq("status", "pending");
+
   const { count: totalUsers } = await supabase
     .from("users")
     .select("*", { count: "exact", head: true });
@@ -102,46 +109,62 @@ export default async function AdminPage({
           <FeedbackBanner status={status} message={decodeURIComponent(message)} />
         )}
 
-{/* 3 boutons : Health (matrix) + Analytics + Locations */}
-        <div className="grid grid-cols-3 gap-3">
-          <Link
-            href="/dashboard/admin/health"
-            className="flex flex-col bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono min-h-[110px]"
-          >
-            <div className="flex items-center gap-2 text-emerald-400">
-              <Activity className="w-5 h-5" />
-              <span className="text-xs font-bold tracking-wider">HEALTH</span>
-            </div>
-            <p className="text-[10px] text-emerald-600 mt-1">
-              diagnostics
-            </p>
-          </Link>
+{/* Hub : Health + Analytics + Locations + Product */}
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <Link
+    href="/dashboard/admin/health"
+    className="flex flex-col bg-black border border-emerald-700 rounded-2xl p-4 hover:border-emerald-400 transition font-mono min-h-[110px]"
+  >
+    <div className="flex items-center gap-2 text-emerald-400">
+      <Activity className="w-5 h-5" />
+      <span className="text-xs font-bold tracking-wider">HEALTH</span>
+    </div>
+    <p className="text-[10px] text-emerald-600 mt-1">diagnostics</p>
+  </Link>
 
-          <Link
-            href="/dashboard/admin/analytics"
-            className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
-          >
-            <div className="flex items-center gap-2 text-purple-700">
-              <BarChart3 className="w-5 h-5" />
-              <span className="text-sm font-bold">Analytics</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              usage, adoption
-            </p>
-          </Link>
+  <Link
+    href="/dashboard/admin/analytics"
+    className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
+  >
+    <div className="flex items-center gap-2 text-purple-700">
+      <BarChart3 className="w-5 h-5" />
+      <span className="text-sm font-bold">Analytics</span>
+    </div>
+    <p className="text-xs text-slate-500 mt-1">usage, adoption</p>
+  </Link>
 
-          <Link
-            href="/dashboard/admin/locations"
-            className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
-          >
-            <div className="flex items-center gap-2 text-blue-700">
-              <span className="text-lg leading-none">🌍</span>
-              <span className="text-sm font-bold">Locations</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              dernières positions
-            </p>
-          </Link>
+  <Link
+    href="/dashboard/admin/locations"
+    className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px]"
+  >
+    <div className="flex items-center gap-2 text-blue-700">
+      <span className="text-lg leading-none">🌍</span>
+      <span className="text-sm font-bold">Locations</span>
+    </div>
+    <p className="text-xs text-slate-500 mt-1">dernières positions</p>
+  </Link>
+
+  <Link
+    href="/dashboard/admin/feature-requests"
+    className="flex flex-col bg-white rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 transition min-h-[110px] relative"
+  >
+    <div className="flex items-center gap-2 text-amber-700">
+      <MessageSquarePlus className="w-5 h-5" />
+      <span className="text-sm font-bold">Product</span>
+    </div>
+    <p className="text-xs text-slate-500 mt-1">
+      {pendingFeatureRequests && pendingFeatureRequests > 0
+        ? `${pendingFeatureRequests} suggestion${
+            pendingFeatureRequests > 1 ? "s" : ""
+          } à traiter`
+        : "feature requests"}
+    </p>
+    {pendingFeatureRequests !== null &&
+      pendingFeatureRequests !== undefined &&
+      pendingFeatureRequests > 0 && (
+        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500" />
+      )}
+  </Link>
         </div>
 
         {/* Stats rapides */}
