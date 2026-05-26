@@ -21,14 +21,17 @@ import { dateToISO } from "./calendar/calendar-utils";
 
 import type { CalendarEvent } from "./calendar/CalendarDayCell";
 
+
 type Props = {
   events: CalendarEvent[];
   currentUserId: string;
   currentFamilyId: string;
   currentFamilyName: string;
   isFamilyHead: boolean;
+  familyHeadNames: string[];
   isCalendarAdmin?: boolean;
 };
+
 
 export default function Calendar({
   events,
@@ -36,6 +39,7 @@ export default function Calendar({
   currentFamilyId,
   currentFamilyName,
   isFamilyHead,
+  familyHeadNames, // ← NOUVEAU
   isCalendarAdmin = false,
 }: Props) {
   const today = useMemo(() => {
@@ -333,16 +337,19 @@ export default function Calendar({
 
       {/* Modal placeholder */}
       {selectedPlaceholder && (
-        <SummerPlaceholderModal
-          placeholder={selectedPlaceholder}
-          allPlaceholdersForYear={placeholders.filter(
-            (p) => p.year === selectedPlaceholder.year
-          )}
-          myFamilyId={currentFamilyId}
-          myFamilyName={currentFamilyName}
-          myUserId={currentUserId}
-          onClose={() => setSelectedPlaceholder(null)}
-        />
+<SummerPlaceholderModal
+  placeholder={selectedPlaceholder}
+  allPlaceholdersForYear={placeholders.filter(
+    (p) => p.year === selectedPlaceholder.year
+  )}
+  myFamilyId={currentFamilyId}
+  myFamilyName={currentFamilyName}
+  myUserId={currentUserId}
+  myIsFamilyHead={isFamilyHead}     
+  myFamilyHeadNames={familyHeadNames} 
+  onClose={() => setSelectedPlaceholder(null)}
+         />
+    
       )}
     </>
   );
