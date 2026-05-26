@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+
+import { useDailyValue } from "@/lib/hooks";
 import {
   getNextCollections,
   formatDateLabel,
@@ -9,14 +12,7 @@ import {
 } from "@/lib/garbage-collection";
 
 export default function NextCollections() {
-  const [collections, setCollections] = useState(getNextCollections());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCollections(getNextCollections());
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const collections = useDailyValue(getNextCollections);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-2">
