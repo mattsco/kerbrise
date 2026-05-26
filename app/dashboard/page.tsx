@@ -7,6 +7,7 @@ import PWADetector from "@/components/PWADetector";
 import {
   Calendar,
   Inbox,
+  Info,
   Plus,
   Video,
   KeyRound,
@@ -237,6 +238,17 @@ const supabase = await createClient();
             />
           )}
         </div>
+{/* Footer "About" — accès aux notes de version et suggestions */}
+        <Link
+          href="/dashboard/about"
+          className="block text-center py-4 text-xs text-slate-400 hover:text-slate-600 transition"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Info className="w-3 h-3" />
+            À propos de cette app
+          </span>
+        </Link>
+
       </div>
 
       {/* Détection PWA installée vs navigateur (invisible) */}
