@@ -1,11 +1,12 @@
-import { readFile } from "fs/promises";
+import { readFile, readdir } from "fs/promises";
 import path from "path";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import BackButton from "@/components/BackButton";
-import { MessageSquarePlus, Map } from "lucide-react";
+import { MessageSquarePlus, Map, FileText, ArrowRight } from "lucide-react";
 import FeatureRequestsAdminList from "./FeatureRequestsAdminList";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,34 @@ async function getChangelog(): Promise<string> {
     const filePath = path.join(process.cwd(), "CHANGELOG.md");
     return await readFile(filePath, "utf-8");
   } catch {
-    return "_Pas de CHANGELOG.md trouvé dans docs/_";
+    return "_Pas de CHANGELOG.md trouvé à la racine du projet_";
+  }
+}
+
+/**
+ * Liste les specs dispo dans docs/specs/ (tous les .md).
+ * Renvoie [{ slug, title }] — le title est le premier titre H1 du fichier,
+ * sinon le nom du fichier.
+ */
+async function getSpecs(): Promise<{ slug: string; title: string }[]> {
+  try {
+    const dir = path.join(process.cwd(), "docs", "specs");
+    const files = await readdir(dir);
+    const mdFiles = files.filter((f) => f.endsWith(".md"));
+
+    const specs = await Promise.all(
+      mdFiles.map(async (file) => {
+        const slug = file.replace(/\.md$/, "");
+        const content = await readFile(path.join(dir, file), "utf-8");
+        const h1Match = content.match(/^#\s+(.+)$/m);
+        const title = h1Match ? h1Match[1].trim() : slug;
+        return { slug, title };
+      })
+    );
+
+    return specs.sort((a, b) => a.title.localeCompare(b.title));
+  } catch {
+    return [];
   }
 }
 
@@ -71,6 +99,7 @@ export default async function FeatureRequestsAdminPage() {
   const inProgressCount = rows.filter((r) => r.status === "in_progress").length;
 
   const changelog = await getChangelog();
+  const specs = await getSpecs();
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -83,7 +112,7 @@ export default async function FeatureRequestsAdminPage() {
             Product
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Roadmap, journal de dev et suggestions des users.
+            Roadmap, specs, journal de dev et suggestions des users.
           </p>
         </header>
 
@@ -113,6 +142,31 @@ export default async function FeatureRequestsAdminPage() {
             <FeatureRequestsAdminList rows={rows} />
           )}
         </section>
+
+        {/* Section : specs détaillées */}
+        {specs.length > 0 && (
+          <section>
+            <h2 className="text-base font-semibold text-slate-900 mb-2 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-emerald-500" />
+              Specs détaillées
+            </h2>
+            <div className="space-y-2">
+              {specs.map((spec) => (
+                <Link
+                  key={spec.slug}
+                  href={`/dashboard/admin/specs/${spec.slug}`}
+                  className="flex items-center gap-3 bg-white rounded-2xl border border-slate-100 p-4 hover:border-slate-200 hover:shadow-sm transition"
+                >
+                  <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <span className="flex-1 text-sm font-medium text-slate-900">
+                    {spec.title}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Section : roadmap & journal de dev */}
         <section>
