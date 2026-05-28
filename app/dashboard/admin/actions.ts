@@ -1,15 +1,12 @@
 "use server";
-
+import { requireAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 async function checkAdmin() {
+  const user = await requireAuthUser();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
 
   const { data: profile } = await supabase
     .from("users")
@@ -22,11 +19,8 @@ async function checkAdmin() {
 }
 
 async function checkCalendarAdmin() {
+  const user = await requireAuthUser();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
 
   const { data: profile } = await supabase
     .from("users")
