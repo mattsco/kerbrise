@@ -204,11 +204,9 @@ export async function adminCreateBooking(formData: FormData) {
       success: true,
       message: `✅ Réservation créée du ${startDate} au ${endDate}`,
     };
-  } catch (e: any) {
-    return {
-      success: false,
-      error: e?.message ?? "Erreur inconnue",
-    };
+} catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
 }
 
@@ -251,7 +249,8 @@ export async function adminUpdateBooking(
     revalidatePath("/dashboard/demandes");
 
     return { success: true };
-  } catch (e: any) {
+} catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
 }
@@ -283,7 +282,8 @@ export async function adminDeleteBooking(bookingId: string) {
     revalidatePath("/dashboard/demandes");
 
     return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e?.message };
+} catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
 }
