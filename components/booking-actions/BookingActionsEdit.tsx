@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { adminUpdateBooking } from "@/app/dashboard/admin/actions";
-import { daysBetween, dateToISO } from "@/lib/dates";
+import { validateBookingDates } from "@/lib/validation/booking";
+import { useBookingMutation } from "./useBookingMutation";
 
 type Props = {
   bookingId: string;
@@ -23,12 +23,10 @@ export default function BookingActionsEdit({
   onComplete,
   onBack,
 }: Props) {
-  const router = useRouter();
   const [newStart, setNewStart] = useState(startDate);
   const [newEnd, setNewEnd] = useState(endDate);
   const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const { submitting, error, setError, run } = useBookingMutation();
 
   const isReductionOnly =
     newStart >= startDate &&
@@ -42,67 +40,45 @@ export default function BookingActionsEdit({
   async function handleSave() {
     setError("");
 
-    if (!newStart || !newEnd) {
-      setError("Les deux dates sont requises.");
+    // Validation centralisée (mêmes règles : dates requises, fin ≥ début,
+    // max 60j et "min demain" sauf en mode admin).
+    const validation = validateBookingDates(newStart, newEnd, { isAdminMode });
+    if (!validation.ok) {
+      setError(validation.error);
       return;
     }
 
-    if (newEnd < newStart) {
-      setError("La date de fin doit être après la date de début.");
-      return;
-    }
+    await run(
+      async () => {
+        if (isAdminMode) {
+          // Mode admin : server action qui set is_admin_created + bypass triggers
+          const result = await adminUpdateBooking(bookingId, newStart, newEnd);
+          return result.success
+            ? { ok: true }
+            : { ok: false, error: result.error ?? "inconnue" };
+        }
 
-    const diffDays = daysBetween(newStart, newEnd);
-    if (diffDays > 60 && !isAdminMode) {
-      setError(`La durée maximum est de 60 jours (${diffDays} demandés).`);
-      return;
-    }
+        // Mode normal : update direct côté client (RLS gère les droits)
+        const supabase = createClient();
+        const { error: updateError } = await supabase
+          .from("bookings")
+          .update({
+            start_date: newStart,
+            end_date: newEnd,
+            last_action_type: isReductionOnly ? "reduced" : "modified",
+            last_action_comment: comment.trim() || null,
+          })
+          .eq("id", bookingId);
 
-    // Pas de check "minimum demain" en mode admin (on peut corriger l'historique)
-    if (!isAdminMode) {
-      const tomorrow = new Date();
-      tomorrow.setHours(0, 0, 0, 0);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      if (newStart < dateToISO(tomorrow)) {
-        setError("La date de début doit être au moins demain.");
-        return;
+        return updateError
+          ? { ok: false, error: updateError.message }
+          : { ok: true };
+      },
+      () => {
+        setComment("");
+        onComplete();
       }
-    }
-
-    setSubmitting(true);
-
-    if (isAdminMode) {
-      // Mode admin : passe par la server action qui set is_admin_created + bypass triggers
-      const result = await adminUpdateBooking(bookingId, newStart, newEnd);
-      if (!result.success) {
-        setError("Erreur : " + (result.error ?? "inconnue"));
-        setSubmitting(false);
-        return;
-      }
-    } else {
-      // Mode normal : update direct côté client (RLS s'occupe des droits)
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("bookings")
-        .update({
-          start_date: newStart,
-          end_date: newEnd,
-          last_action_type: isReductionOnly ? "reduced" : "modified",
-          last_action_comment: comment.trim() || null,
-        })
-        .eq("id", bookingId);
-
-      if (updateError) {
-        setError("Erreur : " + updateError.message);
-        setSubmitting(false);
-        return;
-      }
-    }
-
-    setComment("");
-    setSubmitting(false);
-    router.refresh();
-    onComplete();
+    );
   }
 
   return (
