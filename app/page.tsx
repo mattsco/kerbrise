@@ -1,13 +1,17 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen relative overflow-hidden bg-black">
       {/* Background sunset */}
-      <img
+      <Image
         src="/sunset.jpg"
         alt="Kerbrise au coucher du soleil"
-        className="absolute inset-0 w-full h-full object-cover scale-105 animate-[slowZoom_20s_ease-in-out_infinite_alternate]"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover scale-105 animate-[slowZoom_20s_ease-in-out_infinite_alternate]"
       />
 
       {/* Halos lumineux */}
@@ -144,4 +148,4 @@ export default function HomePage() {
       `}</style>
     </main>
   );
-} 
+}
