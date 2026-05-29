@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { adminCancelBooking } from "@/app/dashboard/admin/actions";
+import { useBookingMutation } from "./useBookingMutation";
 
 type Props = {
   bookingId: string;
@@ -19,34 +20,35 @@ export default function BookingActionsCancel({
   onComplete,
   onBack,
 }: Props) {
-  const router = useRouter();
   const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const { submitting, error, run } = useBookingMutation();
 
   async function handleCancel() {
-    setSubmitting(true);
-    setError("");
+    await run(async () => {
+      if (isAdminMode) {
+        // Mode admin : passe par la server action (cohérent avec edit/delete),
+        // qui set is_admin_created + bypass les triggers/emails.
+        const result = await adminCancelBooking(bookingId, comment);
+        return result.success
+          ? { ok: true }
+          : { ok: false, error: result.error ?? "inconnue" };
+      }
 
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("bookings")
-      .update({
-        status: "cancelled",
-        last_action_type: "cancelled",
-        last_action_comment: comment.trim() || null,
-        ...(isAdminMode ? { is_admin_created: true } : {}),
-      })
-      .eq("id", bookingId);
+      // Mode normal : update direct côté client (RLS gère les droits).
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("bookings")
+        .update({
+          status: "cancelled",
+          last_action_type: "cancelled",
+          last_action_comment: comment.trim() || null,
+        })
+        .eq("id", bookingId);
 
-    if (updateError) {
-      setError("Erreur : " + updateError.message);
-      setSubmitting(false);
-      return;
-    }
-
-    router.refresh();
-    onComplete();
+      return updateError
+        ? { ok: false, error: updateError.message }
+        : { ok: true };
+    }, onComplete);
   }
 
   return (
