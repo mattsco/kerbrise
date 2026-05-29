@@ -38,7 +38,20 @@ export default function ApprovalButtons({
     });
 
     if (insertError) {
-      setError(insertError.message);
+      // Si cette approbation est la dernière et fait basculer le séjour en
+      // "approved", le trigger DB peut buter sur la contrainte anti-overlap
+      // (bookings_no_overlap_when_approved) : une autre famille a déjà un
+      // séjour approuvé sur ces dates. On traduit le message Postgres brut.
+      const isOverlapConstraint =
+        /no_overlap|exclusion constraint|conflicting key/i.test(
+          insertError.message
+        );
+
+      setError(
+        isOverlapConstraint
+          ? "Impossible d'approuver : ces dates chevauchent un séjour déjà approuvé par une autre famille. Le calendrier a peut-être changé depuis l'envoi de la demande."
+          : insertError.message
+      );
       setSubmitting(false);
       return;
     }
