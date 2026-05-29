@@ -3,8 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { parseLocalDate, dateToISO, daysBetween } from "@/lib/dates";
+import { daysBetween } from "@/lib/dates";
 import { overlapsSummerPeriod } from "@/lib/summer-priorities";
+import { getRelatedBookings, createBookingRequest } from "@/lib/data/bookings";
+import type { RelatedBooking } from "@/lib/data/types";
+import { validateBookingDates } from "@/lib/validation/booking";
+import { formatShort } from "@/lib/ui/booking-display";
 
 type Props = {
   familyId: string;
@@ -12,14 +16,6 @@ type Props = {
   initialStart?: string;
   initialEnd?: string;
   onSuccess?: () => void;
-};
-
-type RelatedBooking = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  family_name: string;
-  family_color: string;
 };
 
 export default function NewBookingForm({
@@ -38,61 +34,24 @@ export default function NewBookingForm({
   const [adjacent, setAdjacent] = useState<RelatedBooking[]>([]);
   const [overlapping, setOverlapping] = useState<RelatedBooking[]>([]);
 
-  // Fetch séjours autour des dates (adjacents ET en conflit)
+  // Fetch séjours autour des dates (adjacents ET en conflit) via data layer
   useEffect(() => {
     let ignore = false;
 
-    async function fetchRelated() {
-      if (!start || !end) {
-        if (!ignore) {
-          setAdjacent([]);
-          setOverlapping([]);
-        }
-        return;
-      }
-
-      const startDate = parseLocalDate(start);
-      const endDate = parseLocalDate(end);
-      const before = new Date(startDate);
-      before.setDate(before.getDate() - 7);
-      const after = new Date(endDate);
-      after.setDate(after.getDate() + 7);
-
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("bookings")
-        .select("id, start_date, end_date, families(name, color)")
-        .in("status", ["pending", "approved"])
-        .gte("end_date", dateToISO(before))
-        .lte("start_date", dateToISO(after))
-        .order("start_date");
-
-      if (ignore || !data) return;
-
-      const mapped: RelatedBooking[] = data.map((b: any) => ({
-        id: b.id,
-        start_date: b.start_date,
-        end_date: b.end_date,
-        family_name: b.families?.name ?? "?",
-        family_color: b.families?.color ?? "#888",
-      }));
-
-      // Sépare adjacent (pivot autorisé) vs vrai overlap
-      const overlaps: RelatedBooking[] = [];
-      const adjacents: RelatedBooking[] = [];
-      for (const b of mapped) {
-        if (b.end_date <= start || b.start_date >= end) {
-          adjacents.push(b);
-        } else {
-          overlaps.push(b);
-        }
-      }
-
-      setAdjacent(adjacents);
-      setOverlapping(overlaps);
+    if (!start || !end) {
+      setAdjacent([]);
+      setOverlapping([]);
+      return;
     }
 
-    fetchRelated();
+    const supabase = createClient();
+    getRelatedBookings(supabase, start, end).then(
+      ({ adjacent: adj, overlapping: ov }) => {
+        if (ignore) return;
+        setAdjacent(adj);
+        setOverlapping(ov);
+      }
+    );
 
     return () => {
       ignore = true;
@@ -108,27 +67,10 @@ export default function NewBookingForm({
   async function handleSubmit() {
     setError("");
 
-    if (!start || !end) {
-      setError("Les deux dates sont requises.");
-      return;
-    }
-
-    if (end < start) {
-      setError("La date de fin doit être après la date de début.");
-      return;
-    }
-
-    const diffDays = daysBetween(start, end);
-    if (diffDays > 60) {
-      setError(`La durée maximum est de 60 jours (${diffDays} demandés).`);
-      return;
-    }
-
-    const tomorrow = new Date();
-    tomorrow.setHours(0, 0, 0, 0);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (start < dateToISO(tomorrow)) {
-      setError("La date de début doit être au moins demain.");
+    // Validation des dates centralisée (mêmes règles qu'avant)
+    const validation = validateBookingDates(start, end);
+    if (!validation.ok) {
+      setError(validation.error);
       return;
     }
 
@@ -150,17 +92,16 @@ export default function NewBookingForm({
     setSubmitting(true);
     const supabase = createClient();
 
-    const { error: insertError } = await supabase.from("bookings").insert({
-      family_id: familyId,
-      created_by: userId,
-      start_date: start,
-      end_date: end,
+    const result = await createBookingRequest(supabase, {
+      familyId,
+      userId,
+      start,
+      end,
       note: note.trim() || null,
-      status: "pending",
     });
 
-    if (insertError) {
-      setError("Erreur : " + insertError.message);
+    if (!result.ok) {
+      setError("Erreur : " + result.error);
       setSubmitting(false);
       return;
     }
@@ -170,13 +111,6 @@ export default function NewBookingForm({
     } else {
       router.push("/dashboard/demande-envoyee");
     }
-  }
-
-  function formatShort(iso: string) {
-    return parseLocalDate(iso).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-    });
   }
 
   const before = adjacent.filter((b) => start && b.end_date <= start);
