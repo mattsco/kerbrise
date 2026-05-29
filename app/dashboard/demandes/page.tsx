@@ -7,31 +7,16 @@ import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 import BackButton from "@/components/BackButton";
 import { isStayActiveOrFuture } from "@/lib/dates";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { listBookingsWithApprovals } from "@/lib/data/bookings";
+import type { BookingWithApprovals } from "@/lib/data/types";
+import { StatusBadge, formatMedium } from "@/lib/ui/booking-display";
 
 
 export const dynamic = "force-dynamic";
 
-type BookingWithApprovals = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  note: string | null;
-  status: "pending" | "approved" | "rejected" | "cancelled";
-  family_id: string;
-  created_by: string;
-  created_at: string;
-  families: { name: string; color: string } | null;
-  users: { display_name: string | null } | null;
-  approvals: {
-    family_id: string;
-    decision: "approved" | "rejected";
-    families: { name: string; color: string } | null;
-  }[];
-};
-
 export default async function PendingBookingsPage() {
   const user = await requireAuthUser();
-  const supabase = await createClient(); 
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from("users")
@@ -45,27 +30,17 @@ export default async function PendingBookingsPage() {
   const isCalendarAdmin =
     (profile as { is_calendar_admin?: boolean }).is_calendar_admin ?? false;
 
-  // Récupère TOUS les bookings non rejetés/annulés (pending + approved)
-  const { data: bookings, error } = await supabase
-    .from("bookings")
-    .select(`
-      id, start_date, end_date, note, status, family_id, created_by, created_at,
-      families(name, color),
-      users:created_by(display_name),
-      approvals(family_id, decision, families(name, color))
-    `)
-    .in("status", ["pending", "approved"])
-    .order("start_date");
-
-  if (error) {
+  // Data layer : query + mapping + typing en un seul endroit (plus de cast).
+  let allBookings: BookingWithApprovals[];
+  try {
+    allBookings = await listBookingsWithApprovals(supabase);
+  } catch (error: any) {
     return (
       <main className="min-h-screen bg-slate-50 p-6">
-        <p className="text-red-600">Erreur : {error.message}</p>
+        <p className="text-red-600">Erreur : {error?.message ?? "inconnue"}</p>
       </main>
     );
   }
-
-  const allBookings = (bookings ?? []) as unknown as BookingWithApprovals[];
 
   // Filtrage par sections
   const toValidate = allBookings.filter(
@@ -196,9 +171,10 @@ function BookingCard({
   showApprovalButtons?: boolean;
   isOwnFamily?: boolean;
 }) {
-  const familyName = booking.families?.name ?? "?";
-  const familyColor = booking.families?.color ?? "#888";
-  const createdBy = booking.users?.display_name ?? "?";
+  // La data layer a déjà aplati les jointures (family_name / author_name).
+  const familyName = booking.family_name;
+  const familyColor = booking.family_color;
+  const createdBy = booking.author_name;
   const isAuthor = booking.created_by === currentUserId;
 
   return (
@@ -214,7 +190,7 @@ function BookingCard({
           <StatusBadge status={booking.status} />
         </div>
         <p className="text-base font-medium">
-          Du {formatDate(booking.start_date)} au {formatDate(booking.end_date)}
+          Du {formatMedium(booking.start_date)} au {formatMedium(booking.end_date)}
         </p>
         <p className="text-sm text-slate-500 mt-1">
           Demandé par {createdBy}
@@ -229,7 +205,7 @@ function BookingCard({
             Validations
           </p>
 
-{FAMILY_NAMES.map((fam) => {
+          {FAMILY_NAMES.map((fam) => {
             if (fam === familyName) {
               return (
                 <ApprovalStatus
@@ -241,13 +217,13 @@ function BookingCard({
               );
             }
             const approval = booking.approvals.find(
-              (a) => a.families?.name === fam
+              (a) => a.family_name === fam
             );
             return (
               <ApprovalStatus
                 key={fam}
                 familyName={fam}
-                color={approval?.families?.color ?? getFamilyColor(fam)}
+                color={approval?.family_color ?? getFamilyColor(fam)}
                 decision={approval?.decision ?? null}
               />
             );
@@ -270,7 +246,7 @@ function BookingCard({
           bookingId={booking.id}
           startDate={booking.start_date}
           endDate={booking.end_date}
-          status={booking.status}
+          status={booking.status as "pending" | "approved" | "rejected"}
         />
       )}
 
@@ -280,21 +256,6 @@ function BookingCard({
         </p>
       )}
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: BookingWithApprovals["status"] }) {
-  const config = {
-    pending: { label: "⏳ En attente", color: "bg-amber-100 text-amber-800" },
-    approved: { label: "✅ Approuvée", color: "bg-emerald-100 text-emerald-800" },
-    rejected: { label: "❌ Refusée", color: "bg-red-100 text-red-800" },
-    cancelled: { label: "🚫 Annulée", color: "bg-slate-100 text-slate-600" },
-  };
-  const c = config[status];
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${c.color}`}>
-      {c.label}
-    </span>
   );
 }
 
@@ -333,12 +294,3 @@ function ApprovalStatus({
     </div>
   );
 }
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
