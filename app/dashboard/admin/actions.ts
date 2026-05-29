@@ -1,41 +1,13 @@
 "use server";
-import { requireAuthUser } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-async function checkAdmin() {
-  const user = await requireAuthUser();
-  const supabase = await createClient();
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_admin) throw new Error("Not admin");
-  return user;
-}
-
-async function checkCalendarAdmin() {
-  const user = await requireAuthUser();
-  const supabase = await createClient();
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("is_calendar_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_calendar_admin) throw new Error("Not calendar admin");
-  return user;
-}
+import { requireAdmin, requireCalendarAdmin } from "@/lib/data/profile";
 
 // Toggle chef de famille
 export async function toggleFamilyHead() {
   try {
-    const user = await checkAdmin();
+    const user = await requireAdmin();
     const supabase = await createClient();
 
     const { data: profile } = await supabase
@@ -68,7 +40,7 @@ export async function toggleFamilyHead() {
 // Toggle mode admin calendrier
 export async function toggleCalendarAdmin() {
   try {
-    const user = await checkAdmin();
+    const user = await requireAdmin();
     const supabase = await createClient();
 
     const { data: profile } = await supabase
@@ -103,7 +75,7 @@ export async function toggleCalendarAdmin() {
 // Simuler l'approbation d'une famille pour toutes les demandes pending
 export async function simulateApprovals(familyName: "François" | "Vincent") {
   try {
-    await checkAdmin();
+    await requireAdmin();
     const supabase = await createClient();
 
     const { data: family } = await supabase
@@ -164,7 +136,7 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
 // Création admin d'une réservation (sans email)
 export async function adminCreateBooking(formData: FormData) {
   try {
-    await checkCalendarAdmin();
+    await requireCalendarAdmin();
     const supabase = await createClient();
 
     const startDate = formData.get("start_date") as string;
@@ -204,7 +176,7 @@ export async function adminCreateBooking(formData: FormData) {
       success: true,
       message: `✅ Réservation créée du ${startDate} au ${endDate}`,
     };
-} catch (e: any) {
+  } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
@@ -217,7 +189,7 @@ export async function adminUpdateBooking(
   newEnd: string
 ) {
   try {
-    await checkCalendarAdmin();
+    await requireCalendarAdmin();
     const supabase = await createClient();
 
     if (!bookingId || !newStart || !newEnd) {
@@ -249,7 +221,7 @@ export async function adminUpdateBooking(
     revalidatePath("/dashboard/demandes");
 
     return { success: true };
-} catch (e: any) {
+  } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
@@ -258,7 +230,7 @@ export async function adminUpdateBooking(
 // Suppression admin (hard delete)
 export async function adminDeleteBooking(bookingId: string) {
   try {
-    await checkCalendarAdmin();
+    await requireCalendarAdmin();
     const supabase = await createClient();
 
     // Marquer comme admin_created pour bypass les triggers AVANT delete
@@ -282,7 +254,7 @@ export async function adminDeleteBooking(bookingId: string) {
     revalidatePath("/dashboard/demandes");
 
     return { success: true };
-} catch (e: any) {
+  } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     return { success: false, error: e?.message ?? "Erreur inconnue" };
   }
