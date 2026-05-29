@@ -22,12 +22,11 @@ import {
 import { computeBannerContext } from "@/lib/dashboard-banner";
 import ContextualBanner from "./ContextualBanner";
 import { requireAuthUser } from "@/lib/supabase/auth";
-
+import { APP_VERSION } from "@/lib/config";
 import UpcomingStaysList from "./UpcomingStaysList";
 
 export default async function DashboardPage() {
   
-const APP_VERSION = "1.0.0";
 const user = await requireAuthUser();
 const supabase = await createClient(); 
 
