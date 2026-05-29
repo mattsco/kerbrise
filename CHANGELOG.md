@@ -7,18 +7,18 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 
 ## [Unreleased] — en cours pour la 1.2.0
 
-### À faire — prioritaire
-- **#24** Release notes côté users (footer "Quoi de neuf" dans À propos) — *en cours, ce qu'on fait là*
-- **#27** Migrer `app/dashboard/admin/actions.ts` vers `requireAuthUser` — *cleanup rapide, gain ~100ms par action admin*
-- **#22d** Priority card explicative dans Profil — *vraie card avec implications de la priorité de l'année (ponts, juin/septembre…)*
-
 ### À faire — features visibles
+- **#31** CalendarDesktopView : vue année façon tableur sur desktop (spec `docs/specs/calendar-desktop-view.md`)
 - **#26** Mode "vacances" sur la home avec météo Saint-Malo, température mer, marées — *l'app devient app de vacances quand on est sur place*
+- **#22d** Priority card explicative dans Profil — *vraie card avec implications de la priorité de l'année (ponts, juin/septembre…)*
 - **#22b** Notifications email pour les choix de période d'été — *bloqué tant que #28 pas fait, prévu pour janvier 2027 (prochain cycle)*
 
 ### À faire — refactor / dette tech
-- **#18** Migrer les `<img>` restants vers `next/image` — *impact marginal après la compression manuelle, mais propre*
 - **#23** Animations Stats avec interpolation Framer Motion — *side-project sympa quand t'as 1-2h*
+- **#30** Restructurer `/dashboard/admin` en vrai hub (`/admin/lab`, `/admin/data`, `/admin/product`) — spec `docs/specs/admin-hub-restructure.md`
+- Remonter le message d'erreur de la contrainte SQL anti-overlap dans `NewBookingForm` (perdant de la race) + supprimer le `console.warn` devenu redondant dans `CalendarDayCell`
+- Versionner le backend : exporter RLS + triggers + état du schéma dans `db/migrations/`
+- Découper les pages `stats/page.tsx` (518 l.) et `admin/analytics/page.tsx` (848 l.) — *séparer fetch / agrégation / rendu*
 
 ### À faire — gros chantiers (sessions dédiées)
 - **#28** Migration emails Supabase Edge Functions → Next.js + Resend
@@ -32,7 +32,7 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 
 ### À faire — un jour peut-être
 - **#14** Wifi password en DB (pas urgent, on le change jamais)
-- **#25** Page admin "Config" pour éditer les flags `lib/config.ts` via UI (quand on aura 2-3 flags)
+- **#25** Page admin "Config" pour éditer les flags `lib/config.ts` via UI (quand on aura 2-3 flags) — spec `docs/specs/config-page-admin.md`
 
 ### Décidé skippé
 - **#4** Affichage visuel des overlaps dans CalendarDayCell — *règle anti-overlap déjà en place côté front, fix purement défensif*
@@ -40,15 +40,16 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 
 ---
 
-## [1.1.0] — TODO (à dater quand on release)
+## [1.1.0] — 29 mai 2026
 
-> Grosse session de polish, perf et refonte mineure du flow été.
+> Grosse session de polish, perf et refonte mineure du flow été, suivie d'une passe de refactoring architecture (data layer, mutations).
 
 ### ✨ Ajouts
 - Permissions sur le choix des périodes d'été : seul le chef de famille peut picker (flag `SUMMER_CHOICE_FREEDOM` dans `lib/config.ts` pour ouvrir à tous les membres si besoin un jour)
 - Auto-assignment automatique de la priorité 3 quand les 2 autres familles ont choisi
 - Vercel Speed Insights branché pour mesurer les perfs réelles
-- Section "Quoi de neuf" en bas de À propos (#24)
+- Section "Quoi de neuf" en bas de À propos (#24), lue depuis `docs/changelog.md`
+- Numéro de version affiché sur la page À propos (`APP_VERSION` centralisé dans `lib/config.ts`, source = `package.json`)
 
 ### ⚡ Améliorations perf
 - Navigation back instantanée (`router.back()` + cache mémoire au lieu de refetch)
@@ -58,6 +59,7 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 - Plus de polling 60s pour la collecte des ordures (timeout jusqu'à minuit)
 - Memo + useCallback sur CalendarDayCell (90 cellules, plus de re-render inutile)
 - Middleware : `event.waitUntil` au lieu de fire-and-forget
+- **#18** Images `house.jpg` / `sunset.jpg` migrées vers `next/image` (AVIF/WebP + tailles responsives) ; `next.config.js` configure `formats: [avif, webp]` — gros gain sur mobile (sunset ~330KB → ~40-60KB selon écran)
 
 ### 🎨 UI / UX
 - Légende calendrier data-driven depuis `lib/families.ts`
@@ -76,10 +78,24 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 - `lib/summer-state.ts` : helper `getSummerSnapshot(year)` pour l'état des périodes d'été (réutilisable par Server Actions et UI)
 - `app/dashboard/calendrier/actions.ts` : Server Action `reservePlaceholder` avec auth, permissions et auto-assignment côté serveur
 
+#### Passe architecture (data layer + mutations)
+- **Data layer `lib/data/`** : `types.ts` (source unique des shapes : `Booking`, `Profile`, statuts…), `bookings.ts` (toute query `bookings` centralisée : `getCalendarBookings`, `listBookingsWithApprovals`, `getBookingDetail`, `getRelatedBookings`, `createBookingRequest`), `profile.ts` (`getCurrentProfile` caché + guards `requireAdmin`/`requireCalendarAdmin`). Élimine 6 copies divergentes de la query + mapper `any`.
+- Migration des call-sites vers la data layer : `calendrier/page`, `demandes/page`, `BookingDetailModal`, `NewBookingForm`, `admin/actions`. Plus de `@ts-ignore` sur les jointures, plus de cast `as unknown as`.
+- **`lib/validation/booking.ts`** : `validateBookingDates()` partagé entre `NewBookingForm` et `BookingActionsEdit` (règles max 60j, "min demain", admin bypass).
+- **`lib/ui/booking-display.tsx`** : `StatusBadge` + formatters de dates dédupliqués (4 copies → 1).
+- **`components/booking-actions/useBookingMutation.ts`** : hook factorisant le boilerplate client (submitting/error/`router.refresh`/onComplete) pour Edit/Cancel/Delete.
+- **Cohérence des mutations admin** : nouvelle Server Action `adminCancelBooking` ; l'annulation admin passe désormais par une Server Action (comme edit/delete) au lieu d'un update client direct. Les 3 mutations admin partagent un seul chemin (`is_admin_created` + bypass triggers).
+- `CalendarDayCell` : `CalendarEvent` devient un ré-export de `CalendarBooking` (type unique), `Calendar.tsx` / `MonthGrid.tsx` inchangés.
+- **#27** `admin/actions.ts` : guards via `requireAdmin`/`requireCalendarAdmin` partagés (sur la base `requireAuthUser`).
+
+### 🗄️ Base de données
+- Migration `db/migrations/0001_overlap_constraint.sql` : contrainte d'exclusion `EXCLUDE USING gist` sur les séjours `approved` (borne `[)`, pivots légaux). Le no-overlap devient une garantie DB, plus seulement un check advisory côté front.
+
 ### 🐛 Bug fixes
 - **#1** Icon PWA manquant : `/icon-192.png` → `/icon-196.png` dans `app/layout.tsx`
 - **#2** Bug timezone dans `a-propos/page.tsx` : `today.toISOString().slice(0,10)` après `setHours(0,0,0,0)` retournait toujours la veille en hiver Paris
 - **#3** Bug timezone dans `dashboard/page.tsx` : faux entre minuit et 1-2h Paris
+- **#2/#3 (suite)** `demandes/page.tsx` : dernier `new Date(iso)` (UTC) remplacé par `parseLocalDate` via les formatters partagés — séjours qui s'affichaient un jour trop tôt en hiver
 - **#5** `AProposClient` : state stale après `router.refresh()` (useState initial value jamais mis à jour)
 - **#6** WebcamTimer : `beforeunload` ne loggait pas vraiment la session (manquait l'appel `navigator.sendBeacon`). Création de l'API route `/api/webcam-session` qui reçoit le beacon
 - **#7** `daysBetween` dans Stats : `Math.floor` → `Math.round` (off-by-1 aux changements DST mars/oct)
@@ -126,5 +142,6 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
    - ⚡ Améliorations perf : ce qui rend l'app plus rapide / fluide
    - 🎨 UI / UX : changements visuels
    - 🔧 Refactor : invisible pour user, mais bouge le code
+   - 🗄️ Base de données : migrations, contraintes, RLS
    - 🐛 Bug fixes
    - ⚠️ Breaking changes : si jamais on casse un comportement existant
