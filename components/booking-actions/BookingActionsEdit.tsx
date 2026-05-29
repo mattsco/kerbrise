@@ -42,7 +42,10 @@ export default function BookingActionsEdit({
 
     // Validation centralisée (mêmes règles : dates requises, fin ≥ début,
     // max 60j et "min demain" sauf en mode admin).
-    const validation = validateBookingDates(newStart, newEnd, { isAdminMode });
+    const validation = validateBookingDates(newStart, newEnd, {
+      isAdminMode,
+      originalStart: startDate,
+    });
     if (!validation.ok) {
       setError(validation.error);
       return;
