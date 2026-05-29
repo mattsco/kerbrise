@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { todayISO as getTodayISO } from "@/lib/dates";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWADetector from "@/components/PWADetector";
@@ -142,9 +143,13 @@ const supabase = await createClient();
 
         {/* Hero avec photo de la maison */}
         <div className="relative rounded-3xl overflow-hidden shadow-sm">
-          <img
+          <Image
             src="/house.jpg"
             alt="Kerbrise"
+            width={1024}
+            height={683}
+            priority
+            sizes="(max-width: 640px) 100vw, 640px"
             className="w-full h-48 sm:h-56 object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
