@@ -107,18 +107,6 @@ export default function MonthGrid({
           const dateStr = `${monthPrefix}-${String(dayNum).padStart(2, "0")}`;
           const dayEvents = eventsByDate.get(dateStr) ?? [];
 
-          // DEV safety: warn si plus de 2 events overlappent (cas anormal)
-          if (
-            process.env.NODE_ENV === "development" &&
-            dayEvents.length > 2
-          ) {
-            console.warn(
-              "[Calendar] Overlapping events detected:",
-              dateStr,
-              dayEvents
-            );
-          }
-
           const isSelected = isInSelection(dateStr);
           const weekIndex = i % 7;
           const isWeekend = isWeekendIndex(weekIndex);
