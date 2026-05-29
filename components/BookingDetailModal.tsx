@@ -1,48 +1,21 @@
 "use client";
-import { parseLocalDate, dateToISO } from "@/lib/dates";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import ApprovalButtons from "./ApprovalButtons";
 import BookingActions from "./BookingActions";
 import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
+import { getBookingDetail } from "@/lib/data/bookings";
+import type { BookingDetail } from "@/lib/data/types";
+import { STATUS_BADGES, formatLong, formatShort } from "@/lib/ui/booking-display";
 
 type Props = {
   bookingId: string;
   currentUserId: string;
   currentFamilyId: string;
   isFamilyHead: boolean;
-  isCalendarAdmin?: boolean; // ← nouveau
+  isCalendarAdmin?: boolean; 
   onClose: () => void;
 };
-
-type BookingDetail = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  note: string | null;
-  status: "pending" | "approved" | "rejected" | "cancelled";
-  family_id: string;
-  created_by: string;
-  family_name: string;
-  family_color: string;
-  author_name: string;
-  approvals: Array<{
-    id: string;
-    family_id: string;
-    family_name: string;
-    family_color: string;
-    decision: "approved" | "rejected";
-    decided_by_name: string;
-  }>;
-  adjacent: Array<{
-    id: string;
-    start_date: string;
-    end_date: string;
-    family_name: string;
-    family_color: string;
-  }>;
-};
-
 
 export default function BookingDetailModal({
   bookingId,
@@ -56,112 +29,19 @@ export default function BookingDetailModal({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchBooking() {
-      const supabase = createClient();
+    let ignore = false;
+    const supabase = createClient();
 
-      const { data: b } = await supabase
-        .from("bookings")
-        .select(
-          `
-          id, start_date, end_date, note, status, family_id, created_by,
-          families(name, color),
-          users:created_by(display_name)
-        `
-        )
-        .eq("id", bookingId)
-        .single();
-
-      if (!b) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: approvals } = await supabase
-        .from("approvals")
-        .select(
-          `
-          id, family_id, decision,
-          families(name, color),
-          users:decided_by(display_name)
-        `
-        )
-        .eq("booking_id", bookingId);
-
-      const startDate = parseLocalDate(b.start_date);
-      const endDate = parseLocalDate(b.end_date);
-      const before = new Date(startDate);
-      before.setDate(before.getDate() - 7);
-      const after = new Date(endDate);
-      after.setDate(after.getDate() + 7);
-
-      const { data: adj } = await supabase
-        .from("bookings")
-        .select("id, start_date, end_date, families(name, color)")
-        .in("status", ["pending", "approved"])
-        .neq("id", bookingId)
-        .gte("end_date", dateToISO(before))
-        .lte("start_date", dateToISO(after))   
-        .order("start_date");
-
-      const adjacent = (adj ?? [])
-        .map((a: any) => ({
-          id: a.id,
-          start_date: a.start_date,
-          end_date: a.end_date,
-          family_name: a.families?.name ?? "?",
-          family_color: a.families?.color ?? "#888",
-        }))
-        .filter((a) => {
-          const aStart = parseLocalDate(a.start_date);
-          const aEnd = parseLocalDate(a.end_date);
-          return aEnd <= startDate || aStart >= endDate;
-        });
-
-      setBooking({
-        id: b.id,
-        start_date: b.start_date,
-        end_date: b.end_date,
-        note: b.note,
-        status: b.status,
-        family_id: b.family_id,
-        created_by: b.created_by,
-        // @ts-ignore
-        family_name: b.families?.name ?? "?",
-        // @ts-ignore
-        family_color: b.families?.color ?? "#888",
-        // @ts-ignore
-        author_name: b.users?.display_name ?? "?",
-        approvals: (approvals ?? []).map((a: any) => ({
-          id: a.id,
-          family_id: a.family_id,
-          family_name: a.families?.name ?? "?",
-          family_color: a.families?.color ?? "#888",
-          decision: a.decision,
-          decided_by_name: a.users?.display_name ?? "?",
-        })),
-        adjacent,
-      });
+    getBookingDetail(supabase, bookingId).then((detail) => {
+      if (ignore) return;
+      setBooking(detail);
       setLoading(false);
-    }
+    });
 
-    fetchBooking();
+    return () => {
+      ignore = true;
+    };
   }, [bookingId]);
-
-  function formatDate(iso: string) {
-    return parseLocalDate(iso).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  }
-
-  function formatShort(iso: string) {
-    return parseLocalDate(iso).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-    });
-  }
 
   if (loading) {
     return (
@@ -198,26 +78,12 @@ export default function BookingDetailModal({
   const canEditOrCancelNormal =
     isAuthor && (booking.status === "pending" || booking.status === "approved");
 
-  // Actions admin si calendar admin + booking non cancelled/rejected
-  const canEditOrCancelAdmin =
-    isCalendarAdmin &&
-    !isAuthor && // si auteur, on garde le mode normal
-    (booking.status === "pending" || booking.status === "approved");
-
-
   // Sections affichées uniquement pour les statuts non-finaux
   const showValidations = booking.status === "pending";
   const showAdjacent =
     booking.status === "pending" && booking.adjacent.length > 0;
 
-  const statusBadge =
-    booking.status === "pending"
-      ? { text: "⏳ En attente", color: "bg-amber-100 text-amber-800" }
-      : booking.status === "approved"
-      ? { text: "✅ Approuvée", color: "bg-emerald-100 text-emerald-800" }
-      : booking.status === "rejected"
-      ? { text: "❌ Refusée", color: "bg-red-100 text-red-800" }
-      : { text: "🚫 Annulée", color: "bg-slate-100 text-slate-700" };
+  const statusBadge = STATUS_BADGES[booking.status];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
@@ -231,7 +97,7 @@ export default function BookingDetailModal({
               {booking.family_name}
             </span>
             <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ml-1 ${statusBadge.color}`}>
-              {statusBadge.text}
+              {statusBadge.label}
             </span>
           </div>
           <button
@@ -246,10 +112,10 @@ export default function BookingDetailModal({
         <div className="p-5 space-y-4">
           <div>
             <p className="font-medium text-slate-900">
-              Du {formatDate(booking.start_date)}
+              Du {formatLong(booking.start_date)}
             </p>
             <p className="font-medium text-slate-900">
-              au {formatDate(booking.end_date)}
+              au {formatLong(booking.end_date)}
             </p>
           </div>
 
@@ -269,8 +135,7 @@ export default function BookingDetailModal({
                 Validations
               </p>
               <div className="space-y-1.5 text-sm">
-
-{FAMILY_NAMES.map((famName) => {
+                {FAMILY_NAMES.map((famName) => {
                   const isAuthorFam = booking.family_name === famName;
                   const approval = booking.approvals.find(
                     (a) => a.family_name === famName
@@ -327,9 +192,7 @@ export default function BookingDetailModal({
             />
           )}
 
-          {/* Actions auteur (mode normal) ou actions admin (mode admin) */}
-          
-{/* Si admin → toujours mode admin (priorité sur le mode auteur) */}
+          {/* Si admin → toujours mode admin (priorité sur le mode auteur) */}
           {isCalendarAdmin && booking.status !== "cancelled" && (
             <BookingActions
               bookingId={booking.id}
@@ -356,4 +219,3 @@ export default function BookingDetailModal({
     </div>
   );
 }
-
