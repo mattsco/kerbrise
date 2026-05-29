@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { adminDeleteBooking } from "@/app/dashboard/admin/actions";
+import { useBookingMutation } from "./useBookingMutation";
 
 type Props = {
   bookingId: string;
@@ -15,23 +14,15 @@ export default function BookingActionsDelete({
   onComplete,
   onBack,
 }: Props) {
-  const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const { submitting, error, run } = useBookingMutation();
 
   async function handleDelete() {
-    setSubmitting(true);
-    setError("");
-
-    const result = await adminDeleteBooking(bookingId);
-    if (!result.success) {
-      setError("Erreur : " + (result.error ?? "inconnue"));
-      setSubmitting(false);
-      return;
-    }
-
-    router.refresh();
-    onComplete();
+    await run(async () => {
+      const result = await adminDeleteBooking(bookingId);
+      return result.success
+        ? { ok: true }
+        : { ok: false, error: result.error ?? "inconnue" };
+    }, onComplete);
   }
 
   return (
