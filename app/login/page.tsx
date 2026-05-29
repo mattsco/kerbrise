@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,10 +37,13 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen relative flex items-center justify-center p-4">
       {/* Photo sunset en fond */}
-      <img
+      <Image
         src="/sunset.jpg"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/90" />
 
@@ -109,7 +113,7 @@ export default function LoginPage() {
           href="/"
           className="mt-5 text-xs text-white/70 hover:text-white text-center block transition"
         >
-          ← Retour à l'accueil
+          ← Retour à l&apos;accueil
         </Link>
       </div>
     </main>
