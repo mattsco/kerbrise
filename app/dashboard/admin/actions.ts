@@ -227,6 +227,41 @@ export async function adminUpdateBooking(
   }
 }
 
+// Annulation admin (soft cancel, sans email) — symétrique de update/delete
+export async function adminCancelBooking(bookingId: string, comment: string) {
+  try {
+    await requireCalendarAdmin();
+    const supabase = await createClient();
+
+    if (!bookingId) {
+      return { success: false, error: "Paramètres manquants" };
+    }
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        status: "cancelled",
+        last_action_type: "cancelled",
+        last_action_comment: comment.trim() || null,
+        is_admin_created: true, // bypass triggers/emails
+      })
+      .eq("id", bookingId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/calendrier");
+    revalidatePath("/dashboard/demandes");
+
+    return { success: true };
+  } catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    return { success: false, error: e?.message ?? "Erreur inconnue" };
+  }
+}
+
 // Suppression admin (hard delete)
 export async function adminDeleteBooking(bookingId: string) {
   try {
