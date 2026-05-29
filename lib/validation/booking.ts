@@ -21,6 +21,13 @@ type Options = {
    * in BookingActionsEdit.
    */
   isAdminMode?: boolean;
+  /**
+   * The booking's current start date, when editing an existing booking.
+   * If provided and the start hasn't changed, the "must start tomorrow" rule
+   * is skipped — otherwise raccourcir un séjour déjà commencé (on ne touche
+   * que la date de fin) serait bloqué à tort. On création, laisser undefined.
+   */
+  originalStart?: string;
 };
 
 /**
@@ -31,7 +38,7 @@ type Options = {
 export function validateBookingDates(
   start: string,
   end: string,
-  { isAdminMode = false }: Options = {}
+  { isAdminMode = false, originalStart }: Options = {}
 ): BookingDateValidation {
   if (!start || !end) {
     return { ok: false, error: "Les deux dates sont requises." };
@@ -52,7 +59,12 @@ export function validateBookingDates(
     };
   }
 
-  if (!isAdminMode) {
+  // "Début ≥ demain" empêche de poser/déplacer un séjour dans le passé.
+  // Mais si on édite un séjour existant SANS toucher à la date de début
+  // (ex. raccourcir un séjour déjà commencé), il ne faut pas bloquer.
+  const startUnchanged = originalStart !== undefined && start === originalStart;
+
+  if (!isAdminMode && !startUnchanged) {
     const tomorrow = new Date();
     tomorrow.setHours(0, 0, 0, 0);
     tomorrow.setDate(tomorrow.getDate() + 1);
