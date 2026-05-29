@@ -4,16 +4,10 @@ import { memo } from "react";
 
 import type { Placeholder } from "@/lib/summer-placeholders";
 
-export type CalendarEvent = {
-  id: string;
-  bookingId: string;
-  start_date: string;
-  end_date: string;
-  family_id: string;
-  family_name: string;
-  color: string;
-  status: "pending" | "approved";
-};
+// Le type vit désormais dans la data layer (source unique).
+// On le ré-exporte sous l'ancien nom pour ne pas toucher Calendar.tsx / MonthGrid.tsx.
+import type { CalendarBooking } from "@/lib/data/types";
+export type CalendarEvent = CalendarBooking;
 
 type Props = {
   dayNum: number;
