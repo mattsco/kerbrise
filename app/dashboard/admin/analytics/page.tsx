@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
+import { LAUNCH_DATE } from "@/lib/config";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import BackButton from "@/components/BackButton";
 import {
@@ -17,8 +18,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-// Date de lancement officiel — toute donnée < cette date est considérée comme historique
-const LAUNCH_DATE = "2026-05-22";
 
 export default async function AdminAnalyticsPage() {
   const user = await requireAuthUser();
