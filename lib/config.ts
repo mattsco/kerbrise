@@ -28,6 +28,19 @@ export const APP_VERSION: string = pkg.version;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 // ---------------------------------------------------------------------------
+// Dates clés
+// ---------------------------------------------------------------------------
+
+/**
+ * Date de mise en ligne de Kerbrise (YYYY-MM-DD).
+ *
+ * Sert de césure entre les séjours historiques importés par l'admin
+ * (is_admin_created) et les vraies demandes des membres : les compteurs de
+ * séjours filtrent sur `created_at > LAUNCH_DATE`.
+ */
+export const LAUNCH_DATE = "2026-05-22";
+
+// ---------------------------------------------------------------------------
 // Flags de comportement
 // ---------------------------------------------------------------------------
 
