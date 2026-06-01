@@ -90,18 +90,21 @@ export function getPeriodDates(
   return { start, end };
 }
 
+
 /**
- * Détermine quelle "année d'été" est pertinente pour le user.
- * Si on est avant le 31 août, on parle de l'été de l'année courante.
- * Sinon, on parle de l'été de l'année suivante.
+ * Détermine quelle "année d'été" est pertinente pour l'utilisateur.
+ * Bascule au 1er octobre : avant le 1er oct on parle de l'été de l'année
+ * courante ; à partir du 1er oct on prépare l'été de l'année suivante
+ * (les choix se font dès janvier).
  */
 export function getRelevantSummerYear(today: Date = new Date()): number {
   const currentYear = today.getFullYear();
-  const endOfSummer = new Date(currentYear, 7, 31); // 31 août = mois 7 en JS
-  endOfSummer.setHours(23, 59, 59, 999);
-
-  return today > endOfSummer ? currentYear + 1 : currentYear;
+  const switchover = new Date(currentYear, 9, 1); // 1er octobre (mois 9 en JS)
+  switchover.setHours(0, 0, 0, 0);
+  return today >= switchover ? currentYear + 1 : currentYear;
 }
+
+
 
 /**
  * Vérifie si une plage de dates chevauche une des 3 périodes d'été.
