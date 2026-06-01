@@ -1,10 +1,10 @@
 # Spec — Priority card explicative dans le Profil (#22d)
 
-> **Statut** : 📋 Spec validée (exemples fournis par le product owner)
+> **Statut** : ✅ Implémentée — 1er juin 2026
 > **Type** : Feature moyenne, à forte valeur pédagogique
 > **Cible** : Indépendante de #22b, peut être faite à tout moment
 > **Estimation** : ~45 min - 1h
-> **Dernière MAJ** : 28 mai 2026
+> **Dernière MAJ** : 1er juin 2026
 
 ## Objectif
 
@@ -109,12 +109,20 @@ La carte peut être un **server component** (pas d'interactivité) qui :
 - **Pas d'enforcement** de ces règles dans le calendrier (le PO veut garder le calendrier flexible). La carte est purement **informative / pédagogique**.
 - Les règles ponts/juin/septembre ne sont PAS codées comme contraintes ailleurs (cf décision : on ne code pas de contraintes dans le calendrier).
 
-## Points ouverts
+## Points ouverts — tranchés à l'implémentation (1er juin 2026)
 
-- Formulation exacte des textes (les exemples ci-dessus sont une base)
-- Faut-il un lien "voir le règlement complet" sous la carte ?
-- Gérer le cas où la famille n'a pas encore de période été choisie ET on est en priorité 3 (double attente)
-- Afficher aussi un mini-récap visuel (qui a quelle période cette année) ou juste du texte ?
+- ~~Formulation exacte des textes~~ → **Tutoiement** retenu (cohérence avec le reste de la page Profil, qui dit "tu" ; les exemples ci-dessus étaient au vouvoiement). Textes juin/septembre calés sur le règlement ("2e quinzaine de juin", "1re quinzaine de septembre").
+- ~~Lien "voir le règlement complet"~~ → **Oui**, ajouté en bas de la carte (préserve l'affordance de l'ancien encart "Priorité été" que la carte remplace).
+- ~~Cas "double attente" (priorité 3 sans période choisie)~~ → Le bloc juin/septembre est simplement **masqué** tant qu'aucune période n'est choisie ; le bloc été dit déjà "tu choisis après X et Y", ce qui exprime l'attente. Pas de wording dédié.
+- ~~Mini-récap visuel~~ → **Skippé** (simplicité). Facile à ajouter plus tard si besoin.
+
+## Notes d'implémentation
+
+- **Le composant prend uniquement `familyName`** en prop et calcule l'année pertinente lui-même (il ne la reçoit pas).
+- **Bascule 1er octobre** : implémentée en modifiant le helper partagé `getRelevantSummerYear` (qui basculait au 31 août), pas en codant la date dans la carte → la page règles et le profil suivent automatiquement.
+- **Bloc juin/septembre généralisé** : au lieu d'afficher la seule restriction de l'utilisateur, la carte montre **les deux** familles concernées (détenteur de la Période 1 → 2e quinzaine de juin ; détenteur de la Période 3 → 1re quinzaine de septembre). "Tu" pour sa propre famille, le nom pour l'autre. Chaque ligne apparaît dès que sa période est choisie.
+- **⚠️ Gating sur dates exactes** : une période n'est vue comme "choisie" que si un booking colle **pile** aux dates canoniques (`getPeriodDates`, ex. P3 = 10→31 août), via `getSummerSnapshot`. Un séjour aux dates approchantes (ex. 10→30 août) n'est **pas** détecté, donc la ligne juin/sept ne s'affiche pas. Volontaire et cohérent avec la logique placeholder, mais à connaître : une vraie tolérance "≈ Période X" serait un choix à faire dans `getSummerSnapshot` (donc partout), pas dans la carte.
+- **API réelle** : `getYearPriorities(year)` est indexé **priorité → famille** (≠ pseudo-code ci-dessus). On lit la priorité d'une famille avec `getFamilyPriority(year, famille)`, et le détenteur du pont avec `getYearPriorities(year)[3]`.
 
 ## Lien avec d'autres features
 
