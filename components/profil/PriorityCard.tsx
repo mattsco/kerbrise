@@ -18,7 +18,7 @@ function isKnownFamily(name: string): name is FamilyName {
  *
  * Server component : calcule l'année pertinente (bascule 1er octobre, via
  * getRelevantSummerYear) puis fait UN round-trip DB (getSummerSnapshot) pour
- * savoir si la famille a déjà choisi sa période d'été — nécessaire au bloc
+ * savoir quelles périodes d'été sont déjà choisies — nécessaire au bloc
  * juin/septembre.
  *
  * Tout est indexé sur une seule année Y (l'été pertinent). Le pont concerné
@@ -60,27 +60,36 @@ export default async function PriorityCard({
       ? `Tu as la priorité pour choisir le pont de mai ${year} (en compensation de ta priorité 3 pour l'été).`
       : `${pontFamily} a la priorité pour choisir le pont de mai ${year} (compensation de sa priorité 3 pour l'été).`;
 
-  // --- Bloc juin/septembre (seulement si la période été est déjà choisie)
+  // --- Bloc juin/septembre ---------------------------------------------
+  // Restrictions des familles qui occupent P1 et P3 (la P2 n'a aucune
+  // contrainte). Chaque ligne n'apparaît que si la période correspondante
+  // est déjà choisie. Avant que les choix d'été ne soient saisis (ex. années
+  // sans réservation de période), aucune ligne ne s'affiche.
   const snapshot = await getSummerSnapshot(year);
 
-  let myPeriodId: 1 | 2 | 3 | null = null;
-  for (const id of [1, 2, 3] as const) {
-    const status = snapshot.periods[id];
-    if (status.state === "taken" && status.familyName === familyName) {
-      myPeriodId = id;
-      break;
-    }
+  const juinSeptLines: { key: string; text: string }[] = [];
+
+  const p1 = snapshot.periods[1];
+  if (p1.state === "taken") {
+    juinSeptLines.push({
+      key: "p1",
+      text:
+        p1.familyName === familyName
+          ? "Tu occupes la Période 1 (début juillet) : tu n'as donc pas la priorité sur la 2e quinzaine de juin."
+          : `${p1.familyName} occupe la Période 1 (début juillet) : pas de priorité sur la 2e quinzaine de juin.`,
+    });
   }
 
-  let juinSeptSentence: string | null = null;
-  if (myPeriodId === 1) {
-    juinSeptSentence =
-      "Tu occupes la Période 1 (début juillet) : tu n'as donc pas la priorité sur la 2e quinzaine de juin.";
-  } else if (myPeriodId === 3) {
-    juinSeptSentence =
-      "Tu occupes la Période 3 (fin août) : tu n'as donc pas la priorité sur la 1re quinzaine de septembre.";
+  const p3 = snapshot.periods[3];
+  if (p3.state === "taken") {
+    juinSeptLines.push({
+      key: "p3",
+      text:
+        p3.familyName === familyName
+          ? "Tu occupes la Période 3 (fin août) : tu n'as donc pas la priorité sur la 1re quinzaine de septembre."
+          : `${p3.familyName} occupe la Période 3 (fin août) : pas de priorité sur la 1re quinzaine de septembre.`,
+    });
   }
-  // Période 2, ou pas encore choisie → rien de spécial sur juin/septembre.
 
   return (
     <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
@@ -106,12 +115,12 @@ export default async function PriorityCard({
         🌸 {pontSentence}
       </p>
 
-      {/* Bloc juin/septembre (conditionnel) */}
-      {juinSeptSentence && (
-        <p className="text-sm text-slate-700 leading-relaxed">
-          🌷 {juinSeptSentence}
+      {/* Bloc juin/septembre (conditionnel, une ligne par période choisie) */}
+      {juinSeptLines.map(({ key, text }) => (
+        <p key={key} className="text-sm text-slate-700 leading-relaxed">
+          🌷 {text}
         </p>
-      )}
+      ))}
 
       <Link
         href="/dashboard/a-propos/regles"
