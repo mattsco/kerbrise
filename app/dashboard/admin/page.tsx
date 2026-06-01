@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import AdminBookingForm from "@/components/AdminBookingForm";
 import Link from "next/link";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { LAUNCH_DATE } from "@/lib/config";
 import {
   Database,
   Mail,
@@ -26,12 +27,12 @@ import {
   Activity,
 } from "lucide-react";
 
+
 type SearchParams = Promise<{
   status?: string;
   message?: string;
 }>;
 
-const LAUNCH_DATE = "2026-05-22";
 
 export default async function AdminPage({
   searchParams,
