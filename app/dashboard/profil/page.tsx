@@ -4,6 +4,8 @@ import BackButton from "@/components/BackButton";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { requireAuthUser } from "@/lib/supabase/auth";
 
+import { LAUNCH_DATE } from "@/lib/config";
+
 import {
   KeyRound,
   AlertTriangle,
@@ -16,8 +18,6 @@ import Link from "next/link";
 import PriorityCard from "@/components/profil/PriorityCard";
 
 export const dynamic = "force-dynamic";
-
-const LAUNCH_DATE = "2026-05-22";
 
 export default async function ProfilPage() {
   const user = await requireAuthUser();
@@ -145,6 +145,10 @@ export default async function ProfilPage() {
           </div>
         </section>
 
+     {/* Section : Priorité de l'année (carte explicative) */}
+        <PriorityCard familyName={familyName} />
+
+
         {/* Section : Stats */}
         <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-400 font-medium">
@@ -168,9 +172,7 @@ export default async function ProfilPage() {
           </div>
         </section>
 
-        {/* Section : Priorité de l'année (carte explicative) */}
-        <PriorityCard familyName={familyName} />
-
+        
         {/* Section : Mot de passe */}
         <section id="password" className="scroll-mt-4">
           <ChangePasswordForm />
