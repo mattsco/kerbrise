@@ -16,3 +16,19 @@ export function dayIndex(d: Date) {
 export function isWeekendIndex(i: number) {
   return i === 5 || i === 6;
 }
+
+// Source unique des noms de mois (vue mobile MonthGrid + vue desktop #31)
+export const FRENCH_MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+] as const;

@@ -1,8 +1,8 @@
 # Spec — CalendarDesktopView (#31)
 
-> **Statut** : 📋 Spec validée, pas encore implémentée
-> **Cible** : Release 1.2.0 ou 1.3.0
-> **Dernière MAJ** : 28 mai 2026
+> **Statut** : ✅ Implémentée
+> **Cible** : Release 1.2.0
+> **Dernière MAJ** : 10 juin 2026 (implémentation)
 
 ## Objectif
 
@@ -94,12 +94,48 @@ components/calendar/
 
 **Total estimé** : ~9h, à répartir sur plusieurs sessions.
 
-## Points ouverts (à trancher à l'implémentation)
+## Points ouverts — tranchés à l'implémentation (10 juin 2026)
 
-- Densité exacte des cells (hauteur en px) selon largeur d'écran cible
-- Comportement des séjours qui chevauchent 2 mois (barre continue ou coupée à la colonne)
-- Gestion des jours 29-31 sur février / mois courts (grisé vs masqué)
-- Faut-il afficher les week-ends / jours fériés différemment comme sur mobile ?
+- **Densité des cells** : 22px/ligne (≈735px de haut avec l'en-tête mois).
+  La grille porte `min-w-[1100px]` ; en dessous (iPad portrait à 768px
+  inclus), scroll horizontal via le conteneur `overflow-x-auto`.
+- **Séjours à cheval sur 2 mois** : barre **coupée à la colonne**,
+  étiquette non répétée sur le second mois — comportement exact du
+  tableur Excel historique. Le tooltip et le clic donnent l'identité.
+- **Jours 29-31 inexistants** : cellule **grisée vide** (`bg-slate-50/80`),
+  pas masquée — l'alignement vertical type tableur est préservé.
+- **Week-ends / fériés** : **oui** (preuve : le tableur de Vincent les
+  marque). Samedi `slate-100`, dimanche `slate-200/70`, férié = numéro
+  rouge + nom court affiché si le jour est libre. Chaque cellule porte
+  aussi la lettre du jour (L M M J V S D) comme l'Excel.
+
+## Décisions d'implémentation hors spec
+
+- **Placeholders été ajoutés à la vue desktop** : absents de la spec,
+  mais les omettre aurait été une régression vs mobile (un chef de
+  famille sur PC n'aurait pas pu réserver P1/P2/P3). Même rendu dashed
+  + clic → `SummerPlaceholderModal`.
+- **Aucune nouvelle query** : la spec supposait "fetch toute l'année" ;
+  en réalité `getCalendarBookings()` est déjà non borné. La navigation
+  d'année est un pur filtre d'affichage. (Si le volume grossit dans
+  quelques années, borner la query sera un chantier commun aux 2 vues.)
+- **`Calendar.tsx` reste dans `components/`** (pas déplacé dans
+  `calendar/` comme le schéma de la spec) : il devient le cerveau
+  partagé (sélection, modals, maps dérivées) + dispatch CSS
+  `md:hidden` / `hidden md:block`. La vue mobile est extraite telle
+  quelle dans `calendar/CalendarMobileView.tsx`.
+- **Bannière contextuelle** : réutilise la *fonction*
+  `computeBannerContext` (données approuvées uniquement), pas le
+  composant dashboard (pas de `displayName` ici). Cas C rendu `null` :
+  le block "Mes prochains séjours" couvre déjà ce cas. Cas D : bouton
+  qui ouvre le `NewBookingModal` (pas un lien).
+- **Échap** annule la sélection en cours (desktop uniquement).
+- **`+ Nouvelle demande`** ouvre le `NewBookingModal` sans dates
+  préremplies (champs vides acceptés par `NewBookingForm`).
+- **Filtre famille** : toggle simple, les autres familles passent à
+  opacité 0.12 (elles restent cliquables pour les détails).
+- **`FRENCH_MONTHS`** déplacé dans `calendar/calendar-utils.ts`
+  (source unique mobile + desktop).
 
 ## Liens
 

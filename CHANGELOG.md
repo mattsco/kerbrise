@@ -7,6 +7,7 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 
 ## [Unreleased] — en cours pour la 1.2.0
 ### ✨ Ajouts
+- **#31** CalendarDesktopView : sur écran ≥768px le calendrier devient une vue **année entière façon tableur** (12 colonnes mois × 31 jours, week-ends grisés, fériés nommés, étiquette `Famille (Nj)` au premier jour du séjour — les repères du planning Excel historique), avec sidepanel : légende-filtre familles, navigation année, bouton nouvelle demande, bannière contextuelle, mes prochains séjours. Placeholders été inclus. La vue mobile 3 mois est inchangée. Spec `docs/specs/calendar-desktop-view.md` (✅).
 - **#22d** Priority card explicative dans le Profil — carte qui personnalise la règle de priorité de l'année (été, pont de mai, restrictions juin/septembre) selon la famille et les périodes déjà choisies. Spec `docs/specs/priority-card-profil.md`.
 
 ### 🔧 Technique / config
@@ -14,7 +15,6 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 - `getRelevantSummerYear` bascule désormais au **1er octobre** (au lieu du 31 août) : en septembre, l'année d'été affichée (profil, règles, carte) passe à l'année suivante.
 
 ### À faire — features visibles
-- **#31** CalendarDesktopView : vue année façon tableur sur desktop (spec `docs/specs/calendar-desktop-view.md`)
 - **#26** Mode "vacances" sur la home avec météo Saint-Malo, température mer, marées — *l'app devient app de vacances quand on est sur place*
 - **#22b** Notifications email pour les choix de période d'été — *bloqué tant que #28 pas fait, prévu pour janvier 2027 (prochain cycle)*
 

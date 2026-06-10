@@ -6,22 +6,12 @@ import CalendarDayCell, {
   type CalendarEvent,
 } from "./CalendarDayCell";
 
-import { dateToISO, dayIndex, isWeekendIndex } from "./calendar-utils";
-
-const FRENCH_MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
+import {
+  dateToISO,
+  dayIndex,
+  isWeekendIndex,
+  FRENCH_MONTHS,
+} from "./calendar-utils";
 
 const FRENCH_DAYS_SHORT = [
   "Lun",
