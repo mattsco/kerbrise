@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import { requireAuthUser } from "@/lib/supabase/auth";
-import { dateToISO, daysInRangeInclusive } from "@/lib/dates";
+import {
+  dateToISO,
+  daysInRangeInclusive,
+  daysInRangeClipped,
+} from "@/lib/dates";
 import { FAMILY_NAMES, FAMILY_COLORS } from "@/lib/families";
 import {
   Home,
@@ -29,22 +33,6 @@ const FRENCH_MONTHS_SHORT = [
 ];
 
 const MIN_YEAR = 2015;
-
-function daysInRange(
-  startISO: string,
-  endISO: string,
-  rangeStartISO: string,
-  rangeEndISO: string
-): number {
-  const overlapStart =
-    startISO > rangeStartISO ? startISO : rangeStartISO;
-  const overlapEnd =
-    endISO < rangeEndISO ? endISO : rangeEndISO;
-
-  if (overlapStart > overlapEnd) return 0;
-
-  return daysInRangeInclusive(overlapStart, overlapEnd);
-}
 
 type BookingRow = {
   id: string;
@@ -124,7 +112,7 @@ export default async function StatsPage({
       start_date: b.start_date,
       end_date: b.end_date,
       family_name: b.families?.name ?? "?",
-      days_in_year: daysInRange(
+      days_in_year: daysInRangeClipped(
         effectiveStart,
         effectiveEnd,
         startOfYear,
@@ -175,7 +163,7 @@ export default async function StatsPage({
   const springDaysReserved = allBookings.reduce((sum, b) => {
     return (
       sum +
-      daysInRange(b.start_date, b.end_date, springStart, springEnd)
+      daysInRangeClipped(b.start_date, b.end_date, springStart, springEnd)
     );
   }, 0);
 
@@ -195,7 +183,7 @@ export default async function StatsPage({
     const monthEnd = dateToISO(new Date(year, m + 1, 0));
 
     for (const b of allBookings) {
-      const days = daysInRange(
+      const days = daysInRangeClipped(
         b.start_date,
         b.end_date,
         monthStart,

@@ -49,6 +49,26 @@ export function daysInRangeInclusive(start: string, end: string): number {
 }
 
 /**
+ * Nombre de jours (inclusifs) d'un séjour qui tombent dans une fenêtre.
+ * Sert à clipper un séjour à cheval sur deux années à l'année affichée.
+ * Ex: séjour 28 déc → 3 janv, fenêtre 2026 = 3 jours côté 2026.
+ * Source unique : page Stats + stats d'occupation du calendrier desktop (#31).
+ */
+export function daysInRangeClipped(
+  startISO: string,
+  endISO: string,
+  rangeStartISO: string,
+  rangeEndISO: string
+): number {
+  const overlapStart = startISO > rangeStartISO ? startISO : rangeStartISO;
+  const overlapEnd = endISO < rangeEndISO ? endISO : rangeEndISO;
+
+  if (overlapStart > overlapEnd) return 0;
+
+  return daysInRangeInclusive(overlapStart, overlapEnd);
+}
+
+/**
  * Renvoie true si le séjour est actif, à venir, ou terminé depuis moins de N jours.
  * Par défaut : 2 jours après end_date.
  */

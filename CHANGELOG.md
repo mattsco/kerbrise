@@ -7,10 +7,11 @@ Versionning [SemVer](https://semver.org/) : MAJEUR.MINEUR.PATCH.
 
 ## [Unreleased] — en cours pour la 1.2.0
 ### ✨ Ajouts
-- **#31** CalendarDesktopView : sur écran ≥768px le calendrier devient une vue **année entière façon tableur** (12 colonnes mois × 31 jours, week-ends grisés, fériés nommés, étiquette `Famille (Nj)` au premier jour du séjour — les repères du planning Excel historique), avec sidepanel : légende-filtre familles, navigation année, bouton nouvelle demande, bannière contextuelle, mes prochains séjours. Placeholders été inclus. La vue mobile 3 mois est inchangée. Spec `docs/specs/calendar-desktop-view.md` (✅).
+- **#31** CalendarDesktopView : sur écran ≥768px le calendrier devient une vue **année entière façon tableur** (12 colonnes mois × 31 jours, week-ends grisés, fériés nommés, étiquette `Famille (Nj)` au premier jour du séjour — les repères du planning Excel historique), avec sidepanel : légende-filtre familles, navigation année, bouton nouvelle demande, bannière contextuelle, mes prochains séjours. Placeholders été inclus. Sous la grille, **stats d'occupation** de l'année affichée (jours + part par famille, total en % de l'année), comme le bas du planning Excel. La vue mobile 3 mois est inchangée. Spec `docs/specs/calendar-desktop-view.md` (✅).
 - **#22d** Priority card explicative dans le Profil — carte qui personnalise la règle de priorité de l'année (été, pont de mai, restrictions juin/septembre) selon la famille et les périodes déjà choisies. Spec `docs/specs/priority-card-profil.md`.
 
 ### 🔧 Technique / config
+- `daysInRangeClipped` extraite de `stats/page.tsx` vers `lib/dates.ts` (clipping d'un séjour à une fenêtre) — partagée par la page Stats et les stats d'occupation du calendrier desktop.
 - `LAUNCH_DATE` centralisée dans `lib/config.ts` (était dupliquée en dur dans profil + admin + admin/analytics).
 - `getRelevantSummerYear` bascule désormais au **1er octobre** (au lieu du 31 août) : en septembre, l'année d'été affichée (profil, règles, carte) passe à l'année suivante.
 

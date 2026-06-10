@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import YearGrid from "./YearGrid";
+import YearOccupancyStats from "./YearOccupancyStats";
 import Sidepanel from "./Sidepanel";
 
 import { getHolidaysForYear } from "@/lib/holidays";
@@ -178,6 +179,8 @@ export default function CalendarDesktopView({
             onDayHover={onDayHover}
           />
         </div>
+
+        <YearOccupancyStats events={events} year={year} />
       </div>
     </div>
   );

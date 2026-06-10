@@ -137,6 +137,26 @@ components/calendar/
 - **`FRENCH_MONTHS`** déplacé dans `calendar/calendar-utils.ts`
   (source unique mobile + desktop).
 
+## Ajout post-v1 : stats d'occupation (10 juin 2026)
+
+Le planning Excel affichait sous le calendrier un bloc « Nombre de
+journées / Taux d'occupation » par famille. Reproduit dans
+`desktop/YearOccupancyStats.tsx`, rendu sous la grille :
+
+- **Conventions = page Stats** (cohérence inter-pages) : séjours
+  approuvés uniquement, comptage inclusif, clippé à l'année affichée
+  (séjours à cheval sur 2 années). Un jour pivot compte pour les
+  2 familles — biais identique à `/stats`, assumé.
+- **% par famille** = part du total occupé (convention Excel,
+  ex. 45/143 = 31 %). **Ligne Total** = % de l'année
+  (« 143 j · 39 % de l'année ») au lieu du « 100 % » du tableur.
+- Réagit à la navigation d'année, **ignore le filtre famille**.
+  Zéro query : calcul client sur les events déjà chargés. Masqué
+  si l'année affichée n'a aucun séjour approuvé.
+- La fonction de clipping locale à `stats/page.tsx` a été extraite
+  vers `lib/dates.ts` (`daysInRangeClipped`) — source unique
+  partagée par les deux pages.
+
 ## Liens
 
 - Composant de création réutilisé : `components/NewBookingForm.tsx` / `NewBookingModal`
