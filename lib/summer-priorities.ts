@@ -6,9 +6,22 @@
  *   2025 : Vincent (1), François (2), Antoine (3)
  *   2026 : François (1), Antoine (2), Vincent (3)
  *   2027 : Antoine (1), ... (cycle)
+ *
+ * DATES DES PÉRIODES — deux modèles selon l'année :
+ *
+ *  • Legacy (≤ 2026) : dates fixes de SUMMER_PERIODS. end_date = dernier jour
+ *    occupé (inclusif), périodes NON jointives (P1 finit le 19, P2 démarre le 20).
+ *
+ *  • Pivot (≥ 2027) : la famille vote le début de P1 dans SUMMER_PERIOD_1_START
+ *    (lib/config.ts). Chaque période dure 21 jours. end_date(Pn) = start_date(Pn+1)
+ *    = JOUR PIVOT (départ d'une famille = arrivée de la suivante, semi-ouvert [)).
+ *    Le pivot tombe donc toujours le même jour de semaine que le début de P1,
+ *    et les trois familles ont exactement 21 jours chacune.
  */
 
 import { FAMILIES, type FamilyName } from "./families";
+import { SUMMER_PERIOD_1_START } from "./config";
+import { addDays, parseLocalDate } from "./dates";
 
 export type { FamilyName };
 
@@ -20,6 +33,7 @@ export const SUMMER_PERIODS = [
     endMonth: 7,
     endDay: 19,
     label: "Période 1",
+    // ⚠️ description = legacy ≤2026 uniquement. Faux pour ≥2027 → getPeriodRangeLabel().
     description: "29 juin → 19 juillet",
   },
   {
@@ -43,6 +57,26 @@ export const SUMMER_PERIODS = [
 ] as const;
 
 export type SummerPeriod = (typeof SUMMER_PERIODS)[number];
+
+/** Durée d'une période dans le modèle pivot (3 semaines pleines). */
+const PERIOD_DURATION_DAYS = 21;
+
+/**
+ * Première année gérée par le modèle pivot = plus petite clé votée.
+ * En dessous : legacy (dates fixes). Table vide → tout reste legacy.
+ */
+const FIRST_PIVOT_YEAR = Object.keys(SUMMER_PERIOD_1_START).length
+  ? Math.min(...Object.keys(SUMMER_PERIOD_1_START).map(Number))
+  : Infinity;
+
+/**
+ * true si l'année est calculable : legacy (< FIRST_PIVOT_YEAR) ou date votée
+ * présente. L'UI DOIT tester ceci avant d'afficher les périodes d'une année :
+ * si false → on n'affiche rien (pas de date votée, on n'invente pas de période).
+ */
+export function isSummerYearConfigured(year: number): boolean {
+  return year < FIRST_PIVOT_YEAR || year in SUMMER_PERIOD_1_START;
+}
 
 /**
  * Retourne les familles classées par priorité pour une année donnée.
@@ -76,11 +110,36 @@ export function getFamilyPriority(
 
 /**
  * Convertit une période + année en dates ISO (YYYY-MM-DD).
+ *
+ * ≥2027 (pivot)  : start = date votée + 21·(id-1) ; end = start + 21.
+ *                  → end = JOUR PIVOT = début de la période suivante (semi-ouvert).
+ * ≤2026 (legacy) : dates fixes de SUMMER_PERIODS (end inclusif).
+ *
+ * Lève si année ≥ FIRST_PIVOT_YEAR sans date votée : on refuse d'inventer une
+ * date. Les appelants qui balaient des années arbitraires DOIVENT filtrer via
+ * isSummerYearConfigured() au préalable.
  */
 export function getPeriodDates(
   year: number,
   period: SummerPeriod
 ): { start: string; end: string } {
+  const votedStart = SUMMER_PERIOD_1_START[year];
+
+  if (votedStart) {
+    const startOffset = (period.id - 1) * PERIOD_DURATION_DAYS;
+    return {
+      start: addDays(votedStart, startOffset),
+      end: addDays(votedStart, startOffset + PERIOD_DURATION_DAYS),
+    };
+  }
+
+  if (year >= FIRST_PIVOT_YEAR) {
+    throw new Error(
+      `Été ${year} : date de début de Période 1 absente de SUMMER_PERIOD_1_START (lib/config.ts).`
+    );
+  }
+
+  // Legacy ≤2026 : dates fixes
   const start = `${year}-${String(period.startMonth).padStart(2, "0")}-${String(
     period.startDay
   ).padStart(2, "0")}`;
@@ -90,12 +149,28 @@ export function getPeriodDates(
   return { start, end };
 }
 
+/**
+ * Libellé lisible d'une période, calculé depuis ses VRAIES dates.
+ * À utiliser à la place du champ statique `description` (faux pour ≥2027).
+ * Ex : "28 juin → 19 juillet".
+ */
+export function getPeriodRangeLabel(
+  year: number,
+  period: SummerPeriod
+): string {
+  const { start, end } = getPeriodDates(year, period);
+  const fmt = (iso: string) =>
+    parseLocalDate(iso).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+    });
+  return `${fmt(start)} → ${fmt(end)}`;
+}
 
 /**
  * Détermine quelle "année d'été" est pertinente pour l'utilisateur.
- * Bascule au 1er octobre : avant le 1er oct on parle de l'été de l'année
- * courante ; à partir du 1er oct on prépare l'été de l'année suivante
- * (les choix se font dès janvier).
+ * Bascule au 1er octobre : avant on parle de l'été courant ; à partir du 1er oct
+ * on prépare l'été suivant (les choix se font dès janvier).
  */
 export function getRelevantSummerYear(today: Date = new Date()): number {
   const currentYear = today.getFullYear();
@@ -104,16 +179,18 @@ export function getRelevantSummerYear(today: Date = new Date()): number {
   return today >= switchover ? currentYear + 1 : currentYear;
 }
 
-
-
 /**
  * Vérifie si une plage de dates chevauche une des 3 périodes d'été.
+ * Renvoie null si l'année n'est pas configurée (aucune période → aucun
+ * chevauchement, plutôt que de lever).
  */
 export function overlapsSummerPeriod(
   startISO: string,
   endISO: string
 ): SummerPeriod | null {
   const year = parseInt(startISO.slice(0, 4));
+  if (!isSummerYearConfigured(year)) return null;
+
   for (const period of SUMMER_PERIODS) {
     const dates = getPeriodDates(year, period);
     if (startISO <= dates.end && endISO >= dates.start) {

@@ -13,6 +13,7 @@ import {
   SUMMER_PERIODS,
   getPeriodDates,
   getYearPriorities,
+  isSummerYearConfigured,
   getFamilyPriority,
   type SummerPeriod,
 } from "./summer-priorities";
@@ -47,6 +48,7 @@ export function computePlaceholdersForYear(
   year: number,
   bookings: BookingMinimal[]
 ): Placeholder[] {
+  if (!isSummerYearConfigured(year)) return [];
   return SUMMER_PERIODS.map((period) => {
     const dates = getPeriodDates(year, period);
 

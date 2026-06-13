@@ -8,7 +8,11 @@ import { getBookingDetail } from "@/lib/data/bookings";
 import type { BookingDetail } from "@/lib/data/types";
 import { STATUS_BADGES, formatLong, formatShort } from "@/lib/ui/booking-display";
 import { daysInRangeInclusive } from "@/lib/dates";
-import { googleCalendarUrl, icsContent } from "@/lib/calendar-export";
+import {
+  buildStayCalendarEvent,
+  googleCalendarUrl,
+  icsContent,
+} from "@/lib/calendar-export";
 
 type Props = {
   bookingId: string;
@@ -96,13 +100,12 @@ export default function BookingDetailModal({
   const nbDays = daysInRangeInclusive(booking.start_date, booking.end_date);
 
   // Événement agenda (dates inclusives → fin exclusive gérée dans le helper)
-  const calEvent = {
-    title: `Kerbrise — séjour ${booking.family_name}`,
+  const calEvent = buildStayCalendarEvent({
+    familyName: booking.family_name,
     startDate: booking.start_date,
     endDate: booking.end_date,
-    location: "Saint-Malo",
-    description: `Séjour ${booking.family_name} à Kerbrise (Saint-Malo).\nDemandé par ${booking.author_name}.`,
-  };
+    authorName: booking.author_name,
+  });
   const gcalUrl = googleCalendarUrl(calEvent);
   const downloadIcs = () => {
     const blob = new Blob([icsContent(calEvent)], {

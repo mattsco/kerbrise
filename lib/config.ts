@@ -49,3 +49,22 @@ export const LAUNCH_DATE = "2026-05-22";
  * Si false (défaut), seul le chef de famille (is_family_head) peut.
  */
 export const SUMMER_CHOICE_FREEDOM = false;
+
+
+/**
+ * Date de début de la Période 1 d'été, votée chaque année par la famille.
+ * P2 et P3 en découlent : chaque période = 3 semaines (21j), le dernier jour
+ * d'une période est le jour pivot = premier jour de la suivante. Le pivot tombe
+ * donc toujours le même jour de semaine que le début de P1.
+ *
+ * ⚠️ Modèle "pivot" = 2027+ uniquement. Les années ≤ 2026 gardent l'ancien
+ * modèle à dates fixes (SUMMER_PERIODS) pour ne pas casser les résas existantes.
+ */
+export const SUMMER_PERIOD_1_START: Record<number, string> = {
+  2027: "2027-06-28", // lundi
+  2028: "2028-07-01", // samedi
+  2029: "2029-06-30", // samedi
+};
+
+
+

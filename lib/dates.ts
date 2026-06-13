@@ -83,3 +83,13 @@ export function isStayActiveOrFuture(
   const end = parseLocalDate(endDate);
   return end >= cutoff;
 }
+
+/**
+ * Ajoute (ou retire) un nombre de jours à une date ISO, en heure locale.
+ * DST-safe via parseLocalDate / dateToISO.
+ */
+export function addDays(iso: string, days: number): string {
+  const d = parseLocalDate(iso);
+  d.setDate(d.getDate() + days);
+  return dateToISO(d);
+}
