@@ -16,6 +16,10 @@
 - `LAUNCH_DATE` centralisée dans `lib/config.ts` (était dupliquée en dur dans profil + admin + admin/analytics).
 - `getRelevantSummerYear` bascule désormais au 1er octobre (au lieu du 31 août) : en septembre, l'année d'été affichée (profil, règles, carte) passe à l'année suivante.
 
+### 📐 Specs & architecture (préparation #28)
+- **Audit infra email** livré : `docs/architecture/EMAIL_AUDIT.md`. Réconcilie les 3 versions contradictoires. Faits établis : on est **déjà sur Resend** (depuis le 20 mai) ; les emails partent de **4 Edge Functions Deno** (pas 1) déclenchées par **triggers Postgres** via `net.http_post` (les triggers relaient, ils n'envoient pas) ; le weekly digest vit dans **pg_cron** (dimanche 11h UTC → `send-weekly-digest`) ; les logs Resend révèlent une bascule Node→Edge pendant la semaine de lancement ; l'auth tourne sur le SMTP **défaut Supabase** (custom désactivé).
+- **Spec #28 réécrite** (`docs/specs/email-migration.md`) après l'audit, qui en a invalidé la prémisse. Changements de direction actés : (1) **pas de migration** Server Actions — on **versionne** l'existant (Edge Functions + triggers + cron dans le repo), le déclenchement DB est conservé car il ne rate aucun événement (les 2 chemins d'écriture rendraient les Server Actions risquées) ; (2) les **3 modes test abandonnés** au profit d'une **preview locale** (zéro envoi) ; (3) checkbox admin « envoyer ou non » = pilote `is_admin_created` ; (4) suppression du filtre `last_sign_in_at` (+ des 4 comptes inactifs) ; (5) bug timezone `new Date(iso)` à corriger dans les 4 fonctions.
+
 ---
 
 ## Roadmap
@@ -24,9 +28,9 @@
 
 ### 🗓️ Juin 2026 — avant le départ en vacances
 
-1. **Audit infra email (1h)** — trancher les 3 versions contradictoires (Edge Function + Resend ? trigger Postgres ? où vit le weekly digest ?). Livrable : `docs/architecture/EMAIL_AUDIT.md`. Prérequis absolu au chiffrage de #28. → **Prompt 1** ci-dessous.
+1. ~~**Audit infra email (1h)**~~ ✅ **Fait** (juin 2026) — `docs/architecture/EMAIL_AUDIT.md` livré. Les 3 versions contradictoires sont tranchées (résumé dans `[Unreleased]` ci-dessus). A invalidé la prémisse de #28 → spec réécrite.
 2. **#26-lite Mode vacances lite** — **deadline 22 juin** — carte sur le dashboard quand un séjour est en cours : liens météo / marées / température mer Saint-Malo, zéro appel API. La version complète (#26) viendra cet été. → **Prompt 2**.
-3. **#28 Refonte totale du système emails** — spec versionnée `docs/specs/email-system.md` = le contrat de ce qui génère un email ou non (efficace sans spammer), puis implémentation par batchs. Next.js + Resend, code dans GitHub. Cœur fonctionnel : **inversion de la règle du weekly** — aujourd'hui il ne part que s'il y a des mises à jour, or un rappel sert précisément quand rien ne s'est passé ; nouvelle règle : envoi si (mises à jour) OU (pending >Xj pour les chefs n'ayant pas agi) OU (à partir de janvier : famille qui n'a pas choisi sa période été). 3 modes test dans `lib/config.ts`. #22b câblé maintenant, activé en janvier. **Deadline réelle : 1er novembre** (saison de planification Nov→Fév) — pas de course avant l'été ; si inachevé au départ en vacances, flag de retour au legacy et reprise en septembre, pas d'état hybride non flaggé. → **Prompt 3**.
+3. **#28 Rapatriement & durcissement du système emails** — spec `docs/specs/email-migration.md` (réécrite post-audit). **Prémisse corrigée par l'audit** : on est déjà sur Resend, rien à migrer côté provider. Le chantier n'est pas une refonte mais un **versioning** : rapatrier les 4 Edge Functions + les triggers + le cron pg_cron dans le repo (`supabase/functions/` + `db/migrations/`), **en gardant le déclenchement DB** (il ne rate aucun événement, contrairement à des Server Actions vu nos 2 chemins d'écriture). Au passage : corriger le bug timezone (`new Date(iso)` dans les 4 fonctions), dédupliquer les templates dans un `_shared/`, supprimer le filtre `last_sign_in_at` (+ les 4 comptes inactifs), **preview locale** des emails (remplace les 3 modes test abandonnés), checkbox admin « envoyer ou non » (pilote `is_admin_created`). #22b s'appuiera sur l'infra `_shared/` mise en place ici, mais son **vrai prérequis fonctionnel** est la liste de pendings actionnables du weekly (item sept-oct « récap des décisions en souffrance »), pas #28 seul. **Deadline réelle : 1er novembre** ; si inachevé au départ en vacances, flag de retour au legacy, pas d'état hybride non flaggé. → **Prompt 3**.
 4. **Fix erreur overlap (~1h, à glisser dans une session #28)** — la contrainte EXCLUDE ne porte que sur les séjours `approved` : elle se déclenche à l'**approbation finale** (UPDATE de statut), pas à l'INSERT. Scénario : deux demandes chevauchantes soumises à quelques secondes d'intervalle, toutes deux pending ; la première est approuvée ; le clic Approuver sur la seconde viole la contrainte → échec muet, demande zombie. Catcher l'erreur (code 23P01) dans `ApprovalButtons.tsx` (et **pas** `NewBookingForm` comme noté précédemment) avec message clair + supprimer le `console.warn` devenu redondant dans `CalendarDayCell`.
 
 ### 🏖️ Été 2026 — sur place, rythme vacances
@@ -37,7 +41,8 @@
 
 ### 🍂 Septembre–octobre 2026
 
-- **Versionner le backend** : export complet RLS + triggers + état du schéma dans `db/migrations/` (au-delà de 0001). La vraie logique métier (state machine d'approbation) vit encore hors repo.
+- **Versionner le backend** : export complet RLS + état du schéma dans `db/migrations/` (au-delà de 0001). La vraie logique métier (state machine d'approbation) vit encore hors repo. ⚠️ **Chevauchement #28** : la session 1 de #28 versionne déjà les triggers/fonctions email + le cron. Cet item devient le **reste** — RLS policies, state machine d'approbation, contraintes — soit fait dans la foulée de #28, soit après. Ne pas dupliquer l'export des objets email.
+- **Weekly digest = récap des décisions en souffrance** (prérequis de #22b) — principe unique : *toute décision en attente d'un acteur identifié qui ne l'a pas prise est relancée chaque semaine, tant qu'elle reste en attente.* Aujourd'hui le digest ne part que s'il y a eu des mises à jour (`changed_this_week`) — il rate exactement le cas où un rappel sert : quand rien n'a bougé parce que quelqu'un n'a pas agi. Implémentation au bon niveau d'abstraction : une **liste typée de « pendings actionnables »** `{ acteur, type, since }`, et le weekly itère dessus pour relancer. **Deux producteurs aujourd'hui** : (1) une demande pending non votée → relance les chefs concernés ; (2) à partir de janvier, via #22b : une famille n'a pas choisi sa période été → relance cette famille. Une demande non votée et une période non choisie sont le **même objet** sous deux formes. `[Hypothèse]` Seuil de relance X = 3 jours avant la première (assez pour ne pas harceler, assez court pour qu'une décision ne dorme pas une semaine) — à confirmer. ⚠️ **Ne pas sur-construire** : pas de registry ni de moteur de règles configurable — 2 producteurs derrière une même forme, extensible *quand* un 3ᵉ cas arrive, pas avant. **Dépendances** : à faire **après** le rapatriement #28 (le digest doit déjà vivre dans le repo) ; **bloque l'activation janvier de #22b** (qui est le 2ᵉ producteur — sans cette liste, pas de moteur d'envoi). Changement de logique métier, distinct du versioning #28. → spec à écrire le moment venu.
 - **Export agenda** : dans `BookingDetailModal`, sur un séjour futur approuvé de sa propre famille, bouton "Ajouter à mon agenda" → lien Google Calendar + fichier .ics (~2h). Joker jouable fin juin si une session se libère.
 - **Checkpoint #28 (fin octobre)** : forcer un weekly réel + vérifier les logs Resend avant la saison de planification. Le système aura tourné à vide tout l'été — c'est le vrai test d'allumage.
 - **Instrumentation légère** : latence d'approbation, logs d'envoi — pour décider #29 sur données, pas sur intuition.
@@ -45,7 +50,7 @@
 
 ### ❄️ Janvier 2027
 
-- **#22b ON** : activer les rappels choix été dans le weekly, pour la famille qui doit choisir et n'a pas encore choisi (déjà câblé par #28 — simple bascule).
+- **#22b ON** : activer les rappels choix été dans le weekly, pour la famille qui doit choisir et n'a pas encore choisi. ⚠️ #22b est le **2ᵉ producteur** de la liste de « pendings actionnables » (item sept-oct) — il ne se branche pas sur #28 directement mais sur cette liste. Si elle existe et est testée d'ici là, l'activation janvier = ajouter le producteur « choix été » + bascule du flag. Sinon, pas de moteur d'envoi — à vérifier au checkpoint fin octobre.
 - **Décision #29 Web Push** : GO seulement si, malgré des emails fiables, la latence d'approbation mesurée reste >48h. Sinon on n'en parle plus — valeur concentrée sur 3 chefs, et des emails fiables suffisent peut-être.
 
 ### 🤷 Un jour peut-être
@@ -69,36 +74,6 @@
 ## 🎯 Prompts prêts à l'emploi (prochaines sessions)
 
 > Coller tel quel en début de session. Supprimer le prompt une fois la session faite.
-
-### Prompt 1 — Audit email (1h, avant #28)
-
-```text
-Session 1h max — Audit de l'infra email Kerbrise, prérequis au chantier #28.
-
-Contexte : 3 versions contradictoires (changelog 1.0.0 : "Edge Function + Resend" ;
-review archi : trigger Postgres inféré ; + un weekly digest dont on ignore où il vit).
-On établit les faits avant la refonte.
-
-Je colle ci-dessous les résultats de :
-1. SQL : SELECT trigger_name, event_object_table, action_timing, event_manipulation,
-   action_statement FROM information_schema.triggers WHERE trigger_schema='public';
-2. SQL : SELECT p.proname, pg_get_functiondef(p.oid) FROM pg_proc p
-   JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public';
-3. SQL : SELECT * FROM cron.job;  (si erreur → pg_cron absent, je le note)
-4. Dashboard > Database > Webhooks : liste
-5. Dashboard > Edge Functions : liste + code source de chacune
-6. Resend > Logs : les ~10 derniers envois (objet, destinataires, date)
-7. Auth > SMTP : custom (Resend ?) ou défaut Supabase ?
-
-Ta mission :
-- Carte exacte : quel événement déclenche quel email, via quel mécanisme, vers qui
-  — marqueurs [Certain]/[Probable] selon ce que les données montrent réellement
-- Produire docs/architecture/EMAIL_AUDIT.md (état actuel uniquement)
-- Lister les questions ouvertes + décisions à trancher pour la spec #28
-- Ne PAS écrire la spec cible, ne PAS coder.
-
-[résultats collés ici]
-```
 
 ### Prompt 2 — Mode vacances lite (déployé avant le 22 juin)
 
@@ -127,42 +102,41 @@ Avant de coder :
 Contrainte : zéro impact sur le flow réservation/approbation.
 ```
 
-### Prompt 3 — #28 spec refonte emails
+### Prompt 3 — #28 implémentation (spec déjà écrite)
 
 ```text
-Chantier #28 : refonte totale du système d'emails. Input : docs/architecture/EMAIL_AUDIT.md.
+Chantier #28 : rapatriement & durcissement du système emails.
+Spec : docs/specs/email-migration.md (déjà rédigée, prémisse corrigée par l'audit).
+Audit de référence : docs/architecture/EMAIL_AUDIT.md.
 
-Contexte saisonnier : trafic quasi nul jusqu'en novembre (toutes les résas été sont
-faites ; prochaine vraie activité = planification 2027, Nov→Fév). Conséquences :
-- Deadline réelle : système validé pour le 1er novembre. Pas de course avant l'été.
-- Le cutover se fait en période morte (enjeu faible) MAIS la validation ne peut pas
-  compter sur du trafic réel → prévoir un plan de validation synthétique. Une
-  éventuelle demande hors-saison cet été = validation réelle bonus, à surveiller
-  dans les logs.
+La phase spec est FAITE. On passe à l'implémentation. Direction actée (ne pas la
+rediscuter sans raison nouvelle) : on VERSIONNE l'existant (4 Edge Functions + triggers
++ cron dans le repo), on NE migre PAS vers des Server Actions, le déclenchement DB est
+conservé. Pas de 3 modes test : preview locale à la place.
 
-Phase 1 (cette session) — rédiger docs/specs/email-system.md :
-- Inventaire complet des emails (existants + manquants) : déclencheur, destinataires,
-  contenu, fréquence. Inclure : nouvelle demande, approbation/rejet, weekly digest.
-- Règles d'envoi explicites = le contrat anti-spam, versionné dans GitHub. Point clé :
-  le weekly ne part aujourd'hui que s'il y a des mises à jour ; inverser la règle —
-  envoi si (mises à jour) OU (pending >Xj pour les chefs n'ayant pas agi) OU (à partir
-  de janvier : famille concernée n'a pas choisi sa période été). Propose une valeur X.
-- Architecture cible : Next.js + Resend (routes, cron Vercel pour le weekly),
-  décommissionnement du mécanisme legacy identifié dans l'audit.
-  Emails Auth Supabase (magic links) : hors scope sauf problème vu à l'audit.
-- 3 modes test dans lib/config.ts : strong (tout vers admin), debug-cci (admin en
-  cci), normal.
-- Plan de cutover PAR TYPE d'email + plan de validation en trafic mort : chaque type
-  validé en mode strong/debug-cci avec événements de test ; checkpoint fin octobre
-  (weekly réel forcé + logs Resend) avant la saison de planification.
-- Garde-fou : si le chantier n'est pas terminé avant mon départ en vacances, flag de
-  retour au legacy et reprise en septembre. Pas d'état hybride non flaggé.
-- #22b : spécifier le rappel été maintenant, activation janvier 2027.
+Contexte saisonnier : trafic quasi nul jusqu'en novembre. Deadline réelle : 1er
+novembre. Cutover en période morte → validation synthétique, pas de trafic réel à
+attendre.
 
-Avant d'écrire la spec : présente-moi les décisions structurantes avec ta reco
-([Certain]/[Probable]/[Hypothèse]).
-Phase 2 (sessions suivantes) : implémentation par batchs après mon GO sur la spec.
-À glisser dans une session : fix erreur overlap dans ApprovalButtons.tsx (catch 23P01
+Session à faire (voir §6 de la spec pour le découpage complet) — commence par la
+Session 1 :
+- Rapatrier les 4 Edge Functions dans supabase/functions/ (telles quelles, sous Git).
+- Exporter triggers + fonctions PG + cron dans db/migrations/ (avec search_path fixé
+  sur les 3 call_notify_*).
+- Extraire _shared/dates.ts avec parseLocalDate → corrige le bug timezone (new Date(iso))
+  dans les 4 fonctions.
+- Vérifier : déploiement CI OK, un email de test s'affiche à la bonne date.
+
+Avant de coder : lis le code réel (supabase/functions/, et ce qui te manque), confirme
+l'état, signale toute divergence avec la spec. Présente tes décisions d'implémentation
+avec marqueurs [Certain]/[Probable]/[Hypothèse], attends mon GO, puis remplacements de
+fichiers complets + zip.
+
+⚠️ Contraintes de séquencement (spec §3 décision B) : la suppression du filtre
+last_sign_in_at vient en Session 3, APRÈS suppression des 4 comptes inactifs (sinon
+spam), et après vérif des FK bookings.created_by / approvals sur ces comptes.
+
+À glisser quand pertinent : fix erreur overlap dans ApprovalButtons.tsx (catch 23P01
 + message clair) et suppression du console.warn de CalendarDayCell.
 ```
 
@@ -267,4 +241,4 @@ Première version publique de Kerbrise, déployée sur Vercel pour les 14 membre
 
 1. **Pendant la session** : ajouter les items terminés dans `[Unreleased]` sous les bonnes catégories
 2. **Quand on release une version** (= push notable que la famille voit) : créer une nouvelle section `[1.x.0] — date`, déplacer les items de `[Unreleased]` dedans, dater
-3. **Roadmap** : déplacer les items entre horizons quand le contexte change ; un item fait passe en
+3. **Roadmap** : déplacer les items entre horizons quand le contexte change ; un item fait passe en `[Unreleased]`, un item dont les faits changent (ex. après un audit) est réécrit sur place plutôt que dupliqué.
