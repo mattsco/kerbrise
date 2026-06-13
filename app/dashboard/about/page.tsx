@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import BackButton from "@/components/BackButton";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import FeatureRequestForm from "./FeatureRequestForm";
@@ -43,7 +44,7 @@ export default async function AboutPage() {
             Quoi de neuf
           </h2>
           <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-h1:hidden prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:text-slate-900 prose-p:text-slate-700 prose-li:text-slate-700 prose-li:my-0.5 prose-ul:my-2 prose-strong:text-slate-900">
-            <ReactMarkdown>{changelog}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{changelog}</ReactMarkdown>
           </div>
         </section>
 
