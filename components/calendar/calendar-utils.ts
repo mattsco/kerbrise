@@ -32,3 +32,11 @@ export const FRENCH_MONTHS = [
   "Novembre",
   "Décembre",
 ] as const;
+
+/**
+ * Mode d'affichage de la grille desktop (#31, bloc "Vue" du sidepanel).
+ * "stays"  : occupation par famille (vue historique façon tableur).
+ * "tides"  : heatmap des coefficients de marée (lib/tides.ts).
+ * Pensé pour s'étendre (d'autres vues viendront) sans toucher au reste.
+ */
+export type CalendarView = "stays" | "tides";

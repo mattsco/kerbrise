@@ -4,10 +4,12 @@ import MonthColumn from "./MonthColumn";
 
 import type { Placeholder } from "@/lib/summer-placeholders";
 import type { CalendarEvent } from "../CalendarDayCell";
+import type { CalendarView } from "../calendar-utils";
 
 
 type Props = {
   year: number;
+  view: CalendarView;
   eventsByDate: Map<string, CalendarEvent[]>;
   placeholdersByDate: Map<string, Placeholder>;
   holidaysByDate: Map<string, string>;
@@ -31,6 +33,7 @@ type Props = {
  */
 export default function YearGrid({
   year,
+  view,
   eventsByDate,
   placeholdersByDate,
   holidaysByDate,
@@ -47,6 +50,7 @@ export default function YearGrid({
           key={monthIndex}
           year={year}
           monthIndex={monthIndex}
+          view={view}
           eventsByDate={eventsByDate}
           placeholdersByDate={placeholdersByDate}
           holidaysByDate={holidaysByDate}

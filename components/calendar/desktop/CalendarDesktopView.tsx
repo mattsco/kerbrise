@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import YearGrid from "./YearGrid";
 import YearOccupancyStats from "./YearOccupancyStats";
+import TideLegend from "./TideLegend";
 import Sidepanel from "./Sidepanel";
 
 import { getHolidaysForYear } from "@/lib/holidays";
@@ -18,7 +19,7 @@ import {
 } from "@/lib/dashboard-banner";
 import type { FamilyName } from "@/lib/families";
 
-import { dateToISO } from "../calendar-utils";
+import { dateToISO, type CalendarView } from "../calendar-utils";
 import type { CalendarEvent } from "../CalendarDayCell";
 
 
@@ -44,13 +45,14 @@ type Props = {
 /**
  * Vue desktop année entière façon tableur (#31).
  *
- * État propre : année affichée + filtre famille. Tout le reste
- * (sélection 2 clics, modals) vit dans Calendar.tsx et est partagé
- * avec la vue mobile.
+ * État propre : année affichée + filtre famille + mode de vue
+ * (séjours / marées). Tout le reste (sélection 2 clics, modals) vit dans
+ * Calendar.tsx et est partagé avec la vue mobile.
  *
  * Données : les events arrivent déjà non bornés depuis
  * getCalendarBookings() — la navigation d'année est un simple filtre
- * d'affichage, aucune query supplémentaire.
+ * d'affichage, aucune query supplémentaire. Les marées sont statiques
+ * (lib/tides.ts), aucune query non plus.
  */
 export default function CalendarDesktopView({
   today,
@@ -70,6 +72,7 @@ export default function CalendarDesktopView({
 
   const [year, setYear] = useState(currentYear);
   const [filterFamily, setFilterFamily] = useState<FamilyName | null>(null);
+  const [view, setView] = useState<CalendarView>("stays");
 
   // Échap annule la sélection en cours (confort desktop)
   useEffect(() => {
@@ -143,6 +146,8 @@ export default function CalendarDesktopView({
       <Sidepanel
         filterFamily={filterFamily}
         onToggleFamily={toggleFamily}
+        view={view}
+        onViewChange={setView}
         year={year}
         currentYear={currentYear}
         onYearChange={setYear}
@@ -169,6 +174,7 @@ export default function CalendarDesktopView({
         <div className="overflow-x-auto pb-2">
           <YearGrid
             year={year}
+            view={view}
             eventsByDate={eventsByDate}
             placeholdersByDate={placeholdersByDate}
             holidaysByDate={holidaysByDate}
@@ -180,7 +186,11 @@ export default function CalendarDesktopView({
           />
         </div>
 
-        <YearOccupancyStats events={events} year={year} />
+        {view === "stays" ? (
+          <YearOccupancyStats events={events} year={year} />
+        ) : (
+          <TideLegend year={year} />
+        )}
       </div>
     </div>
   );

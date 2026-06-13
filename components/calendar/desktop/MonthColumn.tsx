@@ -2,10 +2,11 @@
 
 import DayCellDesktop from "./DayCellDesktop";
 
-import { FRENCH_MONTHS } from "../calendar-utils";
+import { FRENCH_MONTHS, type CalendarView } from "../calendar-utils";
 
 import type { Placeholder } from "@/lib/summer-placeholders";
 import type { CalendarEvent } from "../CalendarDayCell";
+import { getTideDay } from "@/lib/tides";
 
 
 // Index getDay() natif : 0 = dimanche … 6 = samedi.
@@ -18,6 +19,7 @@ const NO_EVENTS: CalendarEvent[] = [];
 type Props = {
   year: number;
   monthIndex: number; // 0-11
+  view: CalendarView;
   eventsByDate: Map<string, CalendarEvent[]>;
   placeholdersByDate: Map<string, Placeholder>;
   holidaysByDate: Map<string, string>;
@@ -42,6 +44,7 @@ type Props = {
 export default function MonthColumn({
   year,
   monthIndex,
+  view,
   eventsByDate,
   placeholdersByDate,
   holidaysByDate,
@@ -83,6 +86,11 @@ export default function MonthColumn({
         const placeholder =
           dayEvents.length === 0 ? placeholdersByDate.get(dateStr) : undefined;
 
+        // Marée du jour : seulement en vue "tides". Référence stable
+        // (cache module dans lib/tides) → le memo de la cellule tient.
+        const tideDay =
+          view === "tides" ? getTideDay(year, monthIndex, dayNum) : null;
+
         return (
           <DayCellDesktop
             key={dateStr}
@@ -97,6 +105,8 @@ export default function MonthColumn({
             dayEvents={dayEvents}
             placeholder={placeholder}
             filterFamily={filterFamily}
+            view={view}
+            tideDay={tideDay}
             onDayClick={onDayClick}
             onDayHover={onDayHover}
           />

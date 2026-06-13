@@ -4,9 +4,11 @@ import { memo } from "react";
 
 import type { Placeholder } from "@/lib/summer-placeholders";
 import type { CalendarEvent } from "../CalendarDayCell";
+import type { CalendarView } from "../calendar-utils";
 
 import { daysInRangeInclusive } from "@/lib/dates";
 import { formatRange } from "@/lib/dashboard-banner";
+import { tideLevel, type TideDay } from "@/lib/tides";
 
 
 /**
@@ -21,6 +23,10 @@ import { formatRange } from "@/lib/dashboard-banner";
  *   - séjour : bande de couleur famille continue verticalement,
  *     étiquette "Nom (Nj)" uniquement au premier jour
  *   - pending : opacité réduite + bord pointillé + ⏳ (conventions mobile)
+ *
+ * En vue "tides" (#31 V2), la cellule est recolorée par le coefficient
+ * de marée du jour (heatmap) ; séjours, placeholders, fériés et grisé
+ * week-end sont masqués — c'est un mode d'encodage à part entière.
  */
 
 type Props = {
@@ -36,6 +42,10 @@ type Props = {
   placeholder?: Placeholder;
   /** Famille sélectionnée dans la légende ; les autres sont estompées. */
   filterFamily: string | null;
+  /** Mode d'affichage de la grille. */
+  view: CalendarView;
+  /** Marée du jour (vue "tides" uniquement), null si année non couverte. */
+  tideDay: TideDay | null;
   onDayClick: (
     dateStr: string,
     hasEvent: boolean,
@@ -57,12 +67,60 @@ function DayCellDesktop({
   dayEvents,
   placeholder,
   filterFamily,
+  view,
+  tideDay,
   onDayClick,
   onDayHover,
 }: Props) {
   const isToday = dateStr === todayStr;
   const isPast = dateStr < todayStr;
 
+  // ─── Vue Marées : heatmap pure, autres encodages masqués ─────────────
+  if (view === "tides") {
+    const level = tideDay ? tideLevel(tideDay.coef) : null;
+    const bg = level?.bg ?? "#ffffff";
+    const txt = level?.text ?? "#94a3b8"; // slate-400 si pas de donnée
+    const title = tideDay
+      ? `Marée — coef ${tideDay.coef}${
+          tideDay.raw.length > 1 ? ` (${tideDay.raw.join(" / ")})` : ""
+        } · ${dateStr}`
+      : `Pas de donnée de marée · ${dateStr}`;
+
+    return (
+      <div
+        className={`relative flex items-stretch h-[22px] border-b border-slate-100 cursor-pointer ${
+          isToday ? "ring-1 ring-inset ring-blue-400" : ""
+        }`}
+        style={{ backgroundColor: bg }}
+        title={title}
+        onClick={() => onDayClick(dateStr, false)}
+        onMouseEnter={() => onDayHover(dateStr)}
+      >
+        <span
+          className={`w-[18px] shrink-0 text-right pr-0.5 text-[10px] leading-[21px] tabular-nums ${
+            isToday ? "font-bold" : ""
+          }`}
+          style={{ color: txt }}
+        >
+          {dayNum}
+        </span>
+        <span
+          className="w-[13px] shrink-0 text-center text-[9px] leading-[21px]"
+          style={{ color: txt }}
+        >
+          {weekdayLetter}
+        </span>
+        <div
+          className="flex-1 min-w-0 flex items-center justify-center text-[10px] font-semibold tabular-nums"
+          style={{ color: txt }}
+        >
+          {tideDay ? tideDay.coef : ""}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Vue Séjours (défaut, #31) ───────────────────────────────────────
   const endingEvent = dayEvents.find((e) => e.end_date === dateStr);
   const startingEvent = dayEvents.find((e) => e.start_date === dateStr);
 
