@@ -41,15 +41,6 @@ export default function SidepanelYearNav({
           <ChevronRight size={16} />
         </button>
       </div>
-
-      {year !== currentYear && (
-        <button
-          onClick={() => onYearChange(currentYear)}
-          className="mt-1.5 w-full text-xs text-blue-600 hover:underline"
-        >
-          Revenir à aujourd&apos;hui
-        </button>
-      )}
     </section>
   );
 }
