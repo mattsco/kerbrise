@@ -1,0 +1,23 @@
+# Supabase CLI config — Kerbrise
+# Lié au projet distant via : supabase link --project-ref keufvhftoedgxclzecyp
+#
+# Ce fichier versionne ce dont l'archi email (#28) a besoin. Il ne déclare PAS
+# de stack locale complète : Kerbrise déploie sur le projet hébergé.
+
+project_id = "keufvhftoedgxclzecyp"
+
+# Les 4 fonctions sont appelées par les triggers PG avec un Bearer
+# <service_role_key> → verify_jwt = true est compatible et reste le défaut sûr.
+# Le digest est appelé par pg_cron avec le même Bearer.
+
+[functions.notify-new-booking]
+verify_jwt = true
+
+[functions.notify-decision]
+verify_jwt = true
+
+[functions.notify-cancelled-approved]
+verify_jwt = true
+
+[functions.send-weekly-digest]
+verify_jwt = true

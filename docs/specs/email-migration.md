@@ -1,11 +1,22 @@
 # Spec — Architecture email : rapatriement & durcissement (#28)
 
-> **Statut** : 📋 Spec affinée, prête à découper en sessions — pas encore implémentée
+> **Statut** : ✅ Implémentée (14 juin 2026, v1.2.0) — voir note de réalisation ci-dessous
 > **Type** : Chantier multi-sessions
 > **Cible** : Avant le cycle de choix été (janvier 2027), couplé à #22b
 > **Estimation** : ~2-3h sur 2-3 sessions
-> **Dernière MAJ** : 2026-06-13
+> **Dernière MAJ** : 2026-06-14 (livraison)
 > **Source** : audit `docs/architecture/EMAIL_AUDIT.md` (2026-06-13)
+
+---
+
+## ✅ Note de réalisation (14 juin 2026)
+
+Ce document reste le **dossier de conception** (le *pourquoi* des décisions). Le chantier a été livré en v1.2.0. Écarts entre le plan et le livré :
+
+- **Livré conforme** : versioning des 4 Edge Functions + triggers + cron dans `supabase/functions/` et `db/migrations/` (0002-0005) ; déclenchement DB conservé ; bug timezone corrigé (`parseLocalDate`, `formatRange`, `todayInParis` dans `_shared/dates.ts`) ; `search_path` ajouté aux 3 relais ; couche `_shared/` (dates, html, families, recipients, templates) ; preview locale `_dev/preview.ts` (remplace les 3 modes test) ; suppression du filtre `last_sign_in_at` + des 4 comptes inactifs.
+- **Ajouté hors plan initial** : 5ᵉ fonction `notify-reduced` (email « créneau raccourci », borne 3 mois côté trigger SQL — `db/migrations/0005`) ; refonte design des emails (gabarit « carte postale mer », image bandeau Saint-Malo) ; **digest restructuré en 3 parties** (changements / demandes en attente avec familles restantes / prochains séjours triés, max 3) ; minification HTML anti-clipping Gmail.
+- **NON implémenté (reporté)** : la **checkbox admin « envoyer ou non »** (décision E ci-dessous, qui pilote `is_admin_created`). Le bypass `is_admin_created` existe et fonctionne au niveau trigger, mais aucune UI admin ne l'expose encore. À faire si le besoin se présente.
+- **Renvoyé à la roadmap** : le **seuil de relance** du digest (« depuis X jours ») et le 2ᵉ producteur « choix été » (#22b) — voir `ROADMAP.md`, item sept-oct.
 
 ---
 
