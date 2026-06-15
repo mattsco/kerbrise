@@ -8,3 +8,7 @@ docs/audit.zip
 *.zip
 docs/audit/
 docs/audit.zip
+.DS_Store
+.DS_Store
+supabase/.temp/
+supabase/functions/_dev/preview-output/

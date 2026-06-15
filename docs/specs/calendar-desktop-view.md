@@ -2,7 +2,7 @@
 
 > **Statut** : ✅ Implémentée
 > **Cible** : Release 1.2.0
-> **Dernière MAJ** : 10 juin 2026 (implémentation)
+> **Dernière MAJ** : 14 juin 2026 (ajout doc Vue Marées V2)
 
 ## Objectif
 
@@ -157,8 +157,34 @@ journées / Taux d'occupation » par famille. Reproduit dans
   vers `lib/dates.ts` (`daysInRangeClipped`) — source unique
   partagée par les deux pages.
 
+## Ajout post-v1 : Vue Marées (V2, livrée v1.2.0)
+
+La grille année peut être recolorée selon une **métrique** au choix, via un
+sélecteur dans le sidepanel. Concrétise le « V2-ready » de l'architecture
+(nouveau block sidepanel + recoloration de la grille, sans toucher au reste).
+
+- **`SidepanelViewSwitcher`** (block « Vue ») : deux modes — `stays`
+  (occupation par famille, défaut) et `tides` (coefficient de marée du jour).
+  Le mode est un état porté par `CalendarDesktopView`.
+- **Recoloration** : en mode `tides`, chaque cellule prend la couleur du palier
+  de coefficient du jour (heatmap morte-eau clair → grande marée foncé). En mode
+  `stays`, comportement V1 inchangé. `MonthColumn` ne calcule la marée
+  (`getTideDay`) **que** si `view === "tides"` (le memo de cellule tient).
+- **Légende sous la grille** : `TideLegend` (paliers de coefficient) remplace
+  `YearOccupancyStats` à l'emplacement et au style identiques, pour une bascule
+  sans saut visuel. Réagit à la navigation d'année.
+- **Données** : `lib/tides.ts` — coefficients Saint-Malo **committés en statique**
+  par année (2024-2027 à ce jour), forme `RAW_BY_YEAR[année][mois][jour]`.
+  Indexation par **position** dans le mois (jour-1), avec garde-fou dev qui
+  vérifie les longueurs de mois (gère les bissextiles). `tideLevel(coef)` mappe
+  un coefficient à un palier ; `TIDE_YEARS` / `TIDE_SCALE` exposés pour la
+  légende. Une année sans données affiche un message neutre dans la légende.
+  → Ceci **tranche la question « source des données marées »** : fichier annuel
+  committé, pas d'API externe.
+
 ## Liens
 
 - Composant de création réutilisé : `components/NewBookingForm.tsx` / `NewBookingModal`
 - Logique bannière : `lib/dashboard-banner.ts`
 - Couleurs familles : `lib/families.ts`
+- Données marées : `lib/tides.ts`

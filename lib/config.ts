@@ -24,7 +24,7 @@ import pkg from "../package.json";
 
 export const APP_VERSION: string = pkg.version;
 
-/** "v1.1.0" — pratique pour l'affichage direct. */
+/** "v1.2.0" — pratique pour l'affichage direct. */
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 // ---------------------------------------------------------------------------
