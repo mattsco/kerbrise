@@ -5,9 +5,9 @@
  * la bannière contextuelle du dashboard quand quelqu'un est sur place.
  *
  * Sources :
- *   - temp. mer    → scraper cabaigne.net (Saint-Malo, mesure satellite). Source
- *                    unique : pas de fallback Open-Meteo Marine (lisait ~19° vs
- *                    ~15° réels). Mieux vaut ne rien afficher qu'une valeur fausse.
+ *   - temp. mer    → API Stormglass (clé env). Source unique : pas de fallback
+ *                    Open-Meteo Marine (lisait ~19° vs ~13° réels), et le scraping
+ *                    cabaigne est 403 en prod (Cloudflare bloque l'IP Vercel).
  *   - heures marée → scraper maree.info (PM/BM + hauteurs), filtrées sur le futur
  *   - coef marée   → coefficients committés dans `lib/tides.ts` (offline, le + sûr)
  *   - météo + coucher du soleil + tendance semaine → Open-Meteo Forecast

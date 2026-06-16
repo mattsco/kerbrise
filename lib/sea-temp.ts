@@ -1,70 +1,80 @@
 // lib/sea-temp.ts
 
 /**
- * Température de l'eau de la mer à Saint-Malo, scrapée sur cabaigne.net.
+ * Température de l'eau de la mer (zone Saint-Malo / Le Val) via l'API Stormglass.
  *
- * Choisie après échec des autres pistes (Open-Meteo Marine lisait ~19° au lieu
- * de ~15° ; letelegramme & lachainemeteo non récupérables pour caler le sélecteur).
- * cabaigne expose une mesure satellite de surface, régionale (Saint-Malo, pas la
- * plage du Val précisément) mais réaliste, et la page est récupérable.
+ * Pourquoi Stormglass et pas un scraping : les pages publiques précises
+ * (cabaigne, letelegramme…) sont derrière Cloudflare → 403 depuis l'IP datacenter
+ * de Vercel (OK en local résidentiel, KO en prod). Et Open-Meteo Marine, sans clé,
+ * lit ~19° au lieu de ~13° réels. Stormglass : précis, marche depuis un datacenter,
+ * gratuit 10 req/jour (usage non commercial) — largement couvert par le cache 6h.
  *
- * ⚠️ Pas de noms de classes stables connus → on parse par ANCRAGE TEXTUEL (la
- * phrase « est au maximum de » qui précède la valeur temps réel, sinon la 1ʳᵉ
- * ligne « température de la mer : » du listing 7 jours = aujourd'hui). Plus robuste
- * qu'un sélecteur CSS qu'on ne peut pas vérifier. Caché 3h, timeout, non-throwing,
- * borne de plausibilité (0-35°). La ligne disparaît côté UI si rien n'est extrait.
+ * 🔑 Clé lue depuis `process.env.STORMGLASS_API_KEY` (variable d'env Vercel).
+ * Jamais hardcodée. Si absente → null (la ligne « mer » disparaît, pas de crash).
+ *
+ * ⚠️ Mode dégradé : timeout, non-throwing, borne de plausibilité (0-35°). Tout
+ * échec (clé absente, quota 402, clé invalide 401, réseau) est tracé pour les logs.
  */
 
-import * as cheerio from "cheerio";
+// Le Val / Rothéneuf
+const LAT = 48.683;
+const LON = -1.965;
 
-const URL = "https://www.cabaigne.net/france/bretagne/saint-malo/";
+const ENDPOINT = "https://api.stormglass.io/v2/weather/point";
+const REVALIDATE_SECONDS = 21600; // 6h → ~4 appels/jour, sous le quota gratuit (10)
+const FETCH_TIMEOUT_MS = 5000;
 
-const PATTERNS: readonly RegExp[] = [
-  /est au maximum de\s*:?\s*([0-9]{1,2}(?:[.,][0-9])?)\s*°/i,
-  /température de la mer\s*:?\s*([0-9]{1,2}(?:[.,][0-9])?)\s*°/i,
-];
+// Sources Stormglass par ordre de préférence (sg = estimation agrégée maison).
+const SOURCE_PREFS = ["sg", "noaa", "meto", "meteo"] as const;
+
+function pickTemp(wt: unknown): number | null {
+  if (!wt || typeof wt !== "object") return null;
+  const obj = wt as Record<string, unknown>;
+  for (const k of SOURCE_PREFS) {
+    const v = obj[k];
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+  }
+  for (const v of Object.values(obj)) {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+  }
+  return null;
+}
 
 export async function getSaintMaloWaterTemp(): Promise<number | null> {
+  const key = process.env.STORMGLASS_API_KEY;
+  if (!key) {
+    console.error("[sea-temp] STORMGLASS_API_KEY manquant");
+    return null;
+  }
+
+  const start = Math.floor(Date.now() / 1000);
+  const url =
+    `${ENDPOINT}?lat=${LAT}&lng=${LON}&params=waterTemperature` +
+    `&start=${start}&end=${start + 3600}`;
+
   try {
-    // Headers « navigateur » : cabaigne est derrière Cloudflare. Ça ne garantit
-    // pas de passer depuis une IP datacenter (Vercel), mais c'est un coût nul et
-    // certains filtres se basent aussi sur l'UA / Accept-Language.
-    const res = await fetch(URL, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9",
-      },
-      next: { revalidate: 10800 }, // 3h
-      signal: AbortSignal.timeout(5000),
+    const res = await fetch(url, {
+      headers: { Authorization: key },
+      next: { revalidate: REVALIDATE_SECONDS },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     if (!res.ok) {
-      console.error(`[sea-temp] cabaigne HTTP ${res.status}`);
+      // 401 = clé invalide, 402 = quota dépassé, 429 = rate limit
+      console.error(`[sea-temp] stormglass HTTP ${res.status}`);
       return null;
     }
 
-    // Aplatir en texte : on s'affranchit de la structure HTML (classes inconnues).
-    const text = cheerio.load(await res.text()).root().text().replace(/\s+/g, " ");
-
-    for (const re of PATTERNS) {
-      const m = re.exec(text);
-      if (!m) continue;
-      const n = parseFloat(m[1].replace(",", "."));
-      if (Number.isFinite(n) && n > 0 && n < 35) return n;
+    const j = (await res.json()) as { hours?: { waterTemperature?: unknown }[] };
+    const t = pickTemp(j?.hours?.[0]?.waterTemperature);
+    if (t === null) {
+      console.error("[sea-temp] stormglass: waterTemperature absente de la réponse");
+      return null;
     }
-
-    // 200 mais valeur introuvable = page de challenge Cloudflare probable, ou
-    // structure changée. Trace un extrait pour diagnostiquer dans les logs Vercel.
-    console.error(
-      `[sea-temp] cabaigne: temp introuvable (len=${text.length}) « ${text.slice(0, 120)} »`
-    );
-    return null;
+    return t;
   } catch (e) {
     console.error(
-      "[sea-temp] cabaigne échec:",
+      "[sea-temp] stormglass échec:",
       e instanceof Error ? `${e.name}: ${e.message}` : e
     );
     return null;

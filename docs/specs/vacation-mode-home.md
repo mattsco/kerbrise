@@ -17,7 +17,7 @@ Lignes ajoutées quand quelqu'un est sur place :
 - **Tendance semaine** : phrase au ton léger, générée par règles déterministes (pas de LLM).
 
 **Sources** (chacune dégrade indépendamment, fetch serveur caché + timeout, mode dégradé ligne par ligne) :
-- temp. eau → scraper `cabaigne.net` (Saint-Malo, satellite) — `lib/sea-temp.ts`
+- temp. eau → API **Stormglass** (clé `STORMGLASS_API_KEY` en env) — `lib/sea-temp.ts`. (Scraping cabaigne/letelegramme abandonné : 403 Cloudflare depuis Vercel.)
 - heures marée → scraper `maree.info` — `lib/maree-info.ts`
 - coef marée → statique `lib/tides.ts`
 - météo / sunset / tendance 7j → Open-Meteo Forecast — dans `lib/conditions.ts`
