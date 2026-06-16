@@ -31,6 +31,21 @@ export function todayISO(): string {
 }
 
 /**
+ * Date du jour en ISO YYYY-MM-DD, forcée en fuseau Europe/Paris.
+ * Indispensable côté serveur (Vercel tourne en UTC) : entre ~22h-minuit UTC,
+ * la date UTC est en retard d'un jour sur Paris. À utiliser dans les routes API.
+ */
+export function todayInParis(): string {
+  // en-CA → format YYYY-MM-DD
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/**
  * Nombre de jours entre deux dates ISO (signé, b - a).
  * Robuste aux changements DST grâce à Math.round.
  */

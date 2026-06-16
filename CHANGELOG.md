@@ -19,6 +19,7 @@
   - **Durcissement de l'existant** : `lib/maree-info.ts` (scraper cheerio préexistant, jamais branché) corrigé — bug de type `waterTemperature` (renvoyait la chaîne `"undefined"`, **seule erreur de compil du projet**), `no-store` → cache 3h, timeout + wrapper non-throwing `getSaintMaloTidesSafe`.
   - Nouveau `lib/conditions.ts` + composant `app/dashboard/BannerConditions.tsx` (rendu dans `ContextualBanner`).
   - **Scope coupé** : pas de recommandations d'événements (aucune source fiable — à ne ré-ouvrir qu'en curation admin manuelle). Cf. ROADMAP.
+- **Endpoint `GET /api/term`** : expose les conditions #26 (marées du jour + coef, mer saisonnière, météo + écart vs hier + coucher du soleil + tendance semaine) en JSON pour le TRMNL, avec labels pré-formatés (le template Liquid n'affiche). Date calculée en `Europe/Paris` (`todayInParis()` ajouté à `lib/dates.ts`), route `force-dynamic` (sources tierces cachées en interne), blocs `null` si source en panne. **Sous-ensemble MVP non authentifié** (données non sensibles) de la spec `trmnl-sejour-display.md` ; l'endpoint complet `/api/trmnl/screen` (séjour + WiFi + switch d'écrans) reste à faire et devra être protégé par token.
 
 ---
 

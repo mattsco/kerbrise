@@ -60,6 +60,8 @@ export type Conditions = {
   tide: TideNow | null;
   /** Les 2 prochaines marées à venir (aujourd'hui puis demain si besoin). */
   upcomingTides: TideTime[];
+  /** Toutes les marées d'aujourd'hui (PM/BM), passées comprises. */
+  todayTides: TideTime[];
   weather: WeatherNow | null;
 };
 
@@ -212,6 +214,15 @@ function upcomingTides(data: TideResponse | null): TideTime[] {
   return list.slice(0, 2).map((x) => x.t);
 }
 
+/** Toutes les marées d'aujourd'hui (PM/BM), passées comprises, dans l'ordre. */
+function allTodayTides(data: TideResponse | null): TideTime[] {
+  const day = data?.days?.[0];
+  if (!day?.events?.length) return [];
+  return day.events
+    .filter((e) => timeToMinutes(e.time) !== null)
+    .map((e) => ({ type: e.type, time: e.time, height: num(e.height) }));
+}
+
 /**
  * Récupère les conditions du jour. Sources réseau en parallèle, dégradation
  * indépendante. La marée (coef) est statique et synchrone.
@@ -230,6 +241,7 @@ export async function getConditions(todayISO: string): Promise<Conditions> {
     sea,
     tide: getTide(todayISO),
     upcomingTides: upcomingTides(tideData),
+    todayTides: allTodayTides(tideData),
     weather,
   };
 }
