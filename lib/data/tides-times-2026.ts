@@ -360,7 +360,7 @@ export const TIDE_TIMES_2026: Record<string, readonly TideTimeEvent[]> = {
   "2026-12-17": [{ type: "BM", time: "06h15", height: 4.32 }, { type: "PM", time: "11h57", height: 9.5, coef: 45 }, { type: "BM", time: "18h50", height: 4.14 }],
   "2026-12-18": [{ type: "PM", time: "00h33", height: 9.26, coef: 44 }, { type: "BM", time: "07h14", height: 4.47 }, { type: "PM", time: "13h03", height: 9.34, coef: 44 }, { type: "BM", time: "19h52", height: 4.21 }],
   "2026-12-19": [{ type: "PM", time: "01h43", height: 9.28, coef: 45 }, { type: "BM", time: "08h25", height: 4.4 }, { type: "PM", time: "14h16", height: 9.46, coef: 48 }, { type: "BM", time: "21h04", height: 4.04 }],
-  "2026-12-20": [{ type: "PM", time: "02h55", height: 9.61, coef: 51 }, { type: "BM", time: "09h41", height: 4.03 }, { type: "PM", time: "15h27", height: 9.85, coef: 55 }, { type: "BM", time: "22h17", height: null }],
+  "2026-12-20": [{ type: "PM", time: "02h55", height: 9.61, coef: 51 }, { type: "BM", time: "09h41", height: 4.03 }, { type: "PM", time: "15h27", height: 9.85, coef: 55 }, { type: "BM", time: "22h17", height: 3.61 }],
   "2026-12-21": [{ type: "PM", time: "04h01", height: 10.18, coef: 61 }, { type: "BM", time: "10h51", height: 3.43 }, { type: "PM", time: "16h32", height: 10.42, coef: 66 }, { type: "BM", time: "23h23", height: 3.03 }],
   "2026-12-22": [{ type: "PM", time: "05h00", height: 10.85, coef: 72 }, { type: "BM", time: "11h55", height: 2.76 }, { type: "PM", time: "17h32", height: 11.02, coef: 77 }],
   "2026-12-23": [{ type: "BM", time: "00h24", height: 2.46 }, { type: "PM", time: "05h56", height: 11.5, coef: 83 }, { type: "BM", time: "12h55", height: 2.15 }, { type: "PM", time: "18h29", height: 11.55, coef: 87 }],
