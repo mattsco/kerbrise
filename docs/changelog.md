@@ -5,11 +5,11 @@ Pour le journal de dev complet (refactors, bugs techniques), voir `CHANGELOG.md`
 
 ---
 
-## À venir
+## Version 1.3.0 — 16 juin 2026
 
 🌊 **La mer et le temps dans la bannière d'accueil**
 
-- 🌊 **Marées, eau et météo** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient), la **température de l'eau**, la **météo du jour** (mini/maxi, écart avec hier, heure du coucher du soleil) et une petite phrase sur le **temps de la semaine**. De quoi savoir d'un coup d'œil quand l'eau monte, si elle est baignable, et s'il faut sortir le ciré ou la crème solaire.
+- 🌊 **Marées, eau et météo** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient), la **température de l'eau**, la **météo du jour** (mini/maxi, écart avec la normale de saison, heure du coucher du soleil) et une petite phrase sur le **temps de la semaine**. De quoi savoir d'un coup d'œil quand l'eau monte, si elle est baignable, et s'il faut sortir le ciré ou la crème solaire. Les horaires de marée sont embarqués dans l'app, donc fiables même quand les sites de marées extérieurs ne répondent pas.
 
 ---
 

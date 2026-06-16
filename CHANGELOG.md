@@ -5,24 +5,29 @@
 
 ---
 
-## [Unreleased]
+## [1.3.0] — 16 juin 2026
 
 ### ✨ Ajouts
 - **#26 — Conditions du jour dans la bannière** : quand un séjour est en cours (cas A/B), la bannière contextuelle du dashboard s'enrichit de lignes « conditions », **dans son propre style** (pas de widget) : icônes d'accent, valeurs en gras, labels atténués, coef en pastille douce. Contenu :
-  - **marées** : les 2 prochaines à venir (heure + pleine/basse, flèches ↑/↓), calculées par rapport à l'heure de Paris (débordent sur demain en fin de journée), avec le **coef** en pastille (statique). Si le scraper tombe : repli `Marée du jour` + coef seul.
+  - **marées** : les 2 prochaines à venir (heure + pleine/basse, flèches ↑/↓), calculées par rapport à l'heure de Paris (débordent sur demain en fin de journée), avec le **coef** en pastille (statique). Source **offline** (cf. « Horaires de marée offline » plus bas) ; repli `Marée du jour` + coef seul si la date n'est pas couverte.
   - **température de l'eau** : valeur seule (sans label, l'icône goutte suffit).
   - **météo du jour** : min / max + **écart de la moyenne du jour vs la normale du mois** (« +2° vs la normale », table climato statique Saint-Malo — base stable, pas la veille qui est une valeur de grille volatile), et **coucher du soleil** aligné à droite.
   - **tendance de la semaine** : une phrase au ton léger générée par règles déterministes sur les 7 prochains jours (ex. « Grand beau et chaud toute la semaine, tu as de la chance »). Pas de LLM, pas d'invention.
-  - Sources : **temp. eau** = **moyenne saisonnière statique** du mois (`lib/sea-temp.ts`, table 12 valeurs façon `tides.ts`), affichée « mer ~14° en juin » ; **marées** (heures) = scraper `maree.info` ; **météo** = Open-Meteo Forecast (min/max, écart vs la normale du mois, coucher du soleil, tendance 7j) ; **coef** = statique `lib/tides.ts`.
+  - Sources : **temp. eau** = **moyenne saisonnière statique** du mois (`lib/sea-temp.ts`, table 12 valeurs façon `tides.ts`), affichée « mer ~14° en juin » ; **marées** (heures) = **table annuelle committée offline** (`lib/tides-times.ts`) ; **météo** = Open-Meteo Forecast (min/max, écart vs la normale du mois, coucher du soleil, tendance 7j) ; **coef** = statique `lib/tides.ts`. Seul Open-Meteo reste une dépendance réseau au runtime (non bloquée sur IP datacenter).
     - *Pourquoi la temp. eau est saisonnière et non « du jour »* : toutes les API marines testées surestiment fortement (Open-Meteo ~19°, Stormglass ~18° vs ~13° réels — modèles à maille large qui ne résolvent pas l'eau côtière froide), et les sources mesurées précises (cabaigne, letelegramme, lachainemeteo) sont derrière Cloudflare → **403 depuis une IP datacenter** (Vercel), problème partagé par toute automatisation serveur. La moyenne mensuelle committée donne le bon ordre de grandeur, stable, sans dépendance ni quota.
-  - Fetch **côté serveur**, sous `<Suspense fallback={null}>`, **cachés** (Open-Meteo 2h, maree.info 3h), **timeout** (4-5s), **mode dégradé** ligne par ligne. Le scraping maree.info reste le maillon fragile assumé, isolé par cache + dégradation.
+  - Fetch **côté serveur**, sous `<Suspense fallback={null}>`, Open-Meteo **caché** 2h, **timeout** (4-5s), **mode dégradé** ligne par ligne. Marées et temp. eau étant désormais offline, il n'y a plus de maillon scrapé fragile dans cette surface.
   - **Durcissement de l'existant** : `lib/maree-info.ts` (scraper cheerio préexistant, jamais branché) corrigé — bug de type `waterTemperature` (renvoyait la chaîne `"undefined"`, **seule erreur de compil du projet**), `no-store` → cache 3h, timeout + wrapper non-throwing `getSaintMaloTidesSafe`.
   - Nouveau `lib/conditions.ts` + composant `app/dashboard/BannerConditions.tsx` (rendu dans `ContextualBanner`).
   - **Scope coupé** : pas de recommandations d'événements (aucune source fiable — à ne ré-ouvrir qu'en curation admin manuelle). Cf. ROADMAP.
 - **Endpoint `GET /api/term`** (TRMNL) : payload JSON avec **séjour** (`stay` : famille, dates, jours restants, `Jour x/y` ; `next` : prochaine arrivée + phrase de relais + pivot) et **conditions #26** (marées du jour + coef, mer saisonnière, météo + écart vs hier + coucher du soleil + tendance semaine). Labels pré-formatés (le template Liquid n'affiche), date `Europe/Paris` (`todayInParis()` ajouté à `lib/dates.ts`), route `force-dynamic`, blocs `null` si source en panne.
   - 🔒 **Protégé par token** `Authorization: Bearer ${TRMNL_API_TOKEN}` : le bloc séjour expose la présence/absence de la famille (cf. spec §9). Lecture bookings via **service role** Supabase (`lib/supabase/service.ts`, `server-only` — 1ʳᵉ introduction de la service key) + `lib/data/sejour.ts`. Env requises : `TRMNL_API_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`.
-  - ⚠️ **Heures de marée indisponibles en prod** : maree.info bloque l'IP datacenter Vercel (comme cabaigne) → `high_label`/`low_label` à `null`. Le `coef` (statique) reste OK. Fix prévu : table statique annuelle des heures PM/BM (spec option C), en attente des données 2026.
+  - ✅ **Heures de marée en prod — résolu** : le scraper `maree.info` rendait `high_label`/`low_label` à `null` en prod (IP datacenter Vercel bloquée). Remplacé par la table annuelle committée offline (cf. ci-dessous) ; `/api/term` et la bannière affichent désormais les horaires en prod.
   - Reste de la spec à faire : WiFi/QR, poubelles, switch d'écrans (`/api/trmnl/screen`).
+- **🌊 Horaires de marée committés offline (option 2)** : les heures PM/BM + hauteurs de Saint-Malo suivent désormais le pattern des coefs (`lib/tides.ts`) — donnée déterministe committée, **zéro scrape au runtime**. Motivation : `maree.info` bloque les IP datacenter (OK en local, vide en prod), et un cron serveur taperait dans le même mur.
+  - Données : `lib/data/tides-times-2026.ts` (généré, 365 jours, clé = date ISO, events PM/BM + hauteur + coef). Loader `lib/tides-times.ts` (`getTideTimesDay`, `getOfflineTides` → forme compatible avec l'ancien scraper, aujourd'hui + lendemain) + garde-fou dev. `lib/conditions.ts` lit l'offline (synchrone), n'importe plus `lib/maree-info.ts`.
+  - Source : office de tourisme de Saint-Malo, récupéré 1×/an (pas `maree.info`, dont les CGU interdisent l'extraction). Générateur reproductible `scripts/tides/generate.py` + dump source versionnés.
+  - **Validation** : les 705 coefficients de pleine mer extraits == `RAW_BY_YEAR[2026]` de `lib/tides.ts` en séquence chronologique exacte (les deux sources concordent), preuve d'intégrité de toute la table (heures, hauteurs, jours). `TideTimeEvent.height` est `number | null` (la source omet parfois une hauteur).
+  - Rappel annuel programmé pour générer 2027 en décembre. Reste : `app/api/tides/route.ts` (orphelin, sans consommateur) scrape encore en live — à supprimer ou rebrancher.
 
 ---
 

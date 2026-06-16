@@ -1,8 +1,8 @@
 # Spec — Mode "Vacances" sur la home (#26)
 
-> **Statut** : ✅ Fait (16 juin 2026), en `[Unreleased]` — pas encore release. Périmètre conditions ; unification des fragments non faite (cf. plus bas).
+> **Statut** : ✅ **Livré — v1.3.0 (16 juin 2026)**. Périmètre conditions du jour. La version « lite » de juin a été dépassée d'emblée par la version complète. Unification des fragments (webcam/poubelles) non faite (cf. plus bas, dans la ROADMAP).
 > **Type** : Feature moyenne
-> **Cible** : Fait, en attente de release
+> **Cible** : Livré
 > **Estimation initiale** : ~3-4h
 > **Dernière MAJ** : 16 juin 2026
 
@@ -11,25 +11,25 @@
 Le "mode vacances" a été implémenté **non pas comme des widgets** mais comme un **enrichissement de la bannière contextuelle** du dashboard (cas A/B, quand `currentlyAt` est vrai). L'approche widget/carte dédiée a été **explicitement rejetée au design** (« je n'aime pas les widgets ») au profit de lignes texte intégrées au style aéré de la bannière.
 
 Lignes ajoutées quand quelqu'un est sur place :
-- **Marées** : les 2 prochaines (heure + pleine/basse, flèches ↑/↓) + **coef** en pastille. Repli `Marée du jour : coef X` si le scraper tombe.
+- **Marées** : les 2 prochaines (heure + pleine/basse, flèches ↑/↓) + **coef** en pastille. Repli `Marée du jour : coef X` si la date n'est pas couverte par la table.
 - **Mer** : « mer à 13° ».
-- **Météo du jour** : min / max + écart de la max vs hier + heure du coucher du soleil.
+- **Météo du jour** : min / max + écart de la moyenne du jour vs la normale du mois + heure du coucher du soleil.
 - **Tendance semaine** : phrase au ton léger, générée par règles déterministes (pas de LLM).
 
-**Sources** (chacune dégrade indépendamment, fetch serveur caché + timeout, mode dégradé ligne par ligne) :
+**Sources** (chacune dégrade indépendamment, mode dégradé ligne par ligne) :
 - temp. eau → **moyenne saisonnière statique** du mois — `lib/sea-temp.ts` (table 12 valeurs). API marines (Open-Meteo, Stormglass) écartées (surestiment ~18-19° vs ~13°) ; scrapers mesurés (cabaigne…) écartés (403 Cloudflare depuis Vercel).
-- heures marée → scraper `maree.info` — `lib/maree-info.ts`
+- heures marée → **table annuelle committée offline** — `lib/tides-times.ts` + `lib/data/tides-times-2026.ts`. **Plus de scrape** (`maree.info` bloque les IP datacenter → vide en prod). Source : office de tourisme Saint-Malo, récupéré 1×/an via `scripts/tides/generate.py`. Validé contre les coefs de `lib/tides.ts`.
 - coef marée → statique `lib/tides.ts`
-- météo / sunset / tendance 7j → Open-Meteo Forecast — dans `lib/conditions.ts`
+- météo / sunset / tendance 7j → Open-Meteo Forecast (caché 2h) — dans `lib/conditions.ts`. **Seule source réseau restante au runtime**, non bloquée sur IP datacenter.
 
-**Code** : `lib/conditions.ts` (orchestration), `app/dashboard/BannerConditions.tsx` (rendu, sous `<Suspense>`), branché dans `ContextualBanner`. `app/api/tides/route.ts` expose aussi les marées brutes.
+**Code** : `lib/conditions.ts` (orchestration, lit l'offline en synchrone), `app/dashboard/BannerConditions.tsx` (rendu, sous `<Suspense>`), branché dans `ContextualBanner`. Aussi consommé par `GET /api/term` (payload TRMNL). `app/api/tides/route.ts` est un endpoint orphelin (sans consommateur) qui scrape encore `maree.info` en live — à supprimer ou rebrancher sur l'offline.
 
 **Tranché / abandonné** :
 - Pas de fallback Open-Meteo Marine pour la temp. eau (lisait ~19° vs ~13-15° réels).
 - Pas de recommandations d'événements ni de restos (aucune source fiable — risque d'info fausse).
 - Pistes temp. eau letelegramme (Rothéneuf) et lachainemeteo (Val) abandonnées : pages non récupérables pour caler/vérifier le scraper.
 
-**Reste éventuellement à faire (post-#26, cf. ROADMAP)** : absorber les autres fragments « la maison maintenant » (webcam, poubelles) dans cette surface ; ajouter un log d'échec de scrape (checkpoint #28). La vision « widgets » ci-dessous est conservée comme contexte historique mais n'est PAS la forme retenue.
+**Reste éventuellement à faire (post-#26, cf. ROADMAP)** : absorber les autres fragments « la maison maintenant » (webcam, poubelles) dans cette surface. Le point « fiabilité des scrapers » est **clos** : marées et temp. eau sont désormais offline, seul Open-Meteo reste en réseau (non bloqué). **Souhait futur** : un indicateur de **qualité de l'eau de baignade** dans cette bannière, si une source fiable est trouvée (piste : données « Eaux de baignade » ministère Santé / ARS Bretagne pour Saint-Malo–Rothéneuf). La vision « widgets » ci-dessous est conservée comme contexte historique mais n'est PAS la forme retenue.
 
 ## Vision
 
