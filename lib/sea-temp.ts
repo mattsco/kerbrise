@@ -26,12 +26,25 @@ const PATTERNS: readonly RegExp[] = [
 
 export async function getSaintMaloWaterTemp(): Promise<number | null> {
   try {
+    // Headers « navigateur » : cabaigne est derrière Cloudflare. Ça ne garantit
+    // pas de passer depuis une IP datacenter (Vercel), mais c'est un coût nul et
+    // certains filtres se basent aussi sur l'UA / Accept-Language.
     const res = await fetch(URL, {
-      headers: { "User-Agent": "Kerbrise/1.0 (+https://kerbrise.fr)" },
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "fr-FR,fr;q=0.9",
+      },
       next: { revalidate: 10800 }, // 3h
       signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) return null;
+
+    if (!res.ok) {
+      console.error(`[sea-temp] cabaigne HTTP ${res.status}`);
+      return null;
+    }
 
     // Aplatir en texte : on s'affranchit de la structure HTML (classes inconnues).
     const text = cheerio.load(await res.text()).root().text().replace(/\s+/g, " ");
@@ -42,8 +55,18 @@ export async function getSaintMaloWaterTemp(): Promise<number | null> {
       const n = parseFloat(m[1].replace(",", "."));
       if (Number.isFinite(n) && n > 0 && n < 35) return n;
     }
+
+    // 200 mais valeur introuvable = page de challenge Cloudflare probable, ou
+    // structure changée. Trace un extrait pour diagnostiquer dans les logs Vercel.
+    console.error(
+      `[sea-temp] cabaigne: temp introuvable (len=${text.length}) « ${text.slice(0, 120)} »`
+    );
     return null;
-  } catch {
+  } catch (e) {
+    console.error(
+      "[sea-temp] cabaigne échec:",
+      e instanceof Error ? `${e.name}: ${e.message}` : e
+    );
     return null;
   }
 }
