@@ -30,7 +30,10 @@ export async function fetchSaintMaloTides(): Promise<TideResponse> {
     // Cache 3h : protège maree.info du martèlement (sinon re-scrape à chaque
     // chargement du dashboard pendant un séjour) et accélère le rendu.
     next: { revalidate: 10800 },
-    signal: AbortSignal.timeout(5000),
+    // 9 s : le scrape (HTML complet + cheerio) peut dépasser 5 s sur un cold
+    // start de fonction (ex. route /api/term), ce qui renvoyait events:[] alors
+    // que la bannière, elle, avait les heures. Marge sous la limite Vercel (~10 s).
+    signal: AbortSignal.timeout(9000),
   });
 
   if (!response.ok) {
