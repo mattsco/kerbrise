@@ -8,7 +8,9 @@
  *   - temp. mer    → moyenne saisonnière statique du mois (`lib/sea-temp.ts`).
  *                    Les API marines surestiment (~18-19° vs ~13°) et les sources
  *                    mesurées sont bloquées (Cloudflare 403 sur IP datacenter).
- *   - heures marée → scraper maree.info (PM/BM + hauteurs), filtrées sur le futur
+ *   - heures marée → horaires committés offline (`lib/tides-times.ts`), filtrés
+ *                    sur le futur. Plus de scrape maree.info (bloqué sur IP
+ *                    datacenter → vide en prod). Cf. guide TRMNL §11.
  *   - coef marée   → coefficients committés dans `lib/tides.ts` (offline, le + sûr)
  *   - météo + coucher du soleil + tendance semaine → Open-Meteo Forecast
  *
@@ -18,7 +20,7 @@
 
 import { getTideDay, tideLevel, type TideLevel } from "./tides";
 import { parseLocalDate } from "./dates";
-import { getSaintMaloTidesSafe, type TideResponse } from "./maree-info";
+import { getOfflineTides, type OfflineTides } from "./tides-times";
 import { getSeasonalWaterTemp } from "./sea-temp";
 
 // Le Val / Rothéneuf
@@ -205,9 +207,9 @@ function getTide(todayISO: string): TideNow | null {
 
 /**
  * Les 2 prochaines marées à partir de maintenant. Cherche dans aujourd'hui
- * (days[0]) puis demain (days[1]) — maree.info/52 liste aujourd'hui en tête.
+ * (days[0]) puis demain (days[1]) — le bloc offline place aujourd'hui en tête.
  */
-function upcomingTides(data: TideResponse | null): TideTime[] {
+function upcomingTides(data: OfflineTides | null): TideTime[] {
   const now = parisNowMinutes();
   const list: { sortKey: number; t: TideTime }[] = [];
 
@@ -231,7 +233,7 @@ function upcomingTides(data: TideResponse | null): TideTime[] {
 }
 
 /** Toutes les marées d'aujourd'hui (PM/BM), passées comprises, dans l'ordre. */
-function allTodayTides(data: TideResponse | null): TideTime[] {
+function allTodayTides(data: OfflineTides | null): TideTime[] {
   const day = data?.days?.[0];
   if (!day?.events?.length) return [];
   return day.events
@@ -244,10 +246,10 @@ function allTodayTides(data: TideResponse | null): TideTime[] {
  * indépendante. La marée (coef) est statique et synchrone.
  */
 export async function getConditions(todayISO: string): Promise<Conditions> {
-  const [tideData, weather] = await Promise.all([
-    getSaintMaloTidesSafe(),
-    getWeather(todayISO),
-  ]);
+  // Horaires marée : statiques (committés), synchrones. Plus de scrape réseau.
+  // Météo : seule source réseau restante, dégradation indépendante.
+  const tideData = getOfflineTides(todayISO);
+  const weather = await getWeather(todayISO);
 
   // Temp. mer : moyenne saisonnière du mois (statique, cf. sea-temp.ts)
   const t = getSeasonalWaterTemp(parseLocalDate(todayISO).getMonth());

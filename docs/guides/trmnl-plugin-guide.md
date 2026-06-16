@@ -247,7 +247,7 @@ Pièges Display API :
 
 - **Les scrapers de sites qui bloquent les IP datacenter** (Cloudflare, etc.) marchent depuis ta machine (**IP résidentielle**) mais échouent en prod (**Vercel / Supabase edge = IP datacenter**). Cf. `lib/maree-info.ts` (scrape `maree.info`) et la note sea-temp dans `lib/conditions.ts`.
 - **Un cron serveur ne sauve pas** si la source bloque les datacenters : le cron (Vercel ou edge function) tape dans le même mur.
-- **Donnée déterministe → la committer offline.** Les **coefs** sont déjà committés dans `lib/tides.ts` (« le + sûr ») ; les **horaires** de marée sont tout aussi prévisibles et devraient suivre le même pattern, plutôt que dépendre d'un scrape live. (Décision en cours, cf. issue marées.)
+- **Donnée déterministe → la committer offline.** Les **coefs** sont committés dans `lib/tides.ts` (« le + sûr ») ; les **horaires** suivent désormais le **même pattern** : `lib/data/tides-times-2026.ts` (généré, clé = date ISO, PM/BM + hauteur) + loader `lib/tides-times.ts`. `lib/conditions.ts` lit l'offline (`getOfflineTides`), plus de scrape `maree.info`. ✅ **Décision tranchée (option 2)** — source : office de tourisme Saint-Malo, récupéré 1×/an. Validation : les 682 coefs PM 2026 == `RAW_BY_YEAR[2026]` de `tides.ts` (séquence chronologique identique). Pour 2027 : relancer le parser sur la page de l'année. _Reste : `app/api/tides/route.ts` (orphelin, sans consommateur) scrape encore en live — à supprimer ou rebrancher ; trou connu 2026-12-21..31, fetch tronqué._
 - Conséquence design : toujours prévoir le **repli `null`/`[]`** côté template pour ces sources fragiles.
 
 ---
