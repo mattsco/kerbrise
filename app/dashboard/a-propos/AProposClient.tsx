@@ -1,5 +1,6 @@
 "use client";
 
+import MaisonStatus from "./MaisonStatus";
 import NextCollections from "./NextCollections";
 import IntroSection, { type Intro } from "./IntroSection";
 import LinksSection, { type Link } from "./LinksSection";
@@ -27,6 +28,8 @@ export default function AProposClient({
         currentUserId={currentUserId}
         showCollections={showCollections}
       />
+
+      <MaisonStatus />
 
       {showCollections && <NextCollections />}
 

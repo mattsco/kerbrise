@@ -5,7 +5,7 @@ import { useDailyValue } from "@/lib/hooks";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSyncedState } from "@/lib/hooks";
-import { Pencil, Check, Wifi, Trash2 } from "lucide-react";
+import { Pencil, Check, Trash2 } from "lucide-react";
 import {
   getNextCollection,
   formatDateLabel,
@@ -40,31 +40,11 @@ export default function IntroSection({
   const [content, setContent] = useState(initialIntro?.content ?? "");
   const [saving, setSaving] = useState(false);
 
-  // Wifi
-  const [wifiCopied, setWifiCopied] = useState(false);
-
   // Prochaine collecte (affichage compact si pas la grosse section)
 
 
 // ...
 const nextCollection = useDailyValue(getNextCollection);
-
-  async function copyWifiPassword() {
-    try {
-      await navigator.clipboard.writeText("kerbrise35400");
-      setWifiCopied(true);
-      setTimeout(() => setWifiCopied(false), 2000);
-    } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = "kerbrise35400";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setWifiCopied(true);
-      setTimeout(() => setWifiCopied(false), 2000);
-    }
-  }
 
   async function save() {
     setSaving(true);
@@ -165,19 +145,9 @@ const nextCollection = useDailyValue(getNextCollection);
             </p>
           )}
 
-          {/* Quick actions : wifi + prochaine collecte */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <button
-              onClick={copyWifiPassword}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
-            >
-              <Wifi className="w-3.5 h-3.5" />
-              {wifiCopied
-                ? "Mot de passe copié ✓"
-                : "Copier le mot de passe wifi"}
-            </button>
-
-            {!showCollections && (
+          {/* Quick actions : prochaine collecte */}
+          {!showCollections && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
               <div className="inline-flex items-center gap-1.5 text-xs text-slate-600">
                 <Trash2
                   className="w-3.5 h-3.5"
@@ -208,8 +178,8 @@ const nextCollection = useDailyValue(getNextCollection);
                   </span>
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
     </section>
