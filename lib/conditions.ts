@@ -5,9 +5,9 @@
  * la bannière contextuelle du dashboard quand quelqu'un est sur place.
  *
  * Sources :
- *   - temp. mer    → API Stormglass (clé env). Source unique : pas de fallback
- *                    Open-Meteo Marine (lisait ~19° vs ~13° réels), et le scraping
- *                    cabaigne est 403 en prod (Cloudflare bloque l'IP Vercel).
+ *   - temp. mer    → moyenne saisonnière statique du mois (`lib/sea-temp.ts`).
+ *                    Les API marines surestiment (~18-19° vs ~13°) et les sources
+ *                    mesurées sont bloquées (Cloudflare 403 sur IP datacenter).
  *   - heures marée → scraper maree.info (PM/BM + hauteurs), filtrées sur le futur
  *   - coef marée   → coefficients committés dans `lib/tides.ts` (offline, le + sûr)
  *   - météo + coucher du soleil + tendance semaine → Open-Meteo Forecast
@@ -19,7 +19,7 @@
 import { getTideDay, tideLevel, type TideLevel } from "./tides";
 import { parseLocalDate } from "./dates";
 import { getSaintMaloTidesSafe, type TideResponse } from "./maree-info";
-import { getSaintMaloWaterTemp } from "./sea-temp";
+import { getSeasonalWaterTemp } from "./sea-temp";
 
 // Le Val / Rothéneuf
 const LAT = 48.683;
@@ -217,15 +217,14 @@ function upcomingTides(data: TideResponse | null): TideTime[] {
  * indépendante. La marée (coef) est statique et synchrone.
  */
 export async function getConditions(todayISO: string): Promise<Conditions> {
-  const [tideData, weather, waterTemp] = await Promise.all([
+  const [tideData, weather] = await Promise.all([
     getSaintMaloTidesSafe(),
     getWeather(todayISO),
-    getSaintMaloWaterTemp(),
   ]);
 
-  // Temp. mer : cabaigne.net uniquement (source vérifiable et réaliste)
-  const t = num(waterTemp);
-  const sea: SeaNow | null = t !== null ? { tempC: Math.round(t * 10) / 10 } : null;
+  // Temp. mer : moyenne saisonnière du mois (statique, cf. sea-temp.ts)
+  const t = getSeasonalWaterTemp(parseLocalDate(todayISO).getMonth());
+  const sea: SeaNow | null = t !== null ? { tempC: t } : null;
 
   return {
     sea,

@@ -1,82 +1,41 @@
 // lib/sea-temp.ts
 
 /**
- * Température de l'eau de la mer (zone Saint-Malo / Le Val) via l'API Stormglass.
+ * Température de l'eau de la mer à Saint-Malo — MOYENNE SAISONNIÈRE par mois.
  *
- * Pourquoi Stormglass et pas un scraping : les pages publiques précises
- * (cabaigne, letelegramme…) sont derrière Cloudflare → 403 depuis l'IP datacenter
- * de Vercel (OK en local résidentiel, KO en prod). Et Open-Meteo Marine, sans clé,
- * lit ~19° au lieu de ~13° réels. Stormglass : précis, marche depuis un datacenter,
- * gratuit 10 req/jour (usage non commercial) — largement couvert par le cache 6h.
+ * Pourquoi pas une valeur « du jour » :
+ *  - Les API marines sans/avec clé (Open-Meteo, Stormglass) lisent ~18-19° là où
+ *    la réalité est ~13° : modèles à maille large qui ne résolvent pas l'eau
+ *    côtière froide (estuaire de la Rance, brassage des marées).
+ *  - Les sources mesurées précises (cabaigne, letelegramme…) sont derrière
+ *    Cloudflare → 403 depuis une IP datacenter (Vercel), et toute automatisation
+ *    serveur (Edge Function, cron) a le même problème d'IP.
  *
- * 🔑 Clé lue depuis `process.env.STORMGLASS_API_KEY` (variable d'env Vercel).
- * Jamais hardcodée. Si absente → null (la ligne « mer » disparaît, pas de crash).
+ * Donc on committe les moyennes mensuelles (même philosophie que `lib/tides.ts`) :
+ * pas la valeur exacte du jour, mais le bon ordre de grandeur, stable, zéro
+ * dépendance / quota / 403. Affiché « mer ~14° en juin ».
  *
- * ⚠️ Mode dégradé : timeout, non-throwing, borne de plausibilité (0-35°). Tout
- * échec (clé absente, quota 402, clé invalide 401, réseau) est tracé pour les logs.
+ * Valeurs : moyennes mensuelles Saint-Malo, source cabaigne.net (relevés 2024-2026
+ * lissés). Ré-ajustable une fois par an si besoin.
  */
 
-// Le Val / Rothéneuf
-const LAT = 48.683;
-const LON = -1.965;
+// index 0 = janvier … 11 = décembre
+const MONTHLY_AVG_C: readonly number[] = [
+  9, // janvier
+  8, // février
+  8, // mars
+  9, // avril
+  12, // mai
+  14, // juin
+  16, // juillet
+  17, // août
+  18, // septembre
+  16, // octobre
+  14, // novembre
+  11, // décembre
+];
 
-const ENDPOINT = "https://api.stormglass.io/v2/weather/point";
-const REVALIDATE_SECONDS = 21600; // 6h → ~4 appels/jour, sous le quota gratuit (10)
-const FETCH_TIMEOUT_MS = 5000;
-
-// Sources Stormglass par ordre de préférence (sg = estimation agrégée maison).
-const SOURCE_PREFS = ["sg", "noaa", "meto", "meteo"] as const;
-
-function pickTemp(wt: unknown): number | null {
-  if (!wt || typeof wt !== "object") return null;
-  const obj = wt as Record<string, unknown>;
-  for (const k of SOURCE_PREFS) {
-    const v = obj[k];
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-  }
-  for (const v of Object.values(obj)) {
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-  }
-  return null;
-}
-
-export async function getSaintMaloWaterTemp(): Promise<number | null> {
-  const key = process.env.STORMGLASS_API_KEY;
-  if (!key) {
-    console.error("[sea-temp] STORMGLASS_API_KEY manquant");
-    return null;
-  }
-
-  const start = Math.floor(Date.now() / 1000);
-  const url =
-    `${ENDPOINT}?lat=${LAT}&lng=${LON}&params=waterTemperature` +
-    `&start=${start}&end=${start + 3600}`;
-
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: key },
-      next: { revalidate: REVALIDATE_SECONDS },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-
-    if (!res.ok) {
-      // 401 = clé invalide, 402 = quota dépassé, 429 = rate limit
-      console.error(`[sea-temp] stormglass HTTP ${res.status}`);
-      return null;
-    }
-
-    const j = (await res.json()) as { hours?: { waterTemperature?: unknown }[] };
-    const t = pickTemp(j?.hours?.[0]?.waterTemperature);
-    if (t === null) {
-      console.error("[sea-temp] stormglass: waterTemperature absente de la réponse");
-      return null;
-    }
-    return t;
-  } catch (e) {
-    console.error(
-      "[sea-temp] stormglass échec:",
-      e instanceof Error ? `${e.name}: ${e.message}` : e
-    );
-    return null;
-  }
+/** Moyenne saisonnière (°C) du mois donné (0-11), ou null si hors plage. */
+export function getSeasonalWaterTemp(monthIndex: number): number | null {
+  return MONTHLY_AVG_C[monthIndex] ?? null;
 }
