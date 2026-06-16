@@ -47,13 +47,21 @@ export type TideTime = {
 export type WeatherNow = {
   minC: number;
   maxC: number;
-  /** Écart de la max du jour vs hier (°C, arrondi). null si hier indispo. */
-  deltaMaxC: number | null;
+  /** Écart de la moyenne du jour vs la normale du mois (°C, arrondi). */
+  deltaVsNormalC: number | null;
   /** Heure du coucher du soleil "22h03", ou null. */
   sunset: string | null;
   /** Phrase courte sur la tendance des 7 prochains jours, ou null. */
   weekSummary: string | null;
 };
+
+// Normales mensuelles de température MOYENNE de l'air à Saint-Malo (°C, index
+// 0=janvier). Climatologie station Dinard/Saint-Malo, lissée. Base stable pour
+// « +X° vs la normale » — évite la comparaison à la veille (valeur de grille
+// volatile, non représentative du bord de mer).
+const NORMAL_MEAN_C: readonly number[] = [
+  7, 7, 8, 10, 13, 16, 18, 18, 16, 13, 10, 7,
+];
 
 export type Conditions = {
   sea: SeaNow | null;
@@ -127,10 +135,13 @@ function weekSummary(codes: number[], maxes: number[]): string | null {
 }
 
 async function getWeather(todayISO: string): Promise<WeatherNow | null> {
+  // Pas de past_days : on ne compare plus à hier (valeur de grille volatile, p.ex.
+  // un 15 juin à 28° dans la cellule alors que la plage était à ~21°). On compare
+  // la MOYENNE du jour à la normale saisonnière du mois (base stable).
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-    `&daily=temperature_2m_max,temperature_2m_min,weather_code,sunset` +
-    `&past_days=1&forecast_days=7&timezone=Europe%2FParis`;
+    `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code,sunset` +
+    `&forecast_days=7&timezone=Europe%2FParis`;
 
   const j = (await fetchJson(url)) as
     | {
@@ -138,6 +149,7 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
           time?: unknown[];
           temperature_2m_max?: unknown[];
           temperature_2m_min?: unknown[];
+          temperature_2m_mean?: unknown[];
           weather_code?: unknown[];
           sunset?: unknown[];
         };
@@ -151,6 +163,7 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
 
   const maxArr = d?.temperature_2m_max ?? [];
   const minArr = d?.temperature_2m_min ?? [];
+  const meanArr = d?.temperature_2m_mean ?? [];
   const codeArr = d?.weather_code ?? [];
   const sunsetArr = d?.sunset ?? [];
 
@@ -158,8 +171,11 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   const minC = num(minArr[todayIdx]);
   if (maxC === null || minC === null) return null;
 
-  const yMax = todayIdx > 0 ? num(maxArr[todayIdx - 1]) : null;
-  const deltaMaxC = yMax === null ? null : Math.round(maxC - yMax);
+  // Moyenne du jour (vraie moyenne Open-Meteo, sinon (min+max)/2) vs normale du mois.
+  const meanC = num(meanArr[todayIdx]) ?? (maxC + minC) / 2;
+  const normal = NORMAL_MEAN_C[parseLocalDate(todayISO).getMonth()];
+  const deltaVsNormalC =
+    normal === undefined ? null : Math.round(meanC - normal);
 
   // 7 jours à partir d'aujourd'hui pour la tendance
   const weekCodes: number[] = [];
@@ -174,7 +190,7 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   return {
     minC: Math.round(minC),
     maxC: Math.round(maxC),
-    deltaMaxC,
+    deltaVsNormalC,
     sunset: isoTimeToHHhMM(sunsetArr[todayIdx]),
     weekSummary: weekSummary(weekCodes, weekMaxes),
   };

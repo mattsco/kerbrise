@@ -34,13 +34,13 @@ export default async function BannerConditions({
   const showTideRow = hasTimes || tide !== null;
   if (!showTideRow && !sea && !weather) return null;
 
-  const delta = weather?.deltaMaxC;
+  const delta = weather?.deltaVsNormalC;
   const deltaText =
     delta == null
       ? null
       : delta === 0
-        ? "comme hier"
-        : `${delta > 0 ? "+" : ""}${delta}° vs hier`;
+        ? "dans la normale"
+        : `${delta > 0 ? "+" : ""}${delta}° vs la normale`;
 
   return (
     <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex flex-col gap-2">

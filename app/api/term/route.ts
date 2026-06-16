@@ -55,13 +55,13 @@ export async function GET(req: Request) {
     nextLabel = `Prochaine marée : ${label(a.type)} ${a.time}`;
   }
 
-  const delta = weather?.deltaMaxC;
+  const delta = weather?.deltaVsNormalC;
   const deltaLabel =
     delta == null
       ? null
       : delta === 0
-        ? "comme hier"
-        : `${delta > 0 ? "+" : ""}${delta}° vs hier`;
+        ? "dans la normale"
+        : `${delta > 0 ? "+" : ""}${delta}° vs la normale`;
 
   const monthLabel = fmt({ month: "long" });
   const seaTemp = sea ? Math.round(sea.tempC) : null;
