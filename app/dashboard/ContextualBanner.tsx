@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import {
   type BannerContext,
@@ -8,15 +9,18 @@ import {
   getRelativeFromNow,
   getRelayPhrase,
 } from "@/lib/dashboard-banner";
+import BannerConditions from "./BannerConditions";
 
 type Props = {
   context: BannerContext;
   displayName: string;
+  todayISO: string;
 };
 
 export default function ContextualBanner({
   context,
   displayName,
+  todayISO,
 }: Props) {
   const { bannerCase, currentlyAt, myFamilyNextStay, relayBooking, relayDiffDays } =
     context;
@@ -42,6 +46,9 @@ export default function ContextualBanner({
             {getRelayPhrase(relayDiffDays, relayBooking.family_name)}
           </p>
         )}
+        <Suspense fallback={null}>
+          <BannerConditions todayISO={todayISO} />
+        </Suspense>
       </section>
     );
   }
@@ -69,6 +76,9 @@ export default function ContextualBanner({
             </span>
           </p>
         )}
+        <Suspense fallback={null}>
+          <BannerConditions todayISO={todayISO} />
+        </Suspense>
       </section>
     );
   }

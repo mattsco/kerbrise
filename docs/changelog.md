@@ -5,6 +5,14 @@ Pour le journal de dev complet (refactors, bugs techniques), voir `CHANGELOG.md`
 
 ---
 
+## À venir
+
+🌊 **La mer et le temps dans la bannière d'accueil**
+
+- 🌊 **Marées, eau et météo** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient), la **température de l'eau**, la **météo du jour** (mini/maxi, écart avec hier, heure du coucher du soleil) et une petite phrase sur le **temps de la semaine**. De quoi savoir d'un coup d'œil quand l'eau monte, si elle est baignable, et s'il faut sortir le ciré ou la crème solaire.
+
+---
+
 ## Version 1.2.0 — 14 juin 2026
 
 ✨ **Un calendrier façon tableur et des emails tout neufs**

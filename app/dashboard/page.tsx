@@ -174,6 +174,7 @@ const supabase = await createClient();
         <ContextualBanner
           context={bannerContext}
           displayName={displayName}
+          todayISO={todayISO}
         />
 
         {/* Liste des prochains séjours (uniquement cas C) */}

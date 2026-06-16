@@ -12,7 +12,8 @@
 
 ## 🏖️ Été 2026 — sur place, rythme vacances
 
-- **#26 Mode vacances complet** : APIs météo + marées + température mer ; unifier la surface « la maison maintenant » aujourd'hui dispersée en 4 fragments (webcam, currentlyAt, poubelles, météo).
+- **✅ #26 Mode vacances — fait (pas encore release)** : les conditions du jour (marées + coef, temp. eau, météo + coucher du soleil, tendance semaine) sont intégrées **dans la bannière contextuelle** (cas A/B), pas en widget (rejeté au design). Sources : cabaigne (eau), maree.info (heures marée), Open-Meteo (météo), tides.ts (coef). En `[Unreleased]` dans `CHANGELOG.md` ; détail dans `docs/specs/vacation-mode-home.md`.
+  - **Reste éventuellement à faire** (sorti du périmètre #26) : (1) **fiabilité scrapers** — cabaigne/maree.info peuvent casser silencieusement ; ajouter un log d'échec au checkpoint #28 ; (2) **unifier les fragments restants** — décider si webcam + poubelles rejoignent la bannière (intégration in-place, pas de widget) ; (3) **événements** — non faits faute de source fiable, à ne ré-ouvrir qu'en curation admin manuelle.
 - **#14 (évolué) Monitoring wifi par Raspberry Pi** : RPi sur place qui ping internet toutes les 5 min, statut wifi de la maison visible dans l'app. Côté app codable avant ; installation physique sur place. Le mot de passe wifi rejoint les infos pratiques d'À propos (l'ex-#14 « password en DB » est absorbé).
 - **Documents & infos pratiques dans À propos** : manuels, assurance, infos d'arrivée — au fil de l'eau. C'est le rôle confirmé de la page À propos, pas d'une nouvelle surface.
 

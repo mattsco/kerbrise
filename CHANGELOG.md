@@ -5,6 +5,22 @@
 
 ---
 
+## [Unreleased]
+
+### ✨ Ajouts
+- **#26 — Conditions du jour dans la bannière** : quand un séjour est en cours (cas A/B), la bannière contextuelle du dashboard s'enrichit de lignes « conditions », **dans son propre style** (pas de widget) : icônes d'accent, valeurs en gras, labels atténués, coef en pastille douce. Contenu :
+  - **marées** : les 2 prochaines à venir (heure + pleine/basse, flèches ↑/↓), calculées par rapport à l'heure de Paris (débordent sur demain en fin de journée), avec le **coef** en pastille (statique). Si le scraper tombe : repli `Marée du jour` + coef seul.
+  - **température de l'eau** : valeur seule (sans label, l'icône goutte suffit).
+  - **météo du jour** : min / max + **écart de la max vs hier** (« +2° vs hier »), et **coucher du soleil** aligné à droite.
+  - **tendance de la semaine** : une phrase au ton léger générée par règles déterministes sur les 7 prochains jours (ex. « Grand beau et chaud toute la semaine, tu as de la chance »). Pas de LLM, pas d'invention.
+  - Sources : **temp. eau** = scraper `cabaigne.net` (Saint-Malo, mesure satellite, `lib/sea-temp.ts` — parsing par ancrage textuel, pas de sélecteur CSS fragile, borne de plausibilité 0-35°) ; **marées** (heures) = `maree.info` ; **météo** = Open-Meteo Forecast (min/max, écart vs hier via `past_days=1`, coucher du soleil, tendance 7j) ; **coef** = statique `lib/tides.ts`. **Pas de fallback Open-Meteo Marine pour la temp. eau** : son modèle lit trop haut près des côtes (~19° vs ~13-15° réels) — on préfère ne rien afficher qu'une valeur fausse. (Pistes letelegramme/Rothéneuf et lachainemeteo/Val abandonnées : pages non récupérables pour caler/vérifier le scraper.)
+  - Fetch **côté serveur**, sous `<Suspense fallback={null}>`, **cachés** (Open-Meteo 2h, maree.info 3h), **timeout** (4-5s), **mode dégradé** ligne par ligne. Le scraping maree.info reste le maillon fragile assumé, isolé par cache + dégradation.
+  - **Durcissement de l'existant** : `lib/maree-info.ts` (scraper cheerio préexistant, jamais branché) corrigé — bug de type `waterTemperature` (renvoyait la chaîne `"undefined"`, **seule erreur de compil du projet**), `no-store` → cache 3h, timeout + wrapper non-throwing `getSaintMaloTidesSafe`.
+  - Nouveau `lib/conditions.ts` + composant `app/dashboard/BannerConditions.tsx` (rendu dans `ContextualBanner`).
+  - **Scope coupé** : pas de recommandations d'événements (aucune source fiable — à ne ré-ouvrir qu'en curation admin manuelle). Cf. ROADMAP.
+
+---
+
 ## [1.2.0] — 14 juin 2026
 
 ### ✨ Ajouts

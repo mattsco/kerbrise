@@ -1,10 +1,35 @@
 # Spec — Mode "Vacances" sur la home (#26)
 
-> **Statut** : 🌱 Spec embryonnaire (à étoffer avant implémentation)
+> **Statut** : ✅ Fait (16 juin 2026), en `[Unreleased]` — pas encore release. Périmètre conditions ; unification des fragments non faite (cf. plus bas).
 > **Type** : Feature moyenne
-> **Cible** : Pas de date fixée
-> **Estimation** : ~3-4h
-> **Dernière MAJ** : 28 mai 2026
+> **Cible** : Fait, en attente de release
+> **Estimation initiale** : ~3-4h
+> **Dernière MAJ** : 16 juin 2026
+
+## ✅ Ce qui a été fait
+
+Le "mode vacances" a été implémenté **non pas comme des widgets** mais comme un **enrichissement de la bannière contextuelle** du dashboard (cas A/B, quand `currentlyAt` est vrai). L'approche widget/carte dédiée a été **explicitement rejetée au design** (« je n'aime pas les widgets ») au profit de lignes texte intégrées au style aéré de la bannière.
+
+Lignes ajoutées quand quelqu'un est sur place :
+- **Marées** : les 2 prochaines (heure + pleine/basse, flèches ↑/↓) + **coef** en pastille. Repli `Marée du jour : coef X` si le scraper tombe.
+- **Mer** : « mer à 13° ».
+- **Météo du jour** : min / max + écart de la max vs hier + heure du coucher du soleil.
+- **Tendance semaine** : phrase au ton léger, générée par règles déterministes (pas de LLM).
+
+**Sources** (chacune dégrade indépendamment, fetch serveur caché + timeout, mode dégradé ligne par ligne) :
+- temp. eau → scraper `cabaigne.net` (Saint-Malo, satellite) — `lib/sea-temp.ts`
+- heures marée → scraper `maree.info` — `lib/maree-info.ts`
+- coef marée → statique `lib/tides.ts`
+- météo / sunset / tendance 7j → Open-Meteo Forecast — dans `lib/conditions.ts`
+
+**Code** : `lib/conditions.ts` (orchestration), `app/dashboard/BannerConditions.tsx` (rendu, sous `<Suspense>`), branché dans `ContextualBanner`. `app/api/tides/route.ts` expose aussi les marées brutes.
+
+**Tranché / abandonné** :
+- Pas de fallback Open-Meteo Marine pour la temp. eau (lisait ~19° vs ~13-15° réels).
+- Pas de recommandations d'événements ni de restos (aucune source fiable — risque d'info fausse).
+- Pistes temp. eau letelegramme (Rothéneuf) et lachainemeteo (Val) abandonnées : pages non récupérables pour caler/vérifier le scraper.
+
+**Reste éventuellement à faire (post-#26, cf. ROADMAP)** : absorber les autres fragments « la maison maintenant » (webcam, poubelles) dans cette surface ; ajouter un log d'échec de scrape (checkpoint #28). La vision « widgets » ci-dessous est conservée comme contexte historique mais n'est PAS la forme retenue.
 
 ## Vision
 
