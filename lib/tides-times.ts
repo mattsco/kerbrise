@@ -18,8 +18,8 @@ export type TideTimeEvent = {
   type: "PM" | "BM";
   /** Heure locale Europe/Paris, format "HHhMM" (ex. "04h42"). */
   time: string;
-  /** Hauteur d'eau en mètres (zéro hydrographique). */
-  height: number;
+  /** Hauteur d'eau en mètres (zéro hydrographique). `null` si non fournie par la source. */
+  height: number | null;
   /** Coefficient — uniquement sur les pleines mers (PM). */
   coef?: number;
 };

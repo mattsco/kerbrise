@@ -42,9 +42,10 @@ block = re.sub(r",(\s*[\]])", r"\1", block)
 coefs = json.loads(block)
 
 # 2. Parse du dump brut
-CELL_TIME = re.compile(r"(\d{2}):(\d{2})")
-CELL_H    = re.compile(r"([⬆⬇])\s*([\d.]+)m")
-CELL_COEF = re.compile(r"Coef\s*(\d+)")
+CELL_TIME  = re.compile(r"(\d{2}):(\d{2})")
+CELL_ARROW = re.compile(r"([⬆⬇])")
+CELL_H     = re.compile(r"([\d.]+)\s*m")
+CELL_COEF  = re.compile(r"Coef\s*(\d+)")
 
 events_by_date, errors, month = {}, [], None
 for line in RAW.read_text(encoding="utf-8").splitlines():
@@ -61,11 +62,13 @@ for line in RAW.read_text(encoding="utf-8").splitlines():
     for cell in cols[2:7]:
         if not cell.strip():
             continue
-        tm, hm = CELL_TIME.search(cell), CELL_H.search(cell)
-        if not tm or not hm:
+        tm, am = CELL_TIME.search(cell), CELL_ARROW.search(cell)
+        if not tm or not am:
             errors.append(f"{month:02d}-{day:02d}: cellule illisible: {cell!r}"); continue
-        ev = {"type": "PM" if hm.group(1) == "⬆" else "BM",
-              "time": f"{tm.group(1)}h{tm.group(2)}", "height": float(hm.group(2))}
+        hm = CELL_H.search(cell)
+        ev = {"type": "PM" if am.group(1) == "⬆" else "BM",
+              "time": f"{tm.group(1)}h{tm.group(2)}",
+              "height": float(hm.group(1)) if hm else None}  # hauteur parfois absente
         cm = CELL_COEF.search(cell)
         if cm:
             ev["coef"] = int(cm.group(1))
@@ -81,7 +84,7 @@ for date, evs in events_by_date.items():
     if any(a == b for a, b in zip(types, types[1:])):
         errors.append(f"{date}: deux marées de même type consécutives: {types}")
     for e in evs:
-        if not 0 <= e["height"] <= 14:
+        if e["height"] is not None and not 0 <= e["height"] <= 14:
             errors.append(f"{date}: hauteur invraisemblable {e['height']}")
 
 # 3b. séquence chronologique des coefs PM == coefs committés
@@ -127,7 +130,8 @@ out = [
 for date in days:
     parts = []
     for e in events_by_date[date]:
-        seg = f'{{ type: "{e["type"]}", time: "{e["time"]}", height: {e["height"]}'
+        h = "null" if e["height"] is None else e["height"]
+        seg = f'{{ type: "{e["type"]}", time: "{e["time"]}", height: {h}'
         if "coef" in e:
             seg += f', coef: {e["coef"]}'
         parts.append(seg + " }")
