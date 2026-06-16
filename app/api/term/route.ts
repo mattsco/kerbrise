@@ -104,6 +104,9 @@ export async function GET(req: Request) {
             high_label: highs.length ? `PM ${highs.join(" · ")}` : null,
             low_label: lows.length ? `BM ${lows.join(" · ")}` : null,
             next_label: nextLabel,
+            // Prochaines marées triées (consommé par le plugin TRMNL pour le
+            // visuel "Pleine ▲ / Basse ▼"). Vide si le scraper maree.info échoue.
+            upcoming: upcomingTides,
             events: todayTides,
           }
         : null,

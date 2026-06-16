@@ -1,0 +1,65 @@
+---
+# Config du serveur de dev local — N'EST PAS uploadé vers TRMNL.
+watch:
+  - src
+  - .trmnlp.yml
+
+time_zone: Europe/Paris
+
+# ------------------------------------------------------------------
+# Données FIXTURE pour le dev local.
+# deep_merge à la racine => le template lit {{ status }}, {{ stay.family }}, etc.
+# Avantage : pas de token en local, et tu testes les états à volonté
+# (commente le bloc `stay` + passe `status` à "vacant" pour voir "Maison libre").
+# En prod, ces données viennent du vrai fetch authentifié de /api/term.
+# ------------------------------------------------------------------
+variables:
+  trmnl:
+    user:
+      name: Matthieu
+      first_name: Matthieu
+    plugin_settings:
+      instance_name: Salon
+
+  status: occupied
+  generated_at_label: "mar. 16 juin · 12:36"
+
+  stay:
+    family: Antoine
+    dates_label: "15 → 28 juin"
+    departure_label: "jusqu'au 28 juin"
+    days_remaining: 12
+    days_remaining_label: "12 jours restants"
+    progress_label: "Jour 2/14"
+
+  next:
+    family: Vincent
+    arrival_label: "29 juin"
+    countdown_label: "dans 13 jours"
+    relay_label: "Vincent arrive le lendemain de ton départ"
+    is_pivot: false
+
+  sea:
+    temp_c: 14
+    label: "Mer ~14° en juin"
+    note: "moyenne saisonnière"
+
+  weather:
+    temp_label: "15° / 19°"
+    delta_label: "+1° vs la normale"
+    sunset_label: "22h12"
+    week_label: "Semaine en demi-teinte, soleil et pluie"
+
+  tides:
+    coef_label: "Coef 95"
+    level_label: "Grande vive-eau"
+    next_label: "Prochaine marée : basse 15h41 puis haute 21h05"
+    # Prochaines marées triées chronologiquement (à exposer côté API).
+    upcoming:
+      - { type: PM, time: "21h05" }
+      - { type: BM, time: "04h11" }
+    events:
+      - { type: BM, time: "03h18", height: 1.59 }
+      - { type: PM, time: "08h46", height: 11.85 }
+      - { type: BM, time: "15h41", height: 1.73 }
+      - { type: PM, time: "21h05", height: 12.22 }

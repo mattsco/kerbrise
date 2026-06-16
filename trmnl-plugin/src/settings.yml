@@ -1,0 +1,19 @@
+---
+strategy: polling
+no_screen_padding: 'no'
+dark_mode: 'no'
+static_data: 
+polling_verb: GET
+framework_version: 
+serverless_language: 
+polling_url: https://kerbrise.fr/api/term
+polling_headers: authorization=Bearer {{ api_token | strip }}
+polling_body: 
+id: 338311
+custom_fields:
+- keyname: api_token
+  name: Token API Kerbrise
+  field_type: password
+  description: Token attendu par /api/term
+name: Kerbrise – Saint-Malo
+refresh_interval: 60

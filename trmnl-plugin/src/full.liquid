@@ -1,0 +1,80 @@
+{% comment %}
+  Kerbrise · TRMNL full dashboard (800x480, e-ink N&B)
+  Source: https://kerbrise.fr/api/term (polling, single URL => clés à la racine)
+  Design : composants natifs TRMNL, typographie, zéro illustration.
+
+  Marées : on consomme `tides.upcoming` (tableau des prochaines marées
+  déjà triées par l'API, chacune {type:"PM"|"BM", time:"21h05"}).
+  Repli sur `tides.next_label` tant que l'API ne fournit pas `upcoming`.
+{% endcomment %}
+
+<div class="view view--full">
+  <div class="layout" style="display:flex;flex-direction:column;height:100%;">
+
+    <!-- ============ HEADER ============ -->
+    <div style="padding-bottom:12px;border-bottom:4px solid var(--color-black,#000);">
+      <span class="title" style="font-size:38px;font-weight:700;letter-spacing:-0.5px;">
+        Bienvenue à Kerbrise{% if trmnl.user.first_name %}, {{ trmnl.user.first_name | strip }}{% endif %}
+      </span>
+      {% if status == "occupied" and stay %}
+        <div class="label label--gray-3" style="font-size:19px;margin-top:6px;">Ton séjour {{ stay.dates_label }}</div>
+      {% else %}
+        <div class="label label--gray-3" style="font-size:19px;margin-top:6px;">Maison libre en ce moment</div>
+      {% endif %}
+    </div>
+
+    <!-- ============ BODY ============ -->
+    <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
+
+      <!-- ---- Row 1 : Météo + Mer ---- -->
+      <div style="flex:1;display:flex;align-items:center;padding:14px 0;">
+        <!-- Météo -->
+        <div style="flex:1;padding-right:26px;border-right:3px solid var(--color-black,#000);">
+          <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">Météo</span>
+          <div style="display:flex;align-items:baseline;gap:16px;margin-top:4px;">
+            <span class="value value--tnums" style="font-size:66px;font-weight:700;line-height:1;letter-spacing:-1px;">{{ weather.temp_label }}</span>
+            <span style="font-size:23px;font-weight:600;">{{ weather.delta_label }}</span>
+          </div>
+          <div class="label label--gray-2" style="font-size:18px;margin-top:8px;">{{ weather.week_label }}</div>
+        </div>
+        <!-- Mer -->
+        <div style="width:34%;padding-left:26px;">
+          <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">T° mer</span>
+          <div class="value value--tnums" style="font-size:60px;font-weight:700;line-height:1;letter-spacing:-1px;margin-top:4px;">~{{ sea.temp_c }}°</div>
+        </div>
+      </div>
+
+      <!-- ---- Row 2 : Marées ---- -->
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;border-top:1.5px solid var(--color-black,#000);padding:14px 0;">
+        <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">
+          Marées · {{ tides.coef_label }}{% if tides.level_label %} · {{ tides.level_label }}{% endif %}
+        </span>
+
+        {% if tides.upcoming and tides.upcoming.size > 0 %}
+          <div style="display:flex;gap:56px;margin-top:10px;">
+            {% for e in tides.upcoming limit: 3 %}
+              <div>
+                <span class="label" style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
+                  {% if e.type == "PM" %}Pleine ▲{% else %}Basse ▼{% endif %}
+                </span>
+                <div class="value value--tnums" style="font-size:54px;font-weight:700;line-height:0.95;letter-spacing:-1px;">{{ e.time }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elsif tides.next_label %}
+          <div style="font-size:26px;font-weight:600;margin-top:10px;line-height:1.3;">{{ tides.next_label }}</div>
+        {% else %}
+          <div class="label label--gray-3" style="font-size:18px;margin-top:10px;">Horaires de marée indisponibles</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- ============ TITLE BAR ============ -->
+    <div class="title_bar" style="margin-top:6px;">
+      <img class="image" src="https://trmnl.com/images/plugins/trmnl--render.svg" />
+      <span class="title">Kerbrise · Saint-Malo</span>
+    </div>
+
+  </div>
+</div>

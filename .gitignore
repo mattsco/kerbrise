@@ -12,3 +12,4 @@ docs/audit.zip
 .DS_Store
 supabase/.temp/
 supabase/functions/_dev/preview-output/
+tsconfig.tsbuildinfo
