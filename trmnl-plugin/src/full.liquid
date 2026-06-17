@@ -44,28 +44,41 @@
         </div>
       </div>
 
-      <!-- ---- Row 2 : Marées ---- -->
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;border-top:1.5px solid var(--color-black,#000);padding:14px 0;">
-        <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">
-          Marées · {{ tides.coef_label }}{% if tides.level_label %} · {{ tides.level_label }}{% endif %}
-        </span>
+      <!-- ---- Row 2 : Marées + Coucher de soleil ---- -->
+      <div style="flex:1;display:flex;align-items:center;border-top:1.5px solid var(--color-black,#000);padding:14px 0;">
 
-        {% if tides.upcoming and tides.upcoming.size > 0 %}
-          <div style="display:flex;gap:56px;margin-top:10px;">
-            {% for e in tides.upcoming limit: 3 %}
-              <div>
-                <span class="label" style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
-                  {% if e.type == "PM" %}Pleine ▲{% else %}Basse ▼{% endif %}
-                </span>
-                <div class="value value--tnums" style="font-size:54px;font-weight:700;line-height:0.95;letter-spacing:-1px;">{{ e.time }}</div>
-              </div>
-            {% endfor %}
+        <!-- Marées (gauche) -->
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;{% if weather.sunset_label %}padding-right:26px;border-right:3px solid var(--color-black,#000);{% endif %}">
+          <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">
+            Marées · {{ tides.coef_label }}{% if tides.level_label %} · {{ tides.level_label }}{% endif %}
+          </span>
+
+          {% if tides.upcoming and tides.upcoming.size > 0 %}
+            <div style="display:flex;gap:42px;margin-top:10px;">
+              {% for e in tides.upcoming limit: 3 %}
+                <div>
+                  <span class="label" style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">
+                    {% if e.type == "PM" %}Pleine ▲{% else %}Basse ▼{% endif %}
+                  </span>
+                  <div class="value value--tnums" style="font-size:54px;font-weight:700;line-height:0.95;letter-spacing:-1px;">{{ e.time }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% elsif tides.next_label %}
+            <div style="font-size:26px;font-weight:600;margin-top:10px;line-height:1.3;">{{ tides.next_label }}</div>
+          {% else %}
+            <div class="label label--gray-3" style="font-size:18px;margin-top:10px;">Horaires de marée indisponibles</div>
+          {% endif %}
+        </div>
+
+        <!-- Coucher de soleil (droite) -->
+        {% if weather.sunset_label %}
+          <div style="width:26%;padding-left:26px;">
+            <span class="label label--small" style="text-transform:uppercase;letter-spacing:2px;">Coucher</span>
+            <div class="value value--tnums" style="font-size:54px;font-weight:700;line-height:1;letter-spacing:-1px;margin-top:4px;">{{ weather.sunset_label }}</div>
           </div>
-        {% elsif tides.next_label %}
-          <div style="font-size:26px;font-weight:600;margin-top:10px;line-height:1.3;">{{ tides.next_label }}</div>
-        {% else %}
-          <div class="label label--gray-3" style="font-size:18px;margin-top:10px;">Horaires de marée indisponibles</div>
         {% endif %}
+
       </div>
 
     </div>
@@ -74,6 +87,7 @@
     <div class="title_bar" style="margin-top:6px;">
       <img class="image" src="https://trmnl.com/images/plugins/trmnl--render.svg" />
       <span class="title">Kerbrise · Saint-Malo</span>
+      {% if generated_at_label %}<span class="instance">MAJ {{ generated_at_label }}</span>{% endif %}
     </div>
 
   </div>

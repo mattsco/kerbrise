@@ -14,7 +14,7 @@
 - **Plugin privé, stratégie « Polling »** : les **serveurs TRMNL** appellent ton URL, injectent le JSON dans un template **Liquid**, rendent une **image**, que le device récupère à son réveil. `kerbrise.fr` n'est jamais contacté par le device. (Détails device : voir la spec.)
 - **Écran** : TRMNL OG, **800×480, 1-bit N&B**. Pas de couleur, demi-teintes via dithering. Devise du design system : **« less is more »**.
 - **Accès aux variables** : avec **une seule** Polling URL, les clés JSON sont **à la racine** (`{{ status }}`, `{{ stay.family }}`). Avec **plusieurs** URLs, elles deviennent `{{ IDX_0.x }}`, `{{ IDX_1.x }}`.
-- **Fraîcheur** : `refresh_interval` ∈ {15, 60, 360, 720, 1440} min = **minimum** entre deux fetchs. Ne jamais concevoir une vue qui suppose une mise à jour à la minute (ex. : ne pas afficher une horloge).
+- **Fraîcheur = DEUX réglages distincts, souvent confondus** (cf. **§11**) : le **Refresh Rate du *device*** (à quelle fréquence l'écran se réveille et check-in) et le **Max refresh rate du *plugin*** (plafond on-demand : re-poll **uniquement** au check-in du device, jamais plus souvent que le plafond). **Il n'y a pas de cron serveur.** Fraîcheur réelle ≈ `max(intervalle device, plafond plugin)`. Ne jamais concevoir une vue qui suppose une mise à jour à la minute (ex. : ne pas afficher une horloge).
 
 ---
 
@@ -93,7 +93,7 @@ trmnlp push           # upload settings.yml + *.liquid
 ---
 name: Kerbrise – Saint-Malo
 strategy: polling
-refresh_interval: 60          # minutes ∈ 15 | 60 | 360 | 720 | 1440
+refresh_interval: 60          # = PLAFOND plugin, en minutes. UI : 5 | 10 | 15 | 30 | 60 (Hourly) | 120 | 240 | 360 (4×/j) | 480 (3×/j) | 720 (2×/j) | 1440 (1×/j). Cf. §11.
 polling_url: https://kerbrise.fr/api/term
 polling_verb: GET
 polling_headers: 'authorization=Bearer {{ api_token | strip }}'   # voir §6 (syntaxe !)
@@ -241,7 +241,42 @@ Pièges Display API :
 
 ---
 
-## 11. Fiabilité des sources de données — **leçon importante**
+## 11. Configurer les refresh rates — **best practices**
+
+> Vécu : « réglé sur hourly mais l'écran ne bouge pas depuis 2 h ». Cause = confusion entre les deux réglages ci-dessous. **Aucun cron serveur ne pousse l'image** ; tout est piloté par le **check-in du device**.
+
+### 11.1 Les deux réglages (à ne PAS confondre)
+
+| Réglage | Où | Ce qu'il contrôle | Libellé UI |
+|---|---|---|---|
+| **Refresh Rate** | page **device** | fréquence à laquelle l'écran **se réveille, check-in et tire** la dernière image. **C'est le vrai moteur** + le **driver de la batterie**. | « Adjust your refresh rate to optimize focus and battery life. » |
+| **Max refresh rate** | page **plugin** | **plafond** : le serveur re-poll `/api/term` et regénère l'image **on-demand, au check-in du device**, jamais plus souvent que ce plafond. **Pas** un planificateur. | « Refreshes on-demand when your device checks in — no more often than the rate below. » |
+
+Options Max refresh rate (plugin) : `1×/j` · `2×/j` · `3×/j` · `4×/j` · `Every 4 hrs` · `Every 2 hrs` · `Hourly` · `Every 30 mins` · `Every 15 mins` · `Every 10 mins` · `Every 5 mins`.
+
+### 11.2 Règles qui découlent du modèle on-demand
+
+- **Fraîcheur réelle ≈ `max(intervalle device, plafond plugin)`.** Le plus lent des deux gagne. Mettre le plugin à 5 min alors que le device check-in toutes les 3 h ne sert **à rien**.
+- **Plugin plus fin que device = gaspillage** : le device retire la **même image en cache** entre deux check-in. **Device plus fin que plugin = gaspillage** : il réveille l'écran (batterie) pour retirer une image identique.
+- **`trmnlp push` ≠ re-render.** Pousser le markup ne regénère pas l'image ; tu vois l'ancien rendu jusqu'au prochain re-poll. **Force Refresh** (page plugin) force la régénération immédiate avec le markup à jour.
+- **Choisir la fréquence selon la fraîcheur voulue de l'info « prochain X », pas selon la vitesse de changement de la donnée.** Les marées changent toutes les ~6 h, mais on veut que « prochaine marée » **roule** vite après qu'elle soit passée → un refresh à 6 h afficherait une marée déjà passée pendant des heures. **Hourly** garde l'info honnête à ≤1 h près.
+- **Batterie** : le Refresh Rate **device** est le poste de coût. Sur batterie, fréquent = vidée en jours ; à l'heure = des mois. Sur **USB** (écran salon branché) : négligeable, va au plus fin utile.
+
+### 11.3 Réglage retenu pour Kerbrise (écran salon)
+
+- **Plugin Max refresh rate : `Hourly`.** Rien sur la vue ne bouge plus vite utilement (météo, coucher, séjour à minuit, marées qui roulent).
+- **Device Refresh Rate : `30 min` si branché USB**, `Hourly` si sur batterie. (Device légèrement plus fin que le plafond plugin → l'écran récupère un nouveau rendu peu après sa génération.)
+
+### 11.4 Débug « ça ne s'update pas » (couche par couche)
+
+1. **Le device check-in ?** Page device → « last seen » / « Synced ». Vieux → souci réseau/sommeil/batterie, le plugin n'y est pour rien.
+2. **Quelle image est servie ?** `current_screen` (§9) → timestamp du rendu. Vieux → poll serveur ne part pas ; récent mais écran device vieux → device ne tire pas.
+3. **Le markup est-il live ?** « Edit Markup » contient bien ta dernière version ? Sinon re-`trmnlp push`. Puis **Force Refresh** pour régénérer.
+4. **Repère visuel** : le `title_bar` affiche `MAJ {{ generated_at_label }}` → tu lis directement l'heure de génération du rendu courant sur l'écran.
+
+---
+
+## 12. Fiabilité des sources de données — **leçon importante**
 
 > Vécu sur les **horaires de marée** : OK en local, **vides en prod**.
 
@@ -252,7 +287,7 @@ Pièges Display API :
 
 ---
 
-## 12. Pièges rencontrés — TL;DR
+## 13. Pièges rencontrés — TL;DR
 
 | Symptôme | Cause réelle | Correctif |
 |---|---|---|
@@ -264,12 +299,14 @@ Pièges Display API :
 | `Device not found` (Display API) | header `ID`/MAC non matché | n'envoyer que l'`Access-Token` |
 | Marées « déjà passées » / ordre bizarre | calcul temps-relatif dans le template (fuseau UTC vs Paris) | l'**API** expose `tides.upcoming` déjà trié (§8) |
 | Tuiles pointillées moches | `<div class="meta"></div>` vide | supprimer les `meta` vides (§7) |
-| Données vides en prod, OK en local | source scrappée bloquée sur IP datacenter | committer la donnée offline (§11) |
+| Données vides en prod, OK en local | source scrappée bloquée sur IP datacenter | committer la donnée offline (§12) |
 | Plugin invisible sur le device | pas dans un Playlist | ajouter au Playlist (§10) |
+| « Réglé sur hourly mais l'écran ne bouge pas » | confusion Refresh Rate (device) vs Max refresh rate (plugin) ; pas de cron serveur, tout est on-demand au check-in device | baisser le **Refresh Rate device** ; fraîcheur ≈ max(device, plafond plugin) (§11) |
+| Nouveau markup poussé mais invisible | `trmnlp push` ≠ re-render ; le device retire l'ancienne image en cache | **Force Refresh** (page plugin) pour régénérer (§11.2) |
 
 ---
 
-## 13. Références
+## 14. Références
 
 - Spec produit & device : `docs/specs/trmnl-sejour-display.md`
 - Projet de la 1ʳᵉ vue : `trmnl-plugin/`
