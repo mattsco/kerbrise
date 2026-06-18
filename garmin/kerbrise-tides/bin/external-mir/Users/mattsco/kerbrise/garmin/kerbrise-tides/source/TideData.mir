@@ -1,0 +1,609 @@
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 7; @symbol_usingdef<0> = [Toybox,7,6,12]; @symbol_usingdef<1> = [Lang,7,13,17]; ]
+using Toybox.Lang;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 9; @symbol_moduledef = [TideData,9,7,15]; ]
+module TideData {
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 9; ]
+    <init> {
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 15 10 ]
+        %tmp.1 = "H0442069L1138---H1718074--------L0008---H0544079L1242---H1819084L0109---H0640088";
+        %tmp.2 = "L1342---H1915091L0204---H0732094L1436---H2005095L0255---H0820096L1525---H2052095";
+        %tmp.3 = add %tmp.1 %tmp.2;
+        %tmp.4 = "L0341---H0904093L1610---H2134091L0423---H0945087L1650---H2214082L0500---H1024077";
+        %tmp.5 = add %tmp.3 %tmp.4;
+        %tmp.6 = "L1726---H2250072L0535---H1101066L1759---H2326060L0609---H1138054L1832-----------";
+        %tmp.7 = add %tmp.5 %tmp.6;
+        %tmp.8 = "H0005049L0647---H1222044L1912---H0055039L0736---H1321036L2008---H0206035L0846---";
+        %tmp.9 = add %tmp.7 %tmp.8;
+        %tmp.10 = "H1442035L2127---H0330036L1009---H1603039L2245---H0438043L1117---H1704047L2346---";
+        %tmp.11 = add %tmp.9 %tmp.10;
+        %tmp.12 = "H0530052L1212---H1754056--------L0035---H0614061L1258---H1836065L0119---H0653069";
+        %tmp.13 = add %tmp.11 %tmp.12;
+        %tmp.14 = "L1341---H1915073L0159---H0731076L1422---H1952079L0238---H0807081L1502---H2028083";
+        %tmp.15 = add %tmp.13 %tmp.14;
+        %tmp.16 = "L0316---H0842084L1540---H2104085L0353---H0918085L1616---H2139084L0428---H0953082";
+        %tmp.17 = add %tmp.15 %tmp.16;
+        %tmp.18 = "L1651---H2214080L0502---H1029076L1726---H2250073L0538---H1107068L1803---H2330064";
+        %tmp.19 = add %tmp.17 %tmp.18;
+        %tmp.20 = "L0619---H1152059L1848-----------H0020054L0712---H1253050L1949---H0131047L0831---";
+        %tmp.21 = add %tmp.19 %tmp.20;
+        %tmp.22 = "H1421047L2115---H0306049L1005---H1558052L2244---H0434058L1128---H1719065--------";
+        %tmp.23 = add %tmp.21 %tmp.22;
+        %tmp.24 = "L0000---H0543072L1239---H1820078L0104---H0638084L1339---H1912089L0159---H0726094";
+        %tmp.25 = add %tmp.23 %tmp.24;
+        %tmp.26 = "L1430---H1957097L0247---H0809099L1515---H2037099L0328---H0848099L1553---H2114097";
+        %tmp.27 = add %tmp.25 %tmp.26;
+        %tmp.28 = "L0404---H0924094L1627---H2147090L0435---H0956084L1654---H2216079L0502---H1025073";
+        %tmp.29 = add %tmp.27 %tmp.28;
+        %tmp.30 = "L1718---H2244066L0525---H1053059L1739---H2311052L0551---H1123046L1805---H2343039";
+        %tmp.31 = add %tmp.29 %tmp.30;
+        %tmp.32 = "L0626---H1202033L1846-----------H0035028L0724---H1320025L2003---H0229025L0913---";
+        %tmp.33 = add %tmp.31 %tmp.32;
+        %tmp.34 = "H1527028L2208---H0413033L1052---H1647039L2326---H0512045L1153---H1738052--------";
+        %tmp.35 = add %tmp.33 %tmp.34;
+        %tmp.36 = "L0019---H0557059L1242---H1820065L0104---H0637071L1326---H1859077L0146---H0715082";
+        %tmp.37 = add %tmp.35 %tmp.36;
+        %tmp.38 = "L1408---H1936087L0226---H0751091L1448---H2012094L0304---H0826096L1526---H2046097";
+        %tmp.39 = add %tmp.37 %tmp.38;
+        %tmp.40 = "L0340---H0901097L1601---H2120096L0414---H0935094L1634---H2153091L0446---H1008086";
+        %tmp.41 = add %tmp.39 %tmp.40;
+        %tmp.42 = "L1706---H2226081L0518---H1044074L1739---H2302067L0554---H1125060L1819---H2347052";
+        %tmp.43 = add %tmp.41 %tmp.42;
+        %tmp.44 = "L0645---H1223046L1919-----------H0100041L0808---H1409039L2057---H0300042L1000---";
+        %tmp.45 = add %tmp.43 %tmp.44;
+        %tmp.46 = "H1606047L2242---H0436055L1130---H1721062L2359---H0539070L1235---H1813078--------";
+        %tmp.47 = add %tmp.45 %tmp.46;
+        %tmp.48 = "L0058---H0628084L1329---H1858090L0147---H0710094L1414---H1937097L0229---H0749099";
+        %tmp.49 = add %tmp.47 %tmp.48;
+        %tmp.50 = "L1453---H2013099L0305---H0824099L1527---H2045097L0337---H0855094L1554---H2114091";
+        %tmp.51 = add %tmp.49 %tmp.50;
+        %tmp.52 = "L0403---H0924086L1618---H2140081L0426---H0949075L1637---H2203069L0446---H1013062";
+        %tmp.53 = add %tmp.51 %tmp.52;
+        %tmp.54 = "L1654---H2226055L0507---H1037048L1715---H2250041L0536---H1106034L1747---H2325028";
+        %tmp.55 = add %tmp.53 %tmp.54;
+        %tmp.56 = "L0623---H1201023L1849-----------H0102021L0800---H1444023L2118---H0337028L1017---";
+        %tmp.57 = add %tmp.55 %tmp.56;
+        %tmp.58 = "H1618035L2257---H0442042L1123---H1710050L2350---H0528058L1213---H1752066--------";
+        %tmp.59 = add %tmp.57 %tmp.58;
+        %tmp.60 = "L0035---H0609073L1258---H1832080L0119---H0648087L1342---H1910092L0202---H0726097";
+        %tmp.61 = add %tmp.59 %tmp.60;
+        %tmp.62 = "L1424---H1946101L0242---H0803103L1503---H2021104L0320---H0839104L1539---H2056103";
+        %tmp.63 = add %tmp.61 %tmp.62;
+        %tmp.64 = "L0355---H0914100L1613---H2130095L0428---H0949089L1646---H2205082L0502---H1026074";
+        %tmp.65 = add %tmp.63 %tmp.64;
+        %tmp.66 = "L1720---H2243066L0540---H1111057L1803---H2332049L0635---H1217043L1909-----------";
+        %tmp.67 = add %tmp.65 %tmp.66;
+        %tmp.68 = "H0056039L0805---H1417039L2056---H0258043L0959---H1603049L2236---H0524056L1219---";
+        %tmp.69 = add %tmp.67 %tmp.68;
+        %tmp.70 = "H1805063--------L0044---H0620070L1317---H1852077L0137---H0705082L1405---H1932086";
+        %tmp.71 = add %tmp.69 %tmp.70;
+        %tmp.72 = "L0222---H0744089L1447---H2008092L0301---H0821093L1522---H2042093L0334---H0854093";
+        %tmp.73 = add %tmp.71 %tmp.72;
+        %tmp.74 = "L1552---H2112091L0403---H0924089L1618---H2140086L0429---H0951082L1641---H2205078";
+        %tmp.75 = add %tmp.73 %tmp.74;
+        %tmp.76 = "L0453---H1016073L1702---H2228068L0515---H1041062L1721---H2252056L0538---H1107050";
+        %tmp.77 = add %tmp.75 %tmp.76;
+        %tmp.78 = "L1744---H2318043L0608---H1138037L1816---H2354032L0653---H1231027L1913-----------";
+        %tmp.79 = add %tmp.77 %tmp.78;
+        %tmp.80 = "H0111025L0812---H1443026L2107---H0337029L1015---H1625035L2301---H0452042L1133---";
+        %tmp.81 = add %tmp.79 %tmp.80;
+        %tmp.82 = "H1725050--------L0003---H0545058L1228---H1812066L0053---H0630073L1319---H1854081";
+        %tmp.83 = add %tmp.81 %tmp.82;
+        %tmp.84 = "L0142---H0713087L1407---H1935093L0229---H0755097L1453---H2015101L0314---H0835104";
+        %tmp.85 = add %tmp.83 %tmp.84;
+        %tmp.86 = "L1536---H2054105L0356---H0915104L1616---H2132102L0435---H0955099L1653---H2211094";
+        %tmp.87 = add %tmp.85 %tmp.86;
+        %tmp.88 = "L0514---H1035088L1730---H2251081L0553---H1119073L1810---H2336065L0638---H1212058";
+        %tmp.89 = add %tmp.87 %tmp.88;
+        %tmp.90 = "L1900-----------H0034051L0738---H1325046L2010---H0157044L0903---H1504044L2143---";
+        %tmp.91 = add %tmp.89 %tmp.90;
+        %tmp.92 = "H0334047L1035---H1632051L2307---H0451056L1146---H1731061--------L0010---H0546066";
+        %tmp.93 = add %tmp.91 %tmp.92;
+        %tmp.94 = "L1242---H1817071L0101---H0631074L1329---H1858077L0146---H0712080L1409---H1935081";
+        %tmp.95 = add %tmp.93 %tmp.94;
+        %tmp.96 = "L0224---H0749082L1444---H2009082L0258---H0823082L1515---H2039082L0329---H0853080";
+        %tmp.97 = add %tmp.95 %tmp.96;
+        %tmp.98 = "L1543---H2108078L0358---H0922076L1610---H2135073L0426---H0951069L1635---H2203066";
+        %tmp.99 = add %tmp.97 %tmp.98;
+        %tmp.100 = "L0454---H1020062L1701---H2232057L0523---H1053053L1729---H2306048L0557---H1131044";
+        %tmp.101 = add %tmp.99 %tmp.100;
+        %tmp.102 = "L1807---H2348040L0642---H1225037L1901-----------H0055035L0746---H1348035L2021---";
+        %tmp.103 = add %tmp.101 %tmp.102;
+        %tmp.104 = "H0228036L0910---H1517040L2152---H0347045L1030---H1625051L2305---H0449057L1136---";
+        %tmp.105 = add %tmp.103 %tmp.104;
+        %tmp.106 = "H1721064--------L0005---H0543070L1233---H1811077L0101---H0634083L1328---H1858088";
+        %tmp.107 = add %tmp.105 %tmp.106;
+        %tmp.108 = "L0154---H0722092L1420---H1944096L0245---H0809098L1509---H2029099L0334---H0856099";
+        %tmp.109 = add %tmp.107 %tmp.108;
+        %tmp.110 = "L1555---H2114097L0420---H0943095L1639---H2159091L0505---H1030087L1723---H2246081";
+        %tmp.111 = add %tmp.109 %tmp.110;
+        %tmp.112 = "L0551---H1120076L1808---H2336070L0640---H1214064L1900-----------H0032059L0736---";
+        %tmp.113 = add %tmp.111 %tmp.112;
+        %tmp.114 = "H1315055L2000---H0137052L0840---H1426051L2109---H0249050L0949---H1539051L2218---";
+        %tmp.115 = add %tmp.113 %tmp.114;
+        %tmp.116 = "H0400053L1054---H1643055L2320---H0501057L1152---H1735060--------L0015---H0552062";
+        %tmp.117 = add %tmp.115 %tmp.116;
+        %tmp.118 = "L1243---H1820065L0103---H0637067L1328---H1901068L0146---H0718070L1407---H1938070";
+        %tmp.119 = add %tmp.117 %tmp.118;
+        %tmp.120 = "L0225---H0756071L1442---H2013071L0300---H0830071L1516---H2045071L0334---H0903070";
+        %tmp.121 = add %tmp.119 %tmp.120;
+        %tmp.122 = "L1548---H2116069L0408---H0936068L1619---H2149066L0441---H1010064L1651---H2224062";
+        %tmp.123 = add %tmp.121 %tmp.122;
+        %tmp.124 = "L0515---H1047059L1725---H2301057L0552---H1127054L1804---H2344052L0635---H1213050";
+        %tmp.125 = add %tmp.123 %tmp.124;
+        %tmp.126 = "L1850-----------H0034048L0724---H1307047L1947---H0134047L0824---H1412047L2055---";
+        %tmp.127 = add %tmp.125 %tmp.126;
+        %tmp.128 = "H0243049L0931---H1521052L2207---H0352055L1042---H1628060L2318---H0456064L1150---";
+        %tmp.129 = add %tmp.127 %tmp.128;
+        %tmp.130 = "H1729069--------L0023---H0558074L1253---H1827079L0124---H0656083L1352---H1921087";
+        %tmp.131 = add %tmp.129 %tmp.130;
+        %tmp.132 = "L0223---H0752090L1448---H2014093L0318---H0846094L1541---H2105095L0411---H0938094";
+        %tmp.133 = add %tmp.131 %tmp.132;
+        %tmp.134 = "L1631---H2154093L0501---H1028090L1718---H2242087L0548---H1115083L1804---H2328079";
+        %tmp.135 = add %tmp.133 %tmp.134;
+        %tmp.136 = "L0633---H1201074L1849-----------H0014069L0718---H1247064L1934---H0102059L0803---";
+        %tmp.137 = add %tmp.135 %tmp.136;
+        %tmp.138 = "H1337055L2022---H0156051L0852---H1434048L2118---H0258047L0950---H1540046L2221---";
+        %tmp.139 = add %tmp.137 %tmp.138;
+        %tmp.140 = "H0406046L1054---H1647047L2326---H0510049L1156---H1744051--------L0024---H0606054";
+        %tmp.141 = add %tmp.139 %tmp.140;
+        %tmp.142 = "L1251---H1833056L0115---H0654059L1338---H1916061L0200---H0737063L1420---H1955065";
+        %tmp.143 = add %tmp.141 %tmp.142;
+        %tmp.144 = "L0241---H0816067L1459---H2031069L0320---H0852070L1535---H2106071L0357---H0927071";
+        %tmp.145 = add %tmp.143 %tmp.144;
+        %tmp.146 = "L1611---H2140072L0433---H1002072L1645---H2215071L0509---H1037070L1720---H2251069";
+        %tmp.147 = add %tmp.145 %tmp.146;
+        %tmp.148 = "L0544---H1114068L1755---H2328066L0621---H1151064L1833-----------H0007061L0700---";
+        %tmp.149 = add %tmp.147 %tmp.148;
+        %tmp.150 = "H1232059L1916---H0053056L0745---H1322054L2009---H0150052L0842---H1425052L2117---";
+        %tmp.151 = add %tmp.149 %tmp.150;
+        %tmp.152 = "H0301052L0954---H1541053L2238---H0420056L1115---H1658060L2356---H0537065L1229---";
+        %tmp.153 = add %tmp.151 %tmp.152;
+        %tmp.154 = "H1809070--------L0105---H0646076L1336---H1912081L0211---H0748086L1438---H2008090";
+        %tmp.155 = add %tmp.153 %tmp.154;
+        %tmp.156 = "L0311---H0842094L1534---H2059096L0405---H0932098L1624---H2146098L0453---H1016097";
+        %tmp.157 = add %tmp.155 %tmp.156;
+        %tmp.158 = "L1709---H2229094L0536---H1057091L1748---H2308086L0613---H1135081L1824---H2346075";
+        %tmp.159 = add %tmp.157 %tmp.158;
+        %tmp.160 = "L0646---H1210069L1857-----------H0022063L0717---H1247057L1931---H0102050L0752---";
+        %tmp.161 = add %tmp.159 %tmp.160;
+        %tmp.162 = "H1329045L2014---H0152040L0839---H1429037L2116---H0305035L0951---H1555035L2239---";
+        %tmp.163 = add %tmp.161 %tmp.162;
+        %tmp.164 = "H0433037L1117---H1715040L2356---H0545044L1226---H1814048--------L0055---H0639053";
+        %tmp.165 = add %tmp.163 %tmp.164;
+        %tmp.166 = "L1320---H1901057L0143---H0723061L1405---H1941065L0227---H0802069L1446---H2018072";
+        %tmp.167 = add %tmp.165 %tmp.166;
+        %tmp.168 = "L0307---H0838075L1524---H2053078L0345---H0913080L1600---H2126082L0421---H0946083";
+        %tmp.169 = add %tmp.167 %tmp.168;
+        %tmp.170 = "L1635---H2200083L0456---H1019083L1707---H2233082L0528---H1052080L1739---H2306077";
+        %tmp.171 = add %tmp.169 %tmp.170;
+        %tmp.172 = "L0600---H1125074L1811---H2340070L0633---H1200066L1847-----------H0019061L0712---";
+        %tmp.173 = add %tmp.171 %tmp.172;
+        %tmp.174 = "H1242057L1933---H0109052L0803---H1341048L2039---H0225046L0919---H1510046L2214---";
+        %tmp.175 = add %tmp.173 %tmp.174;
+        %tmp.176 = "H0406048L1056---H1649053L2345---H0538059L1220---H1808066--------L0101---H0648074";
+        %tmp.177 = add %tmp.175 %tmp.176;
+        %tmp.178 = "L1331---H1909081L0207---H0744087L1432---H2001093L0304---H0832097L1524---H2046100";
+        %tmp.179 = add %tmp.177 %tmp.178;
+        %tmp.180 = "L0353---H0915102L1609---H2128102L0435---H0954101L1649---H2205098L0511---H1029095";
+        %tmp.181 = add %tmp.179 %tmp.180;
+        %tmp.182 = "L1722---H2240090L0541---H1101084L1751---H2311078L0607---H1130071L1816---H2340064";
+        %tmp.183 = add %tmp.181 %tmp.182;
+        %tmp.184 = "L0628---H1158057L1840-----------H0010049L0652---H1230042L1913---H0049036L0729---";
+        %tmp.185 = add %tmp.183 %tmp.184;
+        %tmp.186 = "H1317030L2007---H0158027L0839---H1501026L2152---H0404028L1045---H1653032L2335---";
+        %tmp.187 = add %tmp.185 %tmp.186;
+        %tmp.188 = "H0528038L1209---H1756044--------L0037---H0620051L1302---H1841057L0124---H0702063";
+        %tmp.189 = add %tmp.187 %tmp.188;
+        %tmp.190 = "L1346---H1920068L0206---H0740074L1426---H1956078L0246---H0816083L1504---H2031086";
+        %tmp.191 = add %tmp.189 %tmp.190;
+        %tmp.192 = "L0325---H0850089L1541---H2105091L0401---H0923093L1616---H2138093L0435---H0955093";
+        %tmp.193 = add %tmp.191 %tmp.192;
+        %tmp.194 = "L1648---H2210091L0507---H1026089L1719---H2242085L0537---H1058081L1750---H2315075";
+        %tmp.195 = add %tmp.193 %tmp.194;
+        %tmp.196 = "L0608---H1132069L1824---H2353062L0645---H1213055L1908-----------H0044048L0737---";
+        %tmp.197 = add %tmp.195 %tmp.196;
+        %tmp.198 = "H1316043L2019---H0214040L0903---H1506041L2210---H0417045L1056---H1654052L2348---";
+        %tmp.199 = add %tmp.197 %tmp.198;
+        %tmp.200 = "H0542060L1220---H1805068--------L0059---H0641076L1324---H1858083L0157---H0728090";
+        %tmp.201 = add %tmp.199 %tmp.200;
+        %tmp.202 = "L1418---H1943095L0246---H0811098L1504---H2025101L0330---H0849102L1545---H2102101";
+        %tmp.203 = add %tmp.201 %tmp.202;
+        %tmp.204 = "L0407---H0924100L1619---H2136097L0438---H0955093L1649---H2207089L0503---H1024083";
+        %tmp.205 = add %tmp.203 %tmp.204;
+        %tmp.206 = "L1713---H2234077L0524---H1049070L1735---H2300063L0543---H1113056L1757---H2326049";
+        %tmp.207 = add %tmp.205 %tmp.206;
+        %tmp.208 = "L0603---H1140041L1825---H2358035L0634---H1217028L1912-----------H0055024L0735---";
+        %tmp.209 = add %tmp.207 %tmp.208;
+        %tmp.210 = "H1357022L2050---H0326024L1001---H1619029L2303---H0458035L1139---H1724042--------";
+        %tmp.211 = add %tmp.209 %tmp.210;
+        %tmp.212 = "L0006---H0549050L1230---H1809057L0052---H0630064L1313---H1848071L0134---H0708077";
+        %tmp.213 = add %tmp.211 %tmp.212;
+        %tmp.214 = "L1354---H1926082L0215---H0745087L1435---H2002092L0256---H0820095L1514---H2037097";
+        %tmp.215 = add %tmp.213 %tmp.214;
+        %tmp.216 = "L0334---H0854099L1551---H2112099L0410---H0928098L1626---H2146096L0444---H1001092";
+        %tmp.217 = add %tmp.215 %tmp.216;
+        %tmp.218 = "L1659---H2221088L0516---H1036082L1733---H2257075L0550---H1113068L1810---H2340060";
+        %tmp.219 = add %tmp.217 %tmp.218;
+        %tmp.220 = "L0630---H1200053L1900-----------H0040046L0729---H1314041L2020---H0226040L0906---";
+        %tmp.221 = add %tmp.219 %tmp.220;
+        %tmp.222 = "H1510043L2213---H0417048L1053---H1644055L2340---H0528062L1207---H1746070--------";
+        %tmp.223 = add %tmp.221 %tmp.222;
+        %tmp.224 = "L0042---H0619077L1304---H1835083L0134---H0703087L1353---H1918091L0219---H0742094";
+        %tmp.225 = add %tmp.223 %tmp.224;
+        %tmp.226 = "L1436---H1957095L0258---H0818095L1513---H2032095L0332---H0851093L1545---H2105091";
+        %tmp.227 = add %tmp.225 %tmp.226;
+        %tmp.228 = "L0400---H0921088L1613---H2134083L0425---H0948079L1639---H2201074L0448---H1014068";
+        %tmp.229 = add %tmp.227 %tmp.228;
+        %tmp.230 = "L1704---H2228062L0509---H1040056L1728---H2256050L0532---H1108043L1757---H2329037";
+        %tmp.231 = add %tmp.229 %tmp.230;
+        %tmp.232 = "L0604---H1145032L1841-----------H0022028L0659---H1301025L1957---H0223026L0843---";
+        %tmp.233 = add %tmp.231 %tmp.232;
+        %tmp.234 = "H1516029L2154---H0402034L1039---H1631041L2313---H0501048L1140---H1723055--------";
+        %tmp.235 = add %tmp.233 %tmp.234;
+        %tmp.236 = "L0005---H0547062L1228---H1807069L0052---H0629076L1314---H1848082L0138---H0609087";
+        %tmp.237 = add %tmp.235 %tmp.236;
+        %tmp.238 = "L1300---H1829092L0122---H0647095L1344---H1908098L0205---H0725099L1426---H1947100";
+        %tmp.239 = add %tmp.237 %tmp.238;
+        %tmp.240 = "L0245---H0803099L1506---H2027096L0324---H0842093L1545---H2107088L0402---H0923082";
+        %tmp.241 = add %tmp.239 %tmp.240;
+        %tmp.242 = "L1625---H2151076L0442---H1008069L1710---H2242062L0530---H1103056L1807---H2349051";
+        %tmp.243 = add %tmp.241 %tmp.242;
+        %tmp.244 = "L0634---H1218047L1923-----------H0118047L0800---H1351048L2053---H0249052L0927---";
+        %tmp.245 = add %tmp.243 %tmp.244;
+        %tmp.246 = "H1513056L2210---H0356061L1036---H1614066L2310---H0447071L1131---H1704075--------";
+        %tmp.247 = add %tmp.245 %tmp.246;
+        %tmp.248 = "L0001---H0531078L1220---H1748081L0045---H0611083L1302---H1827084L0123---H0647084";
+        %tmp.249 = add %tmp.247 %tmp.248;
+        %tmp.250 = "L1339---H1904084L0156---H0721083L1412---H1938082L0226---H0752080L1443---H2008077";
+        %tmp.251 = add %tmp.249 %tmp.250;
+        %tmp.252 = "L0255---H0821074L1514---H2038071L0323---H0850067L1543---H2109063L0350---H0920058";
+        %tmp.253 = add %tmp.251 %tmp.252;
+        %tmp.254 = "L1613---H2141054L0419---H0954049L1646---H2219045L0453---H1034041L1727---H2307038";
+        %tmp.255 = add %tmp.253 %tmp.254;
+        %tmp.256 = "L0542---H1132035L1825-----------H0019034L0651---H1257035L1939---H0146037L0816---";
+        %tmp.257 = add %tmp.255 %tmp.256;
+        %tmp.258 = "H1420041L2059---H0258046L0933---H1524051L2207---H0355057L1036---H1618064L2305---";
+        %tmp.259 = add %tmp.257 %tmp.258;
+        %tmp.260 = "H0445070L1131---H1708076L2358---H0532081L1224---H1756086--------L0050---H0617090";
+        %tmp.261 = add %tmp.259 %tmp.260;
+        %tmp.262 = "L1316---H1843093L0139---H0702096L1405---H1930097L0226---H0747097L1452---H2016096";
+        %tmp.263 = add %tmp.261 %tmp.262;
+        %tmp.264 = "L0312---H0833094L1539---H2104090L0357---H0920086L1626---H2153082L0444---H1010076";
+        %tmp.265 = add %tmp.263 %tmp.264;
+        %tmp.266 = "L1716---H2245071L0534---H1103066L1809---H2342062L0630---H1203058L1908-----------";
+        %tmp.267 = add %tmp.265 %tmp.266;
+        %tmp.268 = "H0047055L0733---H1311053L2013---H0159052L0841---H1424053L2121---H0308054L0949---";
+        %tmp.269 = add %tmp.267 %tmp.268;
+        %tmp.270 = "H1531057L2224---H0407059L1050---H1628062L2320---H0458064L1143---H1718066--------";
+        %tmp.271 = add %tmp.269 %tmp.270;
+        %tmp.272 = "L0009---H0542069L1230---H1802070L0051---H0623072L1311---H1843073L0128---H0700074";
+        %tmp.273 = add %tmp.271 %tmp.272;
+        %tmp.274 = "L1348---H1920074L0203---H0734074L1424---H1954073L0237---H0806072L1458---H2027071";
+        %tmp.275 = add %tmp.273 %tmp.274;
+        %tmp.276 = "L0310---H0839069L1532---H2059067L0342---H0912065L1605---H2134063L0413---H0947060";
+        %tmp.277 = add %tmp.275 %tmp.276;
+        %tmp.278 = "L1639---H2210057L0448---H1024055L1716---H2249052L0527---H1106049L1759---H2335047";
+        %tmp.279 = add %tmp.277 %tmp.278;
+        %tmp.280 = "L0615---H1157045L1850-----------H0033044L0714---H1303044L1952---H0143045L0825---";
+        %tmp.281 = add %tmp.279 %tmp.280;
+        %tmp.282 = "H1416048L2104---H0255051L0941---H1527055L2217---H0401061L1051---H1632066L2323---";
+        %tmp.283 = add %tmp.281 %tmp.282;
+        %tmp.284 = "H0500072L1155---H1732077--------L0024---H0556083L1255---H1829087L0121---H0650091";
+        %tmp.285 = add %tmp.283 %tmp.284;
+        %tmp.286 = "L1352---H1923095L0215---H0741097L1447---H2014099L0307---H0831099L1538---H2104098";
+        %tmp.287 = add %tmp.285 %tmp.286;
+        %tmp.288 = "L0356---H0919096L1627---H2151093L0442---H1005089L1712---H2236084L0527---H1050078";
+        %tmp.289 = add %tmp.287 %tmp.288;
+        %tmp.290 = "L1755---H2320073L0610---H1135067L1838-----------H0006061L0655---H1224055L1924---";
+        %tmp.291 = add %tmp.289 %tmp.290;
+        putv self :DATA %tmp.291;
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 11; @position = 10; @symbol_constdef = [YEAR,11,10,14]; ]
+    const YEAR = 2026;
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 15; @position = 10; @symbol_constdef = [DATA,15,10,14]; ]
+    const DATA;
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 165; @symbol_functiondef = [dayEvents,165,13,22]; @symbol_param<0> = [year,165,23,27]; @symbol_param<0>_type<0> = [Lang,165,31,35]; @symbol_param<0>_type<1> = [Number,165,36,42]; @symbol_param<1> = [doy,165,44,47]; @symbol_param<1>_type<0> = [Lang,165,51,55]; @symbol_param<1>_type<1> = [Number,165,56,62]; @symbol_return<0> = [Lang,165,67,71]; @symbol_return<1> = [Array,165,72,77]; ]
+    function dayEvents(year as Lang.Number, doy as Lang.Number) as Lang.Array {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 166 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_stop" ]
+        %events.1 = local;
+        symbol [ events %events.1 166 12 18 ];
+        %tmp.1 = newa 0;
+        lputv %events.1 %tmp.1;
+        symbol [ events %events.1 166 12 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 167 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_8_167_43_if_stmt:
+        %tmp.2 = lgetv %year;
+        symbol [ year %tmp.2 167 12 16 ];
+        symbol [ YEAR %tmp.4 167 20 24 ];
+        %tmp.4 = getv ? :YEAR;
+        %tmp.5 = ne %tmp.2 %tmp.4;
+        bf %tmp.5 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_8_167_43_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_8_167_43_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_26_167_43_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 167 28 ]
+        %tmp.6 = lgetv %events.1;
+        symbol [ events %tmp.6 167 35 41 ];
+        ret %tmp.6;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_26_167_43_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_8_167_43_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_167_8_167_43_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 168 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_stop" ]
+        %base.2 = local;
+        symbol [ base %base.2 168 12 16 ];
+        %tmp.7 = lgetv %doy;
+        symbol [ doy %tmp.7 168 20 23 ];
+        %tmp.8 = 1;
+        %tmp.9 = sub %tmp.7 %tmp.8;
+        %tmp.10 = 32;
+        %tmp.11 = mul %tmp.9 %tmp.10;
+        lputv %base.2 %tmp.11;
+        symbol [ base %base.2 168 12 16 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 169 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_stmt:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_12_169_48_begin:
+        %tmp.12 = lgetv %base.2;
+        symbol [ base %tmp.12 169 12 16 ];
+        %tmp.13 = 0;
+        %tmp.14 = lt %tmp.12 %tmp.13;
+        bt %tmp.14 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_true;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_24_169_48_false:
+        %tmp.15 = lgetv %base.2;
+        symbol [ base %tmp.15 169 24 28 ];
+        %tmp.16 = 32;
+        %tmp.17 = add %tmp.15 %tmp.16;
+        symbol [ DATA %tmp.19 169 36 40 ];
+        %tmp.19 = getv ? :DATA;
+        symbol [ length %tmp.20 169 41 47 ];
+        %tmp.20 = getv function %tmp.19 :length;
+        %tmp.21 = invoke %tmp.19 %tmp.20();
+        %tmp.22 = gt %tmp.17 %tmp.21;
+        push %tmp.22;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_24_169_48_end:
+        %tmp.23 = phi [%tmp.14 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_12_169_48_begin] [%tmp.22 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_24_169_48_false] [%tmp.23 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_24_169_48_end];
+        bf %tmp.23 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_51_169_68_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 169 53 ]
+        %tmp.24 = lgetv %events.1;
+        symbol [ events %tmp.24 169 60 66 ];
+        ret %tmp.24;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_51_169_68_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_169_8_169_68_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 170 8 ]
+        for @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_test @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_incr @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_init:
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_begin" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_end" ]
+        %i.3 = local;
+        symbol [ i %i.3 170 17 18 ];
+        %tmp.25 = 0;
+        lputv %i.3 %tmp.25;
+        symbol [ i %i.3 170 17 18 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_test:
+        %tmp.26 = lgetv %i.3;
+        symbol [ i %tmp.26 170 24 25 ];
+        %tmp.27 = 4;
+        %tmp.28 = lt %tmp.26 %tmp.27;
+        bf %tmp.28 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_begin:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 171 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %off.4 = local;
+        symbol [ off %off.4 171 16 19 ];
+        %tmp.29 = lgetv %base.2;
+        symbol [ base %tmp.29 171 22 26 ];
+        %tmp.30 = lgetv %i.3;
+        symbol [ i %tmp.30 171 29 30 ];
+        %tmp.31 = 8;
+        %tmp.32 = mul %tmp.30 %tmp.31;
+        %tmp.33 = add %tmp.29 %tmp.32;
+        lputv %off.4 %tmp.33;
+        symbol [ off %off.4 171 16 19 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 172 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %t.5 = local;
+        symbol [ t %t.5 172 16 17 ];
+        symbol [ DATA %tmp.35 172 20 24 ];
+        %tmp.35 = getv ? :DATA;
+        symbol [ substring %tmp.36 172 25 34 ];
+        %tmp.36 = getv function %tmp.35 :substring;
+        %tmp.37 = lgetv %off.4;
+        symbol [ off %tmp.37 172 35 38 ];
+        %tmp.38 = lgetv %off.4;
+        symbol [ off %tmp.38 172 40 43 ];
+        %tmp.39 = 1;
+        %tmp.40 = add %tmp.38 %tmp.39;
+        %tmp.41 = invoke %tmp.35 %tmp.36(%tmp.37, %tmp.40);
+        lputv %t.5 %tmp.41;
+        symbol [ t %t.5 172 16 17 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 173 12 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_stmt:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_16_173_47_begin:
+        %tmp.42 = lgetv %t.5;
+        symbol [ t %tmp.42 173 17 18 ];
+        symbol [ equals %tmp.43 173 19 25 ];
+        %tmp.43 = getv function %tmp.42 :equals;
+        %tmp.44 = "H";
+        %tmp.45 = invoke %tmp.42 %tmp.43(%tmp.44);
+        %tmp.46 = not %tmp.45;
+        bf %tmp.46 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_34_173_47_true:
+        %tmp.47 = lgetv %t.5;
+        symbol [ t %tmp.47 173 35 36 ];
+        symbol [ equals %tmp.48 173 37 43 ];
+        %tmp.48 = getv function %tmp.47 :equals;
+        %tmp.49 = "L";
+        %tmp.50 = invoke %tmp.47 %tmp.48(%tmp.49);
+        %tmp.51 = not %tmp.50;
+        push %tmp.51;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_34_173_47_end:
+        %tmp.52 = phi [%tmp.46 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_16_173_47_begin] [%tmp.51 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_34_173_47_true] [%tmp.52 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_34_173_47_end];
+        bf %tmp.52 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_50_173_62_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 173 52 ]
+        goto break @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_incr;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_50_173_62_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_173_12_173_62_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 174 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %hh.6 = local;
+        symbol [ hh %hh.6 174 16 18 ];
+        symbol [ DATA %tmp.54 174 21 25 ];
+        %tmp.54 = getv ? :DATA;
+        symbol [ substring %tmp.55 174 26 35 ];
+        %tmp.55 = getv function %tmp.54 :substring;
+        %tmp.56 = lgetv %off.4;
+        symbol [ off %tmp.56 174 36 39 ];
+        %tmp.57 = 1;
+        %tmp.58 = add %tmp.56 %tmp.57;
+        %tmp.59 = lgetv %off.4;
+        symbol [ off %tmp.59 174 45 48 ];
+        %tmp.60 = 3;
+        %tmp.61 = add %tmp.59 %tmp.60;
+        %tmp.62 = invoke %tmp.54 %tmp.55(%tmp.58, %tmp.61);
+        symbol [ toNumber %tmp.63 174 54 62 ];
+        %tmp.63 = getv function %tmp.62 :toNumber;
+        %tmp.64 = invoke %tmp.62 %tmp.63();
+        lputv %hh.6 %tmp.64;
+        symbol [ hh %hh.6 174 16 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 175 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %mm.7 = local;
+        symbol [ mm %mm.7 175 16 18 ];
+        symbol [ DATA %tmp.66 175 21 25 ];
+        %tmp.66 = getv ? :DATA;
+        symbol [ substring %tmp.67 175 26 35 ];
+        %tmp.67 = getv function %tmp.66 :substring;
+        %tmp.68 = lgetv %off.4;
+        symbol [ off %tmp.68 175 36 39 ];
+        %tmp.69 = 3;
+        %tmp.70 = add %tmp.68 %tmp.69;
+        %tmp.71 = lgetv %off.4;
+        symbol [ off %tmp.71 175 45 48 ];
+        %tmp.72 = 5;
+        %tmp.73 = add %tmp.71 %tmp.72;
+        %tmp.74 = invoke %tmp.66 %tmp.67(%tmp.70, %tmp.73);
+        symbol [ toNumber %tmp.75 175 54 62 ];
+        %tmp.75 = getv function %tmp.74 :toNumber;
+        %tmp.76 = invoke %tmp.74 %tmp.75();
+        lputv %mm.7 %tmp.76;
+        symbol [ mm %mm.7 175 16 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 176 12 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_stmt:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_16_176_36_begin:
+        %tmp.77 = lgetv %hh.6;
+        symbol [ hh %tmp.77 176 16 18 ];
+        %tmp.78 = null;
+        %tmp.79 = eq %tmp.77 %tmp.78;
+        bt %tmp.79 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_true;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_30_176_36_false:
+        %tmp.80 = lgetv %mm.7;
+        symbol [ mm %tmp.80 176 30 32 ];
+        %tmp.81 = null;
+        %tmp.82 = eq %tmp.80 %tmp.81;
+        push %tmp.82;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_30_176_36_end:
+        %tmp.83 = phi [%tmp.79 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_16_176_36_begin] [%tmp.82 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_30_176_36_false] [%tmp.83 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_30_176_36_end];
+        bf %tmp.83 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_42_176_54_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 176 44 ]
+        goto break @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_incr;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_42_176_54_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_176_12_176_54_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 177 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %cs.8 = local;
+        symbol [ cs %cs.8 177 16 18 ];
+        symbol [ DATA %tmp.85 177 21 25 ];
+        %tmp.85 = getv ? :DATA;
+        symbol [ substring %tmp.86 177 26 35 ];
+        %tmp.86 = getv function %tmp.85 :substring;
+        %tmp.87 = lgetv %off.4;
+        symbol [ off %tmp.87 177 36 39 ];
+        %tmp.88 = 5;
+        %tmp.89 = add %tmp.87 %tmp.88;
+        %tmp.90 = lgetv %off.4;
+        symbol [ off %tmp.90 177 45 48 ];
+        %tmp.91 = 8;
+        %tmp.92 = add %tmp.90 %tmp.91;
+        %tmp.93 = invoke %tmp.85 %tmp.86(%tmp.89, %tmp.92);
+        lputv %cs.8 %tmp.93;
+        symbol [ cs %cs.8 177 16 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 178 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop" ]
+        %coef.9 = local;
+        symbol [ coef %coef.9 178 16 20 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_begin:
+        %tmp.94 = lgetv %cs.8;
+        symbol [ cs %tmp.94 178 23 25 ];
+        symbol [ equals %tmp.95 178 26 32 ];
+        %tmp.95 = getv function %tmp.94 :equals;
+        %tmp.96 = "---";
+        %tmp.97 = invoke %tmp.94 %tmp.95(%tmp.96);
+        bf %tmp.97 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_true:
+        %tmp.98 = null;
+        push %tmp.98;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_else_false:
+        %tmp.99 = lgetv %cs.8;
+        symbol [ cs %tmp.99 178 49 51 ];
+        symbol [ toNumber %tmp.100 178 52 60 ];
+        %tmp.100 = getv function %tmp.99 :toNumber;
+        %tmp.101 = invoke %tmp.99 %tmp.100();
+        push %tmp.101;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_end:
+        %tmp.102 = phi [%tmp.97 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_begin] [%tmp.98 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_true] [%tmp.101 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_else_false] [%tmp.102 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_178_23_178_61_end];
+        lputv %coef.9 %tmp.102;
+        symbol [ coef %coef.9 178 16 20 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 179 12 ]
+        %tmp.103 = lgetv %events.1;
+        symbol [ events %tmp.103 179 12 18 ];
+        symbol [ add %tmp.104 179 19 22 ];
+        %tmp.104 = getv function %tmp.103 :add;
+        %tmp.105 = newa 4;
+        %tmp.106 = lgetv %t.5;
+        symbol [ t %tmp.106 179 24 25 ];
+        %tmp.107 = dup %tmp.105;
+        %tmp.108 = aputv %tmp.107 0 %tmp.106;
+        %tmp.109 = lgetv %hh.6;
+        symbol [ hh %tmp.109 179 27 29 ];
+        %tmp.110 = dup %tmp.108;
+        %tmp.111 = aputv %tmp.110 1 %tmp.109;
+        %tmp.112 = lgetv %mm.7;
+        symbol [ mm %tmp.112 179 31 33 ];
+        %tmp.113 = dup %tmp.111;
+        %tmp.114 = aputv %tmp.113 2 %tmp.112;
+        %tmp.115 = lgetv %coef.9;
+        symbol [ coef %tmp.115 179 35 39 ];
+        %tmp.116 = dup %tmp.114;
+        %tmp.117 = aputv %tmp.116 3 %tmp.115;
+        invoke %tmp.103 %tmp.104(%tmp.117);
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_36_180_8_stop:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_incr:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 170 ]
+        %tmp.120 = lgetv %i.3;
+        symbol [ i %tmp.120 170 31 32 ];
+        %tmp.121 = add %tmp.120 1;
+        lputv %i.3 %tmp.121;
+        symbol [ i %i.3 170 31 32 ];
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_test;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_170_8_180_8_for_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" 181 8 ]
+        %tmp.122 = lgetv %events.1;
+        symbol [ events %tmp.122 181 15 21 ];
+        ret %tmp.122;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideData_mc_165_78_182_4_stop:
+    }
+}
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc"; @line = 7; ]
+<init> {
+}

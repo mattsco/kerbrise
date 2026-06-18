@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<debugInfo>
+    <manifest filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/manifest.xml"/>
+    <pcToLineNum>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="1" lineNum="10" parent="globals/KerbriseTidesGlanceView" pc="268435460" symbol="&lt;init&gt;"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="2" lineNum="9" parent="globals/KerbriseTidesApp" pc="268435472" symbol="&lt;init&gt;"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="3" lineNum="12" parent="globals/KerbriseTidesGlanceView" pc="268435484" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="3" lineNum="13" parent="globals/KerbriseTidesGlanceView" pc="268435486" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="16" parent="globals/KerbriseTidesGlanceView" pc="268435499" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="17" parent="globals/KerbriseTidesGlanceView" pc="268435502" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="18" parent="globals/KerbriseTidesGlanceView" pc="268435515" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="20" parent="globals/KerbriseTidesGlanceView" pc="268435523" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="22" parent="globals/KerbriseTidesGlanceView" pc="268435532" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="23" parent="globals/KerbriseTidesGlanceView" pc="268435549" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="26" parent="globals/KerbriseTidesGlanceView" pc="268435570" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="27" parent="globals/KerbriseTidesGlanceView" pc="268435582" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="29" parent="globals/KerbriseTidesGlanceView" pc="268435589" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="30" parent="globals/KerbriseTidesGlanceView" pc="268435595" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="31" parent="globals/KerbriseTidesGlanceView" pc="268435612" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="33" parent="globals/KerbriseTidesGlanceView" pc="268435634" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="36" parent="globals/KerbriseTidesGlanceView" pc="268435638" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="37" parent="globals/KerbriseTidesGlanceView" pc="268435661" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="38" parent="globals/KerbriseTidesGlanceView" pc="268435680" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="39" parent="globals/KerbriseTidesGlanceView" pc="268435706" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="40" parent="globals/KerbriseTidesGlanceView" pc="268435739" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="41" parent="globals/KerbriseTidesGlanceView" pc="268435751" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="45" parent="globals/KerbriseTidesGlanceView" pc="268435779" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="46" parent="globals/KerbriseTidesGlanceView" pc="268435783" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="47" parent="globals/KerbriseTidesGlanceView" pc="268435787" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="48" parent="globals/KerbriseTidesGlanceView" pc="268435806" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="49" parent="globals/KerbriseTidesGlanceView" pc="268435820" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="52" parent="globals/KerbriseTidesGlanceView" pc="268435970" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" id="4" lineNum="53" parent="globals/KerbriseTidesGlanceView" pc="268435982" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="5" lineNum="16" parent="globals/KerbriseTidesApp" pc="268436009" symbol="getInitialView"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="5" lineNum="17" parent="globals/KerbriseTidesApp" pc="268436011" symbol="getInitialView"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="6" lineNum="11" parent="globals/KerbriseTidesApp" pc="268436037" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="6" lineNum="12" parent="globals/KerbriseTidesApp" pc="268436039" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="7" lineNum="22" parent="globals/KerbriseTidesApp" pc="268436052" symbol="getGlanceView"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesApp.mc" id="7" lineNum="23" parent="globals/KerbriseTidesApp" pc="268436054" symbol="getGlanceView"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="8" lineNum="9" parent="globals/KerbriseTidesView" pc="268436080" symbol="&lt;init&gt;"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/bin/gen/006-B3991-00/source/Rez.mcgen" id="9" lineNum="7" parent="globals/Rez" pc="268436092" symbol="&lt;init&gt;"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="10" lineNum="11" parent="globals/KerbriseTidesView" pc="268436112" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="10" lineNum="12" parent="globals/KerbriseTidesView" pc="268436114" symbol="initialize"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="54" parent="globals/KerbriseTidesView" pc="268436127" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="55" parent="globals/KerbriseTidesView" pc="268436130" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="56" parent="globals/KerbriseTidesView" pc="268436153" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="57" parent="globals/KerbriseTidesView" pc="268436179" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="60" parent="globals/KerbriseTidesView" pc="268436212" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="61" parent="globals/KerbriseTidesView" pc="268436217" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="62" parent="globals/KerbriseTidesView" pc="268436227" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="63" parent="globals/KerbriseTidesView" pc="268436232" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="65" parent="globals/KerbriseTidesView" pc="268436241" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="68" parent="globals/KerbriseTidesView" pc="268436248" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="69" parent="globals/KerbriseTidesView" pc="268436252" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="70" parent="globals/KerbriseTidesView" pc="268436256" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="71" parent="globals/KerbriseTidesView" pc="268436271" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="72" parent="globals/KerbriseTidesView" pc="268436284" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="73" parent="globals/KerbriseTidesView" pc="268436294" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="75" parent="globals/KerbriseTidesView" pc="268436301" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="76" parent="globals/KerbriseTidesView" pc="268436315" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="77" parent="globals/KerbriseTidesView" pc="268436334" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="80" parent="globals/KerbriseTidesView" pc="268436363" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="81" parent="globals/KerbriseTidesView" pc="268436375" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="11" lineNum="82" parent="globals/KerbriseTidesView" pc="268436392" symbol="drawTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="15" parent="globals/KerbriseTidesView" pc="268436436" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="16" parent="globals/KerbriseTidesView" pc="268436439" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="17" parent="globals/KerbriseTidesView" pc="268436455" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="19" parent="globals/KerbriseTidesView" pc="268436463" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="20" parent="globals/KerbriseTidesView" pc="268436472" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="21" parent="globals/KerbriseTidesView" pc="268436481" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="24" parent="globals/KerbriseTidesView" pc="268436488" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="25" parent="globals/KerbriseTidesView" pc="268436504" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="28" parent="globals/KerbriseTidesView" pc="268436533" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="29" parent="globals/KerbriseTidesView" pc="268436549" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="30" parent="globals/KerbriseTidesView" pc="268436561" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="31" parent="globals/KerbriseTidesView" pc="268436578" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="33" parent="globals/KerbriseTidesView" pc="268436604" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="36" parent="globals/KerbriseTidesView" pc="268436608" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="37" parent="globals/KerbriseTidesView" pc="268436636" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="12" lineNum="38" parent="globals/KerbriseTidesView" pc="268436652" symbol="onUpdate"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="13" lineNum="43" parent="globals/KerbriseTidesView" pc="268436690" symbol="drawArrow"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="13" lineNum="45" parent="globals/KerbriseTidesView" pc="268436693" symbol="drawArrow"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="13" lineNum="46" parent="globals/KerbriseTidesView" pc="268436698" symbol="drawArrow"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="13" lineNum="48" parent="globals/KerbriseTidesView" pc="268436773" symbol="drawArrow"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesView.mc" id="13" lineNum="50" parent="globals/KerbriseTidesView" pc="268436845" symbol="drawArrow"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="14" lineNum="44" parent="globals/TideLogic" pc="268436858" symbol="nowParts"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="14" lineNum="45" parent="globals/TideLogic" pc="268436869" symbol="nowParts"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="14" lineNum="46" parent="globals/TideLogic" pc="268436894" symbol="nowParts"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="20" parent="globals/TideLogic" pc="268436960" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="21" parent="globals/TideLogic" pc="268436971" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="22" parent="globals/TideLogic" pc="268436975" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="23" parent="globals/TideLogic" pc="268436987" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="24" parent="globals/TideLogic" pc="268437003" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="24" parent="globals/TideLogic" pc="268437024" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="15" lineNum="26" parent="globals/TideLogic" pc="268437044" symbol="dayOfYear"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="16" lineNum="39" parent="globals/TideLogic" pc="268437047" symbol="longLabel"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="16" lineNum="40" parent="globals/TideLogic" pc="268437057" symbol="longLabel"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="17" lineNum="15" parent="globals/TideLogic" pc="268437088" symbol="isLeap"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="17" lineNum="16" parent="globals/TideLogic" pc="268437098" symbol="isLeap"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="60" parent="globals/TideLogic" pc="268437133" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="61" parent="globals/TideLogic" pc="268437144" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="62" parent="globals/TideLogic" pc="268437148" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="63" parent="globals/TideLogic" pc="268437156" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="65" parent="globals/TideLogic" pc="268437178" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="66" parent="globals/TideLogic" pc="268437232" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="67" parent="globals/TideLogic" pc="268437264" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="68" parent="globals/TideLogic" pc="268437271" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="69" parent="globals/TideLogic" pc="268437291" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="73" parent="globals/TideLogic" pc="268437369" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="74" parent="globals/TideLogic" pc="268437382" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="75" parent="globals/TideLogic" pc="268437441" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="76" parent="globals/TideLogic" pc="268437487" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="77" parent="globals/TideLogic" pc="268437519" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="78" parent="globals/TideLogic" pc="268437526" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="18" lineNum="81" parent="globals/TideLogic" pc="268437604" symbol="nextTides"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="19" lineNum="34" parent="globals/TideLogic" pc="268437607" symbol="shortLabel"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="19" lineNum="35" parent="globals/TideLogic" pc="268437617" symbol="shortLabel"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="20" lineNum="29" parent="globals/TideLogic" pc="268437648" symbol="fmtTime"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="20" lineNum="30" parent="globals/TideLogic" pc="268437658" symbol="fmtTime"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="21" lineNum="53" parent="globals/TideLogic" pc="268437694" symbol="todayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="21" lineNum="54" parent="globals/TideLogic" pc="268437705" symbol="todayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="21" lineNum="55" parent="globals/TideLogic" pc="268437713" symbol="todayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="22" lineNum="85" parent="globals/TideLogic" pc="268437766" symbol="nextTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="22" lineNum="86" parent="globals/TideLogic" pc="268437777" symbol="nextTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" id="22" lineNum="87" parent="globals/TideLogic" pc="268437789" symbol="nextTide"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="165" parent="globals/TideData" pc="268437810" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="166" parent="globals/TideData" pc="268437821" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="167" parent="globals/TideData" pc="268437825" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="167" parent="globals/TideData" pc="268437834" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="168" parent="globals/TideData" pc="268437840" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="169" parent="globals/TideData" pc="268437850" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="169" parent="globals/TideData" pc="268437877" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="170" parent="globals/TideData" pc="268437883" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="171" parent="globals/TideData" pc="268437894" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="172" parent="globals/TideData" pc="268437904" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="173" parent="globals/TideData" pc="268437926" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="173" parent="globals/TideData" pc="268437962" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="174" parent="globals/TideData" pc="268437968" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="175" parent="globals/TideData" pc="268437999" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="176" parent="globals/TideData" pc="268438030" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="176" parent="globals/TideData" pc="268438042" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="177" parent="globals/TideData" pc="268438048" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="178" parent="globals/TideData" pc="268438073" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="179" parent="globals/TideData" pc="268438103" symbol="dayEvents"/>
+        <entry filename="/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideData.mc" id="23" lineNum="181" parent="globals/TideData" pc="268438147" symbol="dayEvents"/>
+    </pcToLineNum>
+    <symbolTable>
+        <entry id="27" symbol="coef"/>
+        <entry id="8388639" module="true" symbol="Graphics"/>
+        <entry id="9" object="true" symbol="KerbriseTidesView"/>
+        <entry id="11" module="true" symbol="TideLogic"/>
+        <entry id="8388632" method="true" symbol="&lt;init&gt;"/>
+        <entry id="10" module="true" symbol="TideData"/>
+        <entry id="12" method="true" symbol="drawArrow"/>
+        <entry field="true" id="8388938" symbol="month"/>
+        <entry id="8388924" module="true" symbol="Gregorian"/>
+        <entry id="7" object="true" symbol="KerbriseTidesApp"/>
+        <entry field="true" id="8388611" module="true" symbol="Toybox"/>
+        <entry id="17" method="true" symbol="isLeap"/>
+        <entry field="true" id="24" symbol="AppName"/>
+        <entry id="8" object="true" symbol="KerbriseTidesGlanceView"/>
+        <entry id="4" module="true" symbol="globals/Rez/Strings"/>
+        <entry id="18" method="true" symbol="nextTide"/>
+        <entry id="13" method="true" symbol="drawTide"/>
+        <entry id="8388648" module="true" symbol="WatchUi"/>
+        <entry id="2" module="true" symbol="globals/Rez"/>
+        <entry id="8389124" method="true" symbol="onUpdate"/>
+        <entry id="15" method="true" symbol="dayOfYear"/>
+        <entry field="true" id="8388721" symbol="min"/>
+        <entry id="8388771" module="true" object="true" symbol="Drawables"/>
+        <entry id="26" symbol="mm"/>
+        <entry id="20" method="true" symbol="nowParts"/>
+        <entry id="8388923" method="true" symbol="today"/>
+        <entry id="5" module="true" symbol="globals/TideData"/>
+        <entry id="25" symbol="hh"/>
+        <entry field="true" id="8392016" method="true" symbol="longLabel"/>
+        <entry id="3" module="true" symbol="globals/Rez/Drawables"/>
+        <entry id="19" method="true" symbol="nextTides"/>
+        <entry id="8388645" module="true" symbol="Time"/>
+        <entry id="8388769" module="true" object="true" symbol="Rez"/>
+        <entry field="true" id="8392015" method="true" symbol="shortLabel"/>
+        <entry id="21" method="true" symbol="todayEvents"/>
+        <entry field="true" id="8388720" symbol="hour"/>
+        <entry id="8388640" module="true" symbol="Lang"/>
+        <entry field="true" id="23" symbol="LauncherIcon"/>
+        <entry id="8388610" symbol="statics"/>
+        <entry id="8389350" module="true" symbol="globals"/>
+        <entry id="8388770" module="true" object="true" symbol="Strings"/>
+        <entry id="8388702" method="true" symbol="initialize"/>
+        <entry id="22" method="true" symbol="dayEvents"/>
+        <entry id="8389280" method="true" symbol="getInitialView"/>
+        <entry id="14" symbol="MONTH_DAYS"/>
+        <entry field="true" id="8388939" symbol="day"/>
+        <entry field="true" id="8388940" symbol="year"/>
+        <entry field="true" id="8389846" symbol="type"/>
+        <entry id="8391457" method="true" symbol="getGlanceView"/>
+        <entry id="6" module="true" symbol="globals/TideLogic"/>
+        <entry id="8388635" module="true" symbol="Application"/>
+        <entry id="16" method="true" symbol="fmtTime"/>
+    </symbolTable>
+    <localVars>
+        <entry arg="true" endPc="268436008" name="dc" stackId="1" startPc="268435499"/>
+        <entry endPc="268436007" name="h" stackId="2" startPc="268435502"/>
+        <entry endPc="268436007" name="next" stackId="3" startPc="268435502"/>
+        <entry endPc="268436007" name="y" stackId="4" startPc="268435502"/>
+        <entry endPc="268436007" name="up" stackId="5" startPc="268435502"/>
+        <entry endPc="268436007" name="color" stackId="6" startPc="268435502"/>
+        <entry endPc="268436007" name="when" stackId="7" startPc="268435502"/>
+        <entry endPc="268436007" name="line" stackId="8" startPc="268435502"/>
+        <entry endPc="268436007" name="s" stackId="9" startPc="268435502"/>
+        <entry endPc="268436007" name="ax" stackId="10" startPc="268435502"/>
+        <entry endPc="268436007" name="cy" stackId="11" startPc="268435502"/>
+        <entry endPc="268436007" name="pts" stackId="12" startPc="268435502"/>
+        <entry arg="true" endPc="268436435" name="dc" stackId="1" startPc="268436127"/>
+        <entry arg="true" endPc="268436435" name="cx" stackId="2" startPc="268436127"/>
+        <entry arg="true" endPc="268436435" name="y" stackId="3" startPc="268436127"/>
+        <entry arg="true" endPc="268436435" name="t" stackId="4" startPc="268436127"/>
+        <entry arg="true" endPc="268436435" name="highlight" stackId="5" startPc="268436127"/>
+        <entry endPc="268436434" name="up" stackId="6" startPc="268436130"/>
+        <entry endPc="268436434" name="prefix" stackId="7" startPc="268436130"/>
+        <entry endPc="268436434" name="time" stackId="8" startPc="268436130"/>
+        <entry endPc="268436434" name="color" stackId="9" startPc="268436130"/>
+        <entry endPc="268436434" name="s" stackId="10" startPc="268436130"/>
+        <entry endPc="268436434" name="gap" stackId="11" startPc="268436130"/>
+        <entry endPc="268436434" name="tw" stackId="12" startPc="268436130"/>
+        <entry endPc="268436434" name="total" stackId="13" startPc="268436130"/>
+        <entry endPc="268436434" name="startX" stackId="14" startPc="268436130"/>
+        <entry endPc="268436434" name="ax" stackId="15" startPc="268436130"/>
+        <entry arg="true" endPc="268436689" name="dc" stackId="1" startPc="268436436"/>
+        <entry endPc="268436688" name="w" stackId="2" startPc="268436439"/>
+        <entry endPc="268436688" name="h" stackId="3" startPc="268436439"/>
+        <entry endPc="268436688" name="cx" stackId="4" startPc="268436439"/>
+        <entry endPc="268436688" name="tides" stackId="5" startPc="268436439"/>
+        <entry endPc="268436688" name="centers" stackId="6" startPc="268436439"/>
+        <entry endPc="268436688" name="i" stackId="7" startPc="268436652"/>
+        <entry arg="true" endPc="268436857" name="dc" stackId="1" startPc="268436690"/>
+        <entry arg="true" endPc="268436857" name="x" stackId="2" startPc="268436690"/>
+        <entry arg="true" endPc="268436857" name="y" stackId="3" startPc="268436690"/>
+        <entry arg="true" endPc="268436857" name="up" stackId="4" startPc="268436690"/>
+        <entry arg="true" endPc="268436857" name="s" stackId="5" startPc="268436690"/>
+        <entry endPc="268436856" name="pts" stackId="6" startPc="268436693"/>
+        <entry endPc="268436959" name="info" stackId="1" startPc="268436869"/>
+        <entry arg="true" endPc="268437046" name="year" stackId="1" startPc="268436960"/>
+        <entry arg="true" endPc="268437046" name="month" stackId="2" startPc="268436960"/>
+        <entry arg="true" endPc="268437046" name="day" stackId="3" startPc="268436960"/>
+        <entry endPc="268437046" name="doy" stackId="4" startPc="268436971"/>
+        <entry endPc="268437043" name="m" stackId="5" startPc="268436987"/>
+        <entry arg="true" endPc="268437087" name="type" stackId="1" startPc="268437047"/>
+        <entry arg="true" endPc="268437132" name="y" stackId="1" startPc="268437088"/>
+        <entry arg="true" endPc="268437606" name="count" stackId="1" startPc="268437133"/>
+        <entry endPc="268437606" name="result" stackId="2" startPc="268437144"/>
+        <entry endPc="268437606" name="n" stackId="3" startPc="268437144"/>
+        <entry endPc="268437606" name="nowMin" stackId="4" startPc="268437144"/>
+        <entry endPc="268437606" name="today" stackId="5" startPc="268437144"/>
+        <entry endPc="268437368" name="i" stackId="6" startPc="268437264"/>
+        <entry endPc="268437358" name="e" stackId="7" startPc="268437264"/>
+        <entry endPc="268437600" name="tInfo" stackId="8" startPc="268437382"/>
+        <entry endPc="268437600" name="tEvents" stackId="9" startPc="268437382"/>
+        <entry endPc="268437600" name="j" stackId="10" startPc="268437519"/>
+        <entry endPc="268437590" name="e" stackId="11" startPc="268437519"/>
+        <entry arg="true" endPc="268437647" name="type" stackId="1" startPc="268437607"/>
+        <entry arg="true" endPc="268437693" name="hh" stackId="1" startPc="268437648"/>
+        <entry arg="true" endPc="268437693" name="mm" stackId="2" startPc="268437648"/>
+        <entry endPc="268437765" name="n" stackId="1" startPc="268437705"/>
+        <entry endPc="268437809" name="t" stackId="1" startPc="268437777"/>
+        <entry arg="true" endPc="268438149" name="year" stackId="1" startPc="268437810"/>
+        <entry arg="true" endPc="268438149" name="doy" stackId="2" startPc="268437810"/>
+        <entry endPc="268438149" name="events" stackId="3" startPc="268437821"/>
+        <entry endPc="268438149" name="base" stackId="4" startPc="268437821"/>
+        <entry endPc="268438146" name="i" stackId="5" startPc="268437894"/>
+        <entry endPc="268438136" name="off" stackId="6" startPc="268437894"/>
+        <entry endPc="268438136" name="t" stackId="7" startPc="268437894"/>
+        <entry endPc="268438136" name="hh" stackId="8" startPc="268437894"/>
+        <entry endPc="268438136" name="mm" stackId="9" startPc="268437894"/>
+        <entry endPc="268438136" name="cs" stackId="10" startPc="268437894"/>
+        <entry endPc="268438136" name="coef" stackId="11" startPc="268437894"/>
+    </localVars>
+    <deviceInfo deviceVersion="3cbcff5b61d759a7585c5fa7606e74c0bd5dfa74" partNumber="006-B3991-00"/>
+    <annotations>
+        <annotationEntry annotation="glance" class="KerbriseTidesApp" module="globals" symbol="getInitialView"/>
+        <annotationEntry annotation="initialized" class="Drawables" module="globals/Rez" symbol="LauncherIcon"/>
+        <annotationEntry annotation="glance" class="KerbriseTidesApp" module="globals" symbol="getGlanceView"/>
+        <annotationEntry annotation="glance" class="KerbriseTidesGlanceView" module="globals" symbol="onUpdate"/>
+        <annotationEntry annotation="glance" class="KerbriseTidesApp" module="globals" symbol="initialize"/>
+        <annotationEntry annotation="initialized" class="Strings" module="globals/Rez" symbol="AppName"/>
+        <annotationEntry annotation="glance" class="KerbriseTidesGlanceView" module="globals" symbol="initialize"/>
+    </annotations>
+    <dataEntryOffsetMappings>
+        <dataEntry label="globals" offset="67" parentId="" symbolId="globals" type="module"/>
+        <dataEntry label="globals/KerbriseTidesGlanceView" offset="152" parentId="globals" symbolId="KerbriseTidesGlanceView" type="class"/>
+        <dataEntry label="globals/KerbriseTidesApp" offset="205" parentId="globals" symbolId="KerbriseTidesApp" type="class"/>
+        <dataEntry label="globals/KerbriseTidesView" offset="340" parentId="globals" symbolId="KerbriseTidesView" type="class"/>
+        <dataEntry label="globals/TideLogic" offset="411" parentId="globals" symbolId="TideLogic" type="module"/>
+        <dataEntry label="globals/TideData" offset="527" parentId="globals" symbolId="TideData" type="module"/>
+        <dataEntry label="globals/Rez" offset="562" parentId="globals" symbolId="Rez" type="module"/>
+        <dataEntry label="globals/Rez/Drawables" offset="606" parentId="Rez" symbolId="Drawables" type="module"/>
+        <dataEntry label="globals/Rez/Strings" offset="641" parentId="Rez" symbolId="Strings" type="module"/>
+    </dataEntryOffsetMappings>
+    <functions>
+        <functionEntry accessMode="public" endPc="268435471" name="&lt;init&gt;" parent="KerbriseTidesGlanceView" startPc="268435460">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435483" name="&lt;init&gt;" parent="KerbriseTidesApp" startPc="268435472">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268435498" name="initialize" parent="KerbriseTidesGlanceView" startPc="268435484">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436008" name="onUpdate" parent="KerbriseTidesGlanceView" startPc="268435499">
+            <param id="dc"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436036" name="getInitialView" parent="KerbriseTidesApp" startPc="268436009">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436051" name="initialize" parent="KerbriseTidesApp" startPc="268436037">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436079" name="getGlanceView" parent="KerbriseTidesApp" startPc="268436052">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436091" name="&lt;init&gt;" parent="KerbriseTidesView" startPc="268436080">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="TideLogic">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="TideData">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436111" name="&lt;init&gt;" parent="Rez" startPc="268436092">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436126" name="initialize" parent="KerbriseTidesView" startPc="268436112">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436435" name="drawTide" parent="KerbriseTidesView" startPc="268436127">
+            <param id="dc"/>
+            <param id="cx"/>
+            <param id="y"/>
+            <param id="t"/>
+            <param id="highlight"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436689" name="onUpdate" parent="KerbriseTidesView" startPc="268436436">
+            <param id="dc"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436857" name="drawArrow" parent="KerbriseTidesView" startPc="268436690">
+            <param id="dc"/>
+            <param id="x"/>
+            <param id="y"/>
+            <param id="up"/>
+            <param id="s"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268436959" name="nowParts" parent="TideLogic" startPc="268436858">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437046" name="dayOfYear" parent="TideLogic" startPc="268436960">
+            <param id="year"/>
+            <param id="month"/>
+            <param id="day"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437087" name="longLabel" parent="TideLogic" startPc="268437047">
+            <param id="type"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437132" name="isLeap" parent="TideLogic" startPc="268437088">
+            <param id="y"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437606" name="nextTides" parent="TideLogic" startPc="268437133">
+            <param id="count"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437647" name="shortLabel" parent="TideLogic" startPc="268437607">
+            <param id="type"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437693" name="fmtTime" parent="TideLogic" startPc="268437648">
+            <param id="hh"/>
+            <param id="mm"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437765" name="todayEvents" parent="TideLogic" startPc="268437694">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268437809" name="nextTide" parent="TideLogic" startPc="268437766">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" endPc="268438149" name="dayEvents" parent="TideData" startPc="268437810">
+            <param id="year"/>
+            <param id="doy"/>
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="Drawables">
+            <documentation/>
+        </functionEntry>
+        <functionEntry accessMode="public" name="&lt;init&gt;" parent="Strings">
+            <documentation/>
+        </functionEntry>
+    </functions>
+</debugInfo>

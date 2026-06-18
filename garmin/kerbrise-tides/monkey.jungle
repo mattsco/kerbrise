@@ -1,0 +1,5 @@
+# Projet Connect IQ — Marées Kerbrise
+# Sources (source/) et ressources (resources/) sont pris par défaut ;
+# on déclare juste le manifest. Pour réduire la mémoire de la glance plus tard,
+# on pourrait ajouter des excludeAnnotations ici (cf. README §dépannage).
+project.manifest = manifest.xml

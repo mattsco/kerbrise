@@ -39,6 +39,7 @@
 - Journal de séjour / livre d'or photos — pas convaincu, à revisiter.
 - Accès invités lecture seule — si une vraie demande émerge ; coût RLS à chiffrer avant.
 - **Indicateur qualité de l'eau de baignade** : afficher un statut « eau OK / déconseillée » dans la bannière vacances **si on trouve une source fiable et exploitable** (piste : données « Qualité des eaux de baignade » du ministère de la Santé / ARS Bretagne pour les plages de Saint-Malo–Rothéneuf). À creuser ; pas de source confirmée à ce jour.
+- **Photo `house.jpg` saisonnière** : 4 visuels du hero dashboard selon la saison (printemps / été / automne / hiver). Le **code est trivial** (~30 min) : `house.jpg` est consommé en chemin string dans `app/dashboard/page.tsx` (hero, server component) → calculer la saison depuis la date Paris et passer `src={`/house-${saison}.jpg`}`, avec **repli sur `house.jpg`** si le visuel manque. ⚠️ **Le vrai coût n'est pas le code, c'est l'asset** : il faut 4 vraies photos de la maison, une par saison, sous le même cadrage — c'est ça le blocage, pas l'ingénierie. Bornes = saisons météo (hémisphère nord : mars/juin/sept/déc), pas besoin d'astronomique. À sortir d'ici quand les 4 photos existent.
 - **#25** Page admin « Config » pour éditer les flags `lib/config.ts` via UI — quand on aura 2-3 flags. Spec `docs/specs/config-page-admin.md`.
 - **#30** Restructurer `/dashboard/admin` en hub — audience = 1 ; à ressortir seulement si l'admin actuel devient pénible. Spec `docs/specs/admin-hub-restructure.md`.
 

@@ -1,0 +1,473 @@
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 6; @symbol_usingdef<0> = [Toybox,6,6,12]; @symbol_usingdef<1> = [WatchUi,6,13,20]; ]
+using Toybox.WatchUi;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 7; @symbol_usingdef<0> = [Toybox,7,6,12]; @symbol_usingdef<1> = [Graphics,7,13,21]; ]
+using Toybox.Graphics;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 10; glance = true; @symbol_classdef = [KerbriseTidesGlanceView,10,6,29]; @symbol_extends<0> = [WatchUi,10,38,45]; @symbol_extends<1> = [GlanceView,10,46,56]; ]
+class KerbriseTidesGlanceView extends WatchUi.GlanceView {
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 10; ]
+    <init> {
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 10; ]
+    static
+    <init> {
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 12; @symbol_functiondef = [initialize,12,13,23]; ]
+    function initialize() as Void {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_12_26_14_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 13 8 ]
+        symbol [ GlanceView %tmp.2 13 8 18 ];
+        %tmp.2 = getv ? :GlanceView;
+        symbol [ initialize %tmp.3 13 19 29 ];
+        %tmp.3 = getv function %tmp.2 :initialize;
+        invoke %tmp.2 %tmp.3();
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_12_26_14_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 16; @symbol_functiondef = [onUpdate,16,13,21]; @symbol_param<0> = [dc,16,22,24]; ]
+    function onUpdate(dc) {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 17 8 ]
+        %tmp.1 = lgetv %dc;
+        symbol [ dc %tmp.1 17 8 10 ];
+        symbol [ setColor %tmp.2 17 11 19 ];
+        %tmp.2 = getv function %tmp.1 :setColor;
+        symbol [ Graphics %tmp.3 17 20 28 ];
+        %tmp.3 = getm $.Toybox.Graphics;
+        symbol [ COLOR_TRANSPARENT %tmp.4 17 29 46 ];
+        %tmp.4 = getv %tmp.3 :COLOR_TRANSPARENT;
+        symbol [ Graphics %tmp.5 17 48 56 ];
+        %tmp.5 = getm $.Toybox.Graphics;
+        symbol [ COLOR_BLACK %tmp.6 17 57 68 ];
+        %tmp.6 = getv %tmp.5 :COLOR_BLACK;
+        invoke %tmp.1 %tmp.2(%tmp.4, %tmp.6);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 18 8 ]
+        %tmp.7 = lgetv %dc;
+        symbol [ dc %tmp.7 18 8 10 ];
+        symbol [ clear %tmp.8 18 11 16 ];
+        %tmp.8 = getv function %tmp.7 :clear;
+        invoke %tmp.7 %tmp.8();
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 20 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %h.1 = local;
+        symbol [ h %h.1 20 12 13 ];
+        %tmp.9 = lgetv %dc;
+        symbol [ dc %tmp.9 20 16 18 ];
+        symbol [ getHeight %tmp.10 20 19 28 ];
+        %tmp.10 = getv function %tmp.9 :getHeight;
+        %tmp.11 = invoke %tmp.9 %tmp.10();
+        lputv %h.1 %tmp.11;
+        symbol [ h %h.1 20 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 22 8 ]
+        %tmp.12 = lgetv %dc;
+        symbol [ dc %tmp.12 22 8 10 ];
+        symbol [ setColor %tmp.13 22 11 19 ];
+        %tmp.13 = getv function %tmp.12 :setColor;
+        symbol [ Graphics %tmp.14 22 20 28 ];
+        %tmp.14 = getm $.Toybox.Graphics;
+        symbol [ COLOR_LT_GRAY %tmp.15 22 29 42 ];
+        %tmp.15 = getv %tmp.14 :COLOR_LT_GRAY;
+        symbol [ Graphics %tmp.16 22 44 52 ];
+        %tmp.16 = getm $.Toybox.Graphics;
+        symbol [ COLOR_TRANSPARENT %tmp.17 22 53 70 ];
+        %tmp.17 = getv %tmp.16 :COLOR_TRANSPARENT;
+        invoke %tmp.12 %tmp.13(%tmp.15, %tmp.17);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 23 8 ]
+        %tmp.18 = lgetv %dc;
+        symbol [ dc %tmp.18 23 8 10 ];
+        symbol [ drawText %tmp.19 23 11 19 ];
+        %tmp.19 = getv function %tmp.18 :drawText;
+        %tmp.20 = 0;
+        %tmp.21 = 0;
+        symbol [ Graphics %tmp.22 23 26 34 ];
+        %tmp.22 = getm $.Toybox.Graphics;
+        symbol [ FONT_GLANCE %tmp.23 23 35 46 ];
+        %tmp.23 = getv %tmp.22 :FONT_GLANCE;
+        %tmp.24 = "Marées St-Malo";
+        symbol [ Graphics %tmp.25 24 12 20 ];
+        %tmp.25 = getm $.Toybox.Graphics;
+        symbol [ TEXT_JUSTIFY_LEFT %tmp.26 24 21 38 ];
+        %tmp.26 = getv %tmp.25 :TEXT_JUSTIFY_LEFT;
+        invoke %tmp.18 %tmp.19(%tmp.20, %tmp.21, %tmp.23, %tmp.24, %tmp.26);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 26 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %next.2 = local;
+        symbol [ next %next.2 26 12 16 ];
+        symbol [ TideLogic %tmp.28 26 19 28 ];
+        %tmp.28 = getv ? :TideLogic;
+        symbol [ nextTide %tmp.29 26 29 37 ];
+        %tmp.29 = getv function %tmp.28 :nextTide;
+        %tmp.30 = invoke %tmp.28 %tmp.29();
+        lputv %next.2 %tmp.30;
+        symbol [ next %next.2 26 12 16 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 27 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %y.3 = local;
+        symbol [ y %y.3 27 12 13 ];
+        %tmp.31 = lgetv %h.1;
+        symbol [ h %tmp.31 27 16 17 ];
+        %tmp.32 = 2;
+        %tmp.33 = div %tmp.31 %tmp.32;
+        lputv %y.3 %tmp.33;
+        symbol [ y %y.3 27 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 29 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_8_34_8_if_stmt:
+        %tmp.34 = lgetv %next.2;
+        symbol [ next %tmp.34 29 12 16 ];
+        %tmp.35 = null;
+        %tmp.36 = eq %tmp.34 %tmp.35;
+        bf %tmp.36 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_8_34_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_8_34_8_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_26_34_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 30 12 ]
+        %tmp.37 = lgetv %dc;
+        symbol [ dc %tmp.37 30 12 14 ];
+        symbol [ setColor %tmp.38 30 15 23 ];
+        %tmp.38 = getv function %tmp.37 :setColor;
+        symbol [ Graphics %tmp.39 30 24 32 ];
+        %tmp.39 = getm $.Toybox.Graphics;
+        symbol [ COLOR_LT_GRAY %tmp.40 30 33 46 ];
+        %tmp.40 = getv %tmp.39 :COLOR_LT_GRAY;
+        symbol [ Graphics %tmp.41 30 48 56 ];
+        %tmp.41 = getm $.Toybox.Graphics;
+        symbol [ COLOR_TRANSPARENT %tmp.42 30 57 74 ];
+        %tmp.42 = getv %tmp.41 :COLOR_TRANSPARENT;
+        invoke %tmp.37 %tmp.38(%tmp.40, %tmp.42);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 31 12 ]
+        %tmp.43 = lgetv %dc;
+        symbol [ dc %tmp.43 31 12 14 ];
+        symbol [ drawText %tmp.44 31 15 23 ];
+        %tmp.44 = getv function %tmp.43 :drawText;
+        %tmp.45 = 0;
+        %tmp.46 = lgetv %y.3;
+        symbol [ y %tmp.46 31 27 28 ];
+        symbol [ Graphics %tmp.47 31 30 38 ];
+        %tmp.47 = getm $.Toybox.Graphics;
+        symbol [ FONT_GLANCE %tmp.48 31 39 50 ];
+        %tmp.48 = getv %tmp.47 :FONT_GLANCE;
+        %tmp.49 = "Données indisponibles";
+        symbol [ Graphics %tmp.50 32 16 24 ];
+        %tmp.50 = getm $.Toybox.Graphics;
+        symbol [ TEXT_JUSTIFY_LEFT %tmp.51 32 25 42 ];
+        %tmp.51 = getv %tmp.50 :TEXT_JUSTIFY_LEFT;
+        invoke %tmp.43 %tmp.44(%tmp.45, %tmp.46, %tmp.48, %tmp.49, %tmp.51);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 33 12 ]
+        ret ?;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_26_34_8_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_8_34_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_29_8_34_8_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 36 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %up.4 = local;
+        symbol [ up %up.4 36 12 14 ];
+        %tmp.52 = lgetv %next.2;
+        symbol [ next %tmp.52 36 17 21 ];
+        %tmp.54 = const :type;
+        symbol [ type %tmp.54 36 23 27 const ];
+        %tmp.55 = agetv %tmp.52 %tmp.54;
+        symbol [ equals %tmp.56 36 29 35 ];
+        %tmp.56 = getv function %tmp.55 :equals;
+        %tmp.57 = "H";
+        %tmp.58 = invoke %tmp.55 %tmp.56(%tmp.57);
+        lputv %up.4 %tmp.58;
+        symbol [ up %up.4 36 12 14 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 37 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %color.5 = local;
+        symbol [ color %color.5 37 12 17 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_begin:
+        %tmp.59 = lgetv %up.4;
+        symbol [ up %tmp.59 37 20 22 ];
+        bf %tmp.59 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_true:
+        symbol [ Graphics %tmp.60 37 25 33 ];
+        %tmp.60 = getm $.Toybox.Graphics;
+        symbol [ COLOR_BLUE %tmp.61 37 34 44 ];
+        %tmp.61 = getv %tmp.60 :COLOR_BLUE;
+        push %tmp.61;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_else_false:
+        symbol [ Graphics %tmp.62 37 47 55 ];
+        %tmp.62 = getm $.Toybox.Graphics;
+        symbol [ COLOR_WHITE %tmp.63 37 56 67 ];
+        %tmp.63 = getv %tmp.62 :COLOR_WHITE;
+        push %tmp.63;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_end:
+        %tmp.64 = phi [%tmp.59 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_begin] [%tmp.61 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_true] [%tmp.63 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_else_false] [%tmp.64 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_37_20_37_56_end];
+        lputv %color.5 %tmp.64;
+        symbol [ color %color.5 37 12 17 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 38 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %when.6 = local;
+        symbol [ when %when.6 38 12 16 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_begin:
+        %tmp.65 = lgetv %next.2;
+        symbol [ next %tmp.65 38 19 23 ];
+        %tmp.67 = const :today;
+        symbol [ today %tmp.67 38 25 30 const ];
+        %tmp.68 = agetv %tmp.65 %tmp.67;
+        bf %tmp.68 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_true:
+        %tmp.69 = "";
+        push %tmp.69;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_else_false:
+        %tmp.70 = "demain ";
+        push %tmp.70;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_end:
+        %tmp.71 = phi [%tmp.68 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_begin] [%tmp.69 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_true] [%tmp.70 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_else_false] [%tmp.71 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_38_19_38_39_end];
+        lputv %when.6 %tmp.71;
+        symbol [ when %when.6 38 12 16 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 39 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %line.7 = local;
+        symbol [ line %line.7 39 12 16 ];
+        %tmp.72 = lgetv %when.6;
+        symbol [ when %tmp.72 39 19 23 ];
+        symbol [ TideLogic %tmp.74 39 26 35 ];
+        %tmp.74 = getv ? :TideLogic;
+        symbol [ fmtTime %tmp.75 39 36 43 ];
+        %tmp.75 = getv function %tmp.74 :fmtTime;
+        %tmp.76 = lgetv %next.2;
+        symbol [ next %tmp.76 39 44 48 ];
+        %tmp.78 = const :hh;
+        symbol [ hh %tmp.78 39 50 52 const ];
+        %tmp.79 = agetv %tmp.76 %tmp.78;
+        %tmp.80 = lgetv %next.2;
+        symbol [ next %tmp.80 39 55 59 ];
+        %tmp.82 = const :mm;
+        symbol [ mm %tmp.82 39 61 63 const ];
+        %tmp.83 = agetv %tmp.80 %tmp.82;
+        %tmp.84 = invoke %tmp.74 %tmp.75(%tmp.79, %tmp.83);
+        %tmp.85 = add %tmp.72 %tmp.84;
+        lputv %line.7 %tmp.85;
+        symbol [ line %line.7 39 12 16 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 40 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_8_42_8_if_stmt:
+        %tmp.86 = lgetv %next.2;
+        symbol [ next %tmp.86 40 12 16 ];
+        %tmp.88 = const :coef;
+        symbol [ coef %tmp.88 40 18 22 const ];
+        %tmp.89 = agetv %tmp.86 %tmp.88;
+        %tmp.90 = null;
+        %tmp.91 = ne %tmp.89 %tmp.90;
+        bf %tmp.91 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_8_42_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_8_42_8_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_33_42_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 41 12 ]
+        %tmp.92 = lgetv %line.7;
+        symbol [ line %tmp.92 41 12 16 ];
+        %tmp.93 = " · ";
+        %tmp.94 = lgetv %next.2;
+        symbol [ next %tmp.94 41 28 32 ];
+        %tmp.96 = const :coef;
+        symbol [ coef %tmp.96 41 34 38 const ];
+        %tmp.97 = agetv %tmp.94 %tmp.96;
+        symbol [ toString %tmp.98 41 40 48 ];
+        %tmp.98 = getv function %tmp.97 :toString;
+        %tmp.99 = invoke %tmp.97 %tmp.98();
+        %tmp.100 = add %tmp.93 %tmp.99;
+        %tmp.101 = add %tmp.92 %tmp.100;
+        lputv %line.7 %tmp.101;
+        symbol [ line %line.7 41 12 16 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_33_42_8_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_8_42_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_40_8_42_8_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 45 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %s.8 = local;
+        symbol [ s %s.8 45 12 13 ];
+        %tmp.102 = 6;
+        lputv %s.8 %tmp.102;
+        symbol [ s %s.8 45 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 46 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %ax.9 = local;
+        symbol [ ax %ax.9 46 12 14 ];
+        %tmp.103 = lgetv %s.8;
+        symbol [ s %tmp.103 46 17 18 ];
+        lputv %ax.9 %tmp.103;
+        symbol [ ax %ax.9 46 12 14 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 47 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %cy.10 = local;
+        symbol [ cy %cy.10 47 12 14 ];
+        %tmp.104 = lgetv %y.3;
+        symbol [ y %tmp.104 47 17 18 ];
+        %tmp.105 = lgetv %dc;
+        symbol [ dc %tmp.105 47 21 23 ];
+        symbol [ getFontHeight %tmp.106 47 24 37 ];
+        %tmp.106 = getv function %tmp.105 :getFontHeight;
+        symbol [ Graphics %tmp.107 47 38 46 ];
+        %tmp.107 = getm $.Toybox.Graphics;
+        symbol [ FONT_GLANCE %tmp.108 47 47 58 ];
+        %tmp.108 = getv %tmp.107 :FONT_GLANCE;
+        %tmp.109 = invoke %tmp.105 %tmp.106(%tmp.108);
+        %tmp.110 = 2;
+        %tmp.111 = div %tmp.109 %tmp.110;
+        %tmp.112 = add %tmp.104 %tmp.111;
+        lputv %cy.10 %tmp.112;
+        symbol [ cy %cy.10 47 12 14 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 48 8 ]
+        %tmp.113 = lgetv %dc;
+        symbol [ dc %tmp.113 48 8 10 ];
+        symbol [ setColor %tmp.114 48 11 19 ];
+        %tmp.114 = getv function %tmp.113 :setColor;
+        %tmp.115 = lgetv %color.5;
+        symbol [ color %tmp.115 48 20 25 ];
+        symbol [ Graphics %tmp.116 48 27 35 ];
+        %tmp.116 = getm $.Toybox.Graphics;
+        symbol [ COLOR_TRANSPARENT %tmp.117 48 36 53 ];
+        %tmp.117 = getv %tmp.116 :COLOR_TRANSPARENT;
+        invoke %tmp.113 %tmp.114(%tmp.115, %tmp.117);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 49 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop" ]
+        %pts.11 = local;
+        symbol [ pts %pts.11 49 12 15 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_begin:
+        %tmp.118 = lgetv %up.4;
+        symbol [ up %tmp.118 49 18 20 ];
+        bf %tmp.118 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_true:
+        %tmp.119 = newa 3;
+        %tmp.120 = newa 2;
+        %tmp.121 = lgetv %ax.9;
+        symbol [ ax %tmp.121 50 17 19 ];
+        %tmp.122 = dup %tmp.120;
+        %tmp.123 = aputv %tmp.122 0 %tmp.121;
+        %tmp.124 = lgetv %cy.10;
+        symbol [ cy %tmp.124 50 21 23 ];
+        %tmp.125 = lgetv %s.8;
+        symbol [ s %tmp.125 50 26 27 ];
+        %tmp.126 = sub %tmp.124 %tmp.125;
+        %tmp.127 = dup %tmp.123;
+        %tmp.128 = aputv %tmp.127 1 %tmp.126;
+        %tmp.129 = dup %tmp.119;
+        %tmp.130 = aputv %tmp.129 0 %tmp.128;
+        %tmp.131 = newa 2;
+        %tmp.132 = lgetv %ax.9;
+        symbol [ ax %tmp.132 50 31 33 ];
+        %tmp.133 = lgetv %s.8;
+        symbol [ s %tmp.133 50 36 37 ];
+        %tmp.134 = sub %tmp.132 %tmp.133;
+        %tmp.135 = dup %tmp.131;
+        %tmp.136 = aputv %tmp.135 0 %tmp.134;
+        %tmp.137 = lgetv %cy.10;
+        symbol [ cy %tmp.137 50 39 41 ];
+        %tmp.138 = lgetv %s.8;
+        symbol [ s %tmp.138 50 44 45 ];
+        %tmp.139 = add %tmp.137 %tmp.138;
+        %tmp.140 = dup %tmp.136;
+        %tmp.141 = aputv %tmp.140 1 %tmp.139;
+        %tmp.142 = dup %tmp.130;
+        %tmp.143 = aputv %tmp.142 1 %tmp.141;
+        %tmp.144 = newa 2;
+        %tmp.145 = lgetv %ax.9;
+        symbol [ ax %tmp.145 50 49 51 ];
+        %tmp.146 = lgetv %s.8;
+        symbol [ s %tmp.146 50 54 55 ];
+        %tmp.147 = add %tmp.145 %tmp.146;
+        %tmp.148 = dup %tmp.144;
+        %tmp.149 = aputv %tmp.148 0 %tmp.147;
+        %tmp.150 = lgetv %cy.10;
+        symbol [ cy %tmp.150 50 57 59 ];
+        %tmp.151 = lgetv %s.8;
+        symbol [ s %tmp.151 50 62 63 ];
+        %tmp.152 = add %tmp.150 %tmp.151;
+        %tmp.153 = dup %tmp.149;
+        %tmp.154 = aputv %tmp.153 1 %tmp.152;
+        %tmp.155 = dup %tmp.143;
+        %tmp.156 = aputv %tmp.155 2 %tmp.154;
+        push %tmp.156;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_else_false:
+        %tmp.157 = newa 3;
+        %tmp.158 = newa 2;
+        %tmp.159 = lgetv %ax.9;
+        symbol [ ax %tmp.159 51 17 19 ];
+        %tmp.160 = dup %tmp.158;
+        %tmp.161 = aputv %tmp.160 0 %tmp.159;
+        %tmp.162 = lgetv %cy.10;
+        symbol [ cy %tmp.162 51 21 23 ];
+        %tmp.163 = lgetv %s.8;
+        symbol [ s %tmp.163 51 26 27 ];
+        %tmp.164 = add %tmp.162 %tmp.163;
+        %tmp.165 = dup %tmp.161;
+        %tmp.166 = aputv %tmp.165 1 %tmp.164;
+        %tmp.167 = dup %tmp.157;
+        %tmp.168 = aputv %tmp.167 0 %tmp.166;
+        %tmp.169 = newa 2;
+        %tmp.170 = lgetv %ax.9;
+        symbol [ ax %tmp.170 51 31 33 ];
+        %tmp.171 = lgetv %s.8;
+        symbol [ s %tmp.171 51 36 37 ];
+        %tmp.172 = sub %tmp.170 %tmp.171;
+        %tmp.173 = dup %tmp.169;
+        %tmp.174 = aputv %tmp.173 0 %tmp.172;
+        %tmp.175 = lgetv %cy.10;
+        symbol [ cy %tmp.175 51 39 41 ];
+        %tmp.176 = lgetv %s.8;
+        symbol [ s %tmp.176 51 44 45 ];
+        %tmp.177 = sub %tmp.175 %tmp.176;
+        %tmp.178 = dup %tmp.174;
+        %tmp.179 = aputv %tmp.178 1 %tmp.177;
+        %tmp.180 = dup %tmp.168;
+        %tmp.181 = aputv %tmp.180 1 %tmp.179;
+        %tmp.182 = newa 2;
+        %tmp.183 = lgetv %ax.9;
+        symbol [ ax %tmp.183 51 49 51 ];
+        %tmp.184 = lgetv %s.8;
+        symbol [ s %tmp.184 51 54 55 ];
+        %tmp.185 = add %tmp.183 %tmp.184;
+        %tmp.186 = dup %tmp.182;
+        %tmp.187 = aputv %tmp.186 0 %tmp.185;
+        %tmp.188 = lgetv %cy.10;
+        symbol [ cy %tmp.188 51 57 59 ];
+        %tmp.189 = lgetv %s.8;
+        symbol [ s %tmp.189 51 62 63 ];
+        %tmp.190 = sub %tmp.188 %tmp.189;
+        %tmp.191 = dup %tmp.187;
+        %tmp.192 = aputv %tmp.191 1 %tmp.190;
+        %tmp.193 = dup %tmp.181;
+        %tmp.194 = aputv %tmp.193 2 %tmp.192;
+        push %tmp.194;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_end:
+        %tmp.195 = phi [%tmp.118 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_begin] [%tmp.156 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_true] [%tmp.194 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_else_false] [%tmp.195 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_49_18_51_65_end];
+        lputv %pts.11 %tmp.195;
+        symbol [ pts %pts.11 49 12 15 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 52 8 ]
+        %tmp.196 = lgetv %dc;
+        symbol [ dc %tmp.196 52 8 10 ];
+        symbol [ fillPolygon %tmp.197 52 11 22 ];
+        %tmp.197 = getv function %tmp.196 :fillPolygon;
+        %tmp.198 = lgetv %pts.11;
+        symbol [ pts %tmp.198 52 23 26 ];
+        invoke %tmp.196 %tmp.197(%tmp.198);
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc" 53 8 ]
+        %tmp.199 = lgetv %dc;
+        symbol [ dc %tmp.199 53 8 10 ];
+        symbol [ drawText %tmp.200 53 11 19 ];
+        %tmp.200 = getv function %tmp.199 :drawText;
+        %tmp.201 = 2;
+        %tmp.202 = lgetv %s.8;
+        symbol [ s %tmp.202 53 25 26 ];
+        %tmp.203 = mul %tmp.201 %tmp.202;
+        %tmp.204 = 8;
+        %tmp.205 = add %tmp.203 %tmp.204;
+        %tmp.206 = lgetv %y.3;
+        symbol [ y %tmp.206 53 33 34 ];
+        symbol [ Graphics %tmp.207 53 36 44 ];
+        %tmp.207 = getm $.Toybox.Graphics;
+        symbol [ FONT_GLANCE %tmp.208 53 45 56 ];
+        %tmp.208 = getv %tmp.207 :FONT_GLANCE;
+        %tmp.209 = lgetv %line.7;
+        symbol [ line %tmp.209 53 58 62 ];
+        symbol [ Graphics %tmp.210 53 64 72 ];
+        %tmp.210 = getm $.Toybox.Graphics;
+        symbol [ TEXT_JUSTIFY_LEFT %tmp.211 53 73 90 ];
+        %tmp.211 = getv %tmp.210 :TEXT_JUSTIFY_LEFT;
+        invoke %tmp.199 %tmp.200(%tmp.205, %tmp.206, %tmp.208, %tmp.209, %tmp.211);
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_KerbriseTidesGlanceView_mc_16_26_54_4_stop:
+    }
+}
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/KerbriseTidesGlanceView.mc"; @line = 6; ]
+<init> {
+}

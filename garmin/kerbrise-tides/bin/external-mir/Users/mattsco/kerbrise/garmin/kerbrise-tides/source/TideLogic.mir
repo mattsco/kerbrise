@@ -1,0 +1,791 @@
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 7; @symbol_usingdef<0> = [Toybox,7,6,12]; @symbol_usingdef<1> = [Lang,7,13,17]; ]
+using Toybox.Lang;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 8; @symbol_usingdef<0> = [Toybox,8,6,12]; @symbol_usingdef<1> = [Time,8,13,17]; ]
+using Toybox.Time;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 9; @symbol_usingdef<0> = [Toybox,9,6,12]; @symbol_usingdef<1> = [Time,9,13,17]; @symbol_usingdef<2> = [Gregorian,9,18,27]; ]
+using Toybox.Time.Gregorian;
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 11; @symbol_moduledef = [TideLogic,11,7,16]; ]
+module TideLogic {
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 11; ]
+    <init> {
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 13 10 ]
+        %tmp.1 = newa 12;
+        %tmp.2 = 31;
+        %tmp.3 = dup %tmp.1;
+        %tmp.4 = aputv %tmp.3 0 %tmp.2;
+        %tmp.5 = 28;
+        %tmp.6 = dup %tmp.4;
+        %tmp.7 = aputv %tmp.6 1 %tmp.5;
+        %tmp.8 = 31;
+        %tmp.9 = dup %tmp.7;
+        %tmp.10 = aputv %tmp.9 2 %tmp.8;
+        %tmp.11 = 30;
+        %tmp.12 = dup %tmp.10;
+        %tmp.13 = aputv %tmp.12 3 %tmp.11;
+        %tmp.14 = 31;
+        %tmp.15 = dup %tmp.13;
+        %tmp.16 = aputv %tmp.15 4 %tmp.14;
+        %tmp.17 = 30;
+        %tmp.18 = dup %tmp.16;
+        %tmp.19 = aputv %tmp.18 5 %tmp.17;
+        %tmp.20 = 31;
+        %tmp.21 = dup %tmp.19;
+        %tmp.22 = aputv %tmp.21 6 %tmp.20;
+        %tmp.23 = 31;
+        %tmp.24 = dup %tmp.22;
+        %tmp.25 = aputv %tmp.24 7 %tmp.23;
+        %tmp.26 = 30;
+        %tmp.27 = dup %tmp.25;
+        %tmp.28 = aputv %tmp.27 8 %tmp.26;
+        %tmp.29 = 31;
+        %tmp.30 = dup %tmp.28;
+        %tmp.31 = aputv %tmp.30 9 %tmp.29;
+        %tmp.32 = 30;
+        %tmp.33 = dup %tmp.31;
+        %tmp.34 = aputv %tmp.33 10 %tmp.32;
+        %tmp.35 = 31;
+        %tmp.36 = dup %tmp.34;
+        %tmp.37 = aputv %tmp.36 11 %tmp.35;
+        putv self :MONTH_DAYS %tmp.37;
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 13; @position = 10; @symbol_constdef = [MONTH_DAYS,13,10,20]; ]
+    const MONTH_DAYS;
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 15; @symbol_functiondef = [isLeap,15,13,19]; @symbol_param<0> = [y,15,20,21]; @symbol_param<0>_type<0> = [Lang,15,25,29]; @symbol_param<0>_type<1> = [Number,15,30,36]; @symbol_return<0> = [Lang,15,41,45]; @symbol_return<1> = [Boolean,15,46,53]; ]
+    function isLeap(y as Lang.Number) as Lang.Boolean {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_15_54_17_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 16 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_15_16_60_begin:
+        %tmp.1 = lgetv %y;
+        symbol [ y %tmp.1 16 16 17 ];
+        %tmp.2 = 4;
+        %tmp.3 = mod %tmp.1 %tmp.2;
+        %tmp.4 = 0;
+        %tmp.5 = eq %tmp.3 %tmp.4;
+        %tmp.6 = dup %tmp.5;
+        bf %tmp.6 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_31_16_60_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_31_16_60_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_32_16_59_begin:
+        %tmp.7 = lgetv %y;
+        symbol [ y %tmp.7 16 32 33 ];
+        %tmp.8 = 100;
+        %tmp.9 = mod %tmp.7 %tmp.8;
+        %tmp.10 = 0;
+        %tmp.11 = ne %tmp.9 %tmp.10;
+        %tmp.12 = dup %tmp.11;
+        bt %tmp.12 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_48_16_59_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_48_16_59_false:
+        %tmp.13 = lgetv %y;
+        symbol [ y %tmp.13 16 48 49 ];
+        %tmp.14 = 400;
+        %tmp.15 = mod %tmp.13 %tmp.14;
+        %tmp.16 = 0;
+        %tmp.17 = eq %tmp.15 %tmp.16;
+        %tmp.18 = or %tmp.11 %tmp.17;
+        push %tmp.18;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_48_16_59_end:
+        %tmp.19 = phi [%tmp.12 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_32_16_59_begin] [%tmp.18 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_48_16_59_false] [%tmp.19 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_48_16_59_end];
+        %tmp.20 = and %tmp.5 %tmp.19;
+        push %tmp.20;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_31_16_60_end:
+        %tmp.21 = phi [%tmp.6 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_15_16_60_begin] [%tmp.20 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_31_16_60_true] [%tmp.21 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_16_31_16_60_end];
+        ret %tmp.21;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_15_54_17_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 20; @symbol_functiondef = [dayOfYear,20,13,22]; @symbol_param<0> = [year,20,23,27]; @symbol_param<0>_type<0> = [Lang,20,31,35]; @symbol_param<0>_type<1> = [Number,20,36,42]; @symbol_param<1> = [month,20,44,49]; @symbol_param<1>_type<0> = [Lang,20,53,57]; @symbol_param<1>_type<1> = [Number,20,58,64]; @symbol_param<2> = [day,20,66,69]; @symbol_param<2>_type<0> = [Lang,20,73,77]; @symbol_param<2>_type<1> = [Number,20,78,84]; @symbol_return<0> = [Lang,20,89,93]; @symbol_return<1> = [Number,20,94,100]; ]
+    function dayOfYear(year as Lang.Number, month as Lang.Number, day as Lang.Number) as Lang.Number {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_20_101_27_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 21 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_20_101_27_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_20_101_27_4_stop" ]
+        %doy.1 = local;
+        symbol [ doy %doy.1 21 12 15 ];
+        %tmp.1 = lgetv %day;
+        symbol [ day %tmp.1 21 18 21 ];
+        lputv %doy.1 %tmp.1;
+        symbol [ doy %doy.1 21 12 15 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 22 8 ]
+        for @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_test @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_incr @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_init:
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_begin" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_end" ]
+        %m.2 = local;
+        symbol [ m %m.2 22 17 18 ];
+        %tmp.2 = 1;
+        lputv %m.2 %tmp.2;
+        symbol [ m %m.2 22 17 18 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_test:
+        %tmp.3 = lgetv %m.2;
+        symbol [ m %tmp.3 22 24 25 ];
+        %tmp.4 = lgetv %month;
+        symbol [ month %tmp.4 22 28 33 ];
+        %tmp.5 = lt %tmp.3 %tmp.4;
+        bf %tmp.5 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_begin:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_40_25_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 23 12 ]
+        %tmp.6 = lgetv %doy.1;
+        symbol [ doy %tmp.6 23 12 15 ];
+        symbol [ MONTH_DAYS %tmp.8 23 19 29 ];
+        %tmp.8 = getv ? :MONTH_DAYS;
+        %tmp.9 = lgetv %m.2;
+        symbol [ m %tmp.9 23 30 31 ];
+        %tmp.10 = 1;
+        %tmp.11 = sub %tmp.9 %tmp.10;
+        %tmp.12 = agetv %tmp.8 %tmp.11;
+        %tmp.13 = add %tmp.6 %tmp.12;
+        lputv %doy.1 %tmp.13;
+        symbol [ doy %doy.1 23 12 15 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 24 12 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_stmt:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_16_24_37_begin:
+        %tmp.14 = lgetv %m.2;
+        symbol [ m %tmp.14 24 16 17 ];
+        %tmp.15 = 2;
+        %tmp.16 = eq %tmp.14 %tmp.15;
+        bf %tmp.16 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_26_24_37_true:
+        %tmp.17 = self;
+        symbol [ isLeap %tmp.18 24 26 32 ];
+        %tmp.18 = getv function %tmp.17 :isLeap;
+        %tmp.19 = lgetv %year;
+        symbol [ year %tmp.19 24 33 37 ];
+        %tmp.20 = invoke %tmp.17 %tmp.18(%tmp.19);
+        push %tmp.20;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_26_24_37_end:
+        %tmp.21 = phi [%tmp.16 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_16_24_37_begin] [%tmp.20 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_26_24_37_true] [%tmp.21 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_26_24_37_end];
+        bf %tmp.21 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_40_24_52_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 24 42 ]
+        %tmp.22 = lgetv %doy.1;
+        symbol [ doy %tmp.22 24 42 45 ];
+        %tmp.23 = 1;
+        %tmp.24 = add %tmp.22 %tmp.23;
+        lputv %doy.1 %tmp.24;
+        symbol [ doy %doy.1 24 42 45 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_40_24_52_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_24_12_24_52_if_end:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_40_25_8_stop:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_incr:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 22 ]
+        %tmp.27 = lgetv %m.2;
+        symbol [ m %tmp.27 22 35 36 ];
+        %tmp.28 = add %tmp.27 1;
+        lputv %m.2 %tmp.28;
+        symbol [ m %m.2 22 35 36 ];
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_test;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_22_8_25_8_for_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 26 8 ]
+        %tmp.29 = lgetv %doy.1;
+        symbol [ doy %tmp.29 26 15 18 ];
+        ret %tmp.29;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_20_101_27_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 29; @symbol_functiondef = [fmtTime,29,13,20]; @symbol_param<0> = [hh,29,21,23]; @symbol_param<0>_type<0> = [Lang,29,27,31]; @symbol_param<0>_type<1> = [Number,29,32,38]; @symbol_param<1> = [mm,29,40,42]; @symbol_param<1>_type<0> = [Lang,29,46,50]; @symbol_param<1>_type<1> = [Number,29,51,57]; @symbol_return<0> = [Lang,29,62,66]; @symbol_return<1> = [String,29,67,73]; ]
+    function fmtTime(hh as Lang.Number, mm as Lang.Number) as Lang.String {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_29_74_31_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 30 8 ]
+        %tmp.1 = lgetv %hh;
+        symbol [ hh %tmp.1 30 15 17 ];
+        symbol [ format %tmp.2 30 18 24 ];
+        %tmp.2 = getv function %tmp.1 :format;
+        %tmp.3 = "%02d";
+        %tmp.4 = invoke %tmp.1 %tmp.2(%tmp.3);
+        %tmp.5 = "h";
+        %tmp.6 = add %tmp.4 %tmp.5;
+        %tmp.7 = lgetv %mm;
+        symbol [ mm %tmp.7 30 41 43 ];
+        symbol [ format %tmp.8 30 44 50 ];
+        %tmp.8 = getv function %tmp.7 :format;
+        %tmp.9 = "%02d";
+        %tmp.10 = invoke %tmp.7 %tmp.8(%tmp.9);
+        %tmp.11 = add %tmp.6 %tmp.10;
+        ret %tmp.11;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_29_74_31_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 34; @symbol_functiondef = [shortLabel,34,13,23]; @symbol_param<0> = [type,34,24,28]; @symbol_param<0>_type<0> = [Lang,34,32,36]; @symbol_param<0>_type<1> = [String,34,37,43]; @symbol_return<0> = [Lang,34,48,52]; @symbol_return<1> = [String,34,53,59]; ]
+    function shortLabel(type as Lang.String) as Lang.String {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_34_60_36_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 35 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_begin:
+        %tmp.1 = lgetv %type;
+        symbol [ type %tmp.1 35 15 19 ];
+        symbol [ equals %tmp.2 35 20 26 ];
+        %tmp.2 = getv function %tmp.1 :equals;
+        %tmp.3 = "H";
+        %tmp.4 = invoke %tmp.1 %tmp.2(%tmp.3);
+        bf %tmp.4 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_true:
+        %tmp.5 = "PM";
+        push %tmp.5;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_else_false:
+        %tmp.6 = "BM";
+        push %tmp.6;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_end:
+        %tmp.7 = phi [%tmp.4 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_begin] [%tmp.5 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_true] [%tmp.6 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_else_false] [%tmp.7 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_35_15_35_41_end];
+        ret %tmp.7;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_34_60_36_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 39; @symbol_functiondef = [longLabel,39,13,22]; @symbol_param<0> = [type,39,23,27]; @symbol_param<0>_type<0> = [Lang,39,31,35]; @symbol_param<0>_type<1> = [String,39,36,42]; @symbol_return<0> = [Lang,39,47,51]; @symbol_return<1> = [String,39,52,58]; ]
+    function longLabel(type as Lang.String) as Lang.String {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_39_59_41_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 40 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_begin:
+        %tmp.1 = lgetv %type;
+        symbol [ type %tmp.1 40 15 19 ];
+        symbol [ equals %tmp.2 40 20 26 ];
+        %tmp.2 = getv function %tmp.1 :equals;
+        %tmp.3 = "H";
+        %tmp.4 = invoke %tmp.1 %tmp.2(%tmp.3);
+        bf %tmp.4 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_true:
+        %tmp.5 = "Pleine";
+        push %tmp.5;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_else_false:
+        %tmp.6 = "Basse";
+        push %tmp.6;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_end:
+        %tmp.7 = phi [%tmp.4 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_begin] [%tmp.5 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_true] [%tmp.6 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_else_false] [%tmp.7 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_40_15_40_45_end];
+        ret %tmp.7;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_39_59_41_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 44; @symbol_functiondef = [nowParts,44,13,21]; @symbol_return<0> = [Lang,44,27,31]; @symbol_return<1> = [Dictionary,44,32,42]; ]
+    function nowParts() as Lang.Dictionary {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_44_43_50_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 45 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_44_43_50_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_44_43_50_4_stop" ]
+        %info.1 = local;
+        symbol [ info %info.1 45 12 16 ];
+        symbol [ Gregorian %tmp.1 45 19 28 ];
+        %tmp.1 = getm $.Toybox.Time.Gregorian;
+        symbol [ info %tmp.2 45 29 33 ];
+        %tmp.2 = getv function %tmp.1 :info;
+        symbol [ Time %tmp.3 45 34 38 ];
+        %tmp.3 = getm $.Toybox.Time;
+        symbol [ now %tmp.4 45 39 42 ];
+        %tmp.4 = getv function %tmp.3 :now;
+        %tmp.5 = invoke %tmp.3 %tmp.4();
+        symbol [ Time %tmp.6 45 46 50 ];
+        %tmp.6 = getm $.Toybox.Time;
+        symbol [ FORMAT_SHORT %tmp.7 45 51 63 ];
+        %tmp.7 = getv %tmp.6 :FORMAT_SHORT;
+        %tmp.8 = invoke %tmp.1 %tmp.2(%tmp.5, %tmp.7);
+        lputv %info.1 %tmp.8;
+        symbol [ info %info.1 45 12 16 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 46 8 ]
+        %tmp.9 = newd 5;
+        %tmp.11 = const :year;
+        symbol [ year %tmp.11 47 13 17 const ];
+        %tmp.12 = lgetv %info.1;
+        symbol [ info %tmp.12 47 21 25 ];
+        symbol [ year %tmp.13 47 26 30 ];
+        %tmp.13 = getv %tmp.12 :year;
+        %tmp.14 = dup %tmp.9;
+        %tmp.15 = aputv %tmp.14 %tmp.11 %tmp.13;
+        %tmp.17 = const :month;
+        symbol [ month %tmp.17 47 33 38 const ];
+        %tmp.18 = lgetv %info.1;
+        symbol [ info %tmp.18 47 42 46 ];
+        symbol [ month %tmp.19 47 47 52 ];
+        %tmp.19 = getv %tmp.18 :month;
+        %tmp.20 = dup %tmp.15;
+        %tmp.21 = aputv %tmp.20 %tmp.17 %tmp.19;
+        %tmp.23 = const :day;
+        symbol [ day %tmp.23 47 55 58 const ];
+        %tmp.24 = lgetv %info.1;
+        symbol [ info %tmp.24 47 62 66 ];
+        symbol [ day %tmp.25 47 67 70 ];
+        %tmp.25 = getv %tmp.24 :day;
+        %tmp.26 = dup %tmp.21;
+        %tmp.27 = aputv %tmp.26 %tmp.23 %tmp.25;
+        %tmp.29 = const :hour;
+        symbol [ hour %tmp.29 48 13 17 const ];
+        %tmp.30 = lgetv %info.1;
+        symbol [ info %tmp.30 48 21 25 ];
+        symbol [ hour %tmp.31 48 26 30 ];
+        %tmp.31 = getv %tmp.30 :hour;
+        %tmp.32 = dup %tmp.27;
+        %tmp.33 = aputv %tmp.32 %tmp.29 %tmp.31;
+        %tmp.35 = const :min;
+        symbol [ min %tmp.35 48 33 36 const ];
+        %tmp.36 = lgetv %info.1;
+        symbol [ info %tmp.36 48 40 44 ];
+        symbol [ min %tmp.37 48 45 48 ];
+        %tmp.37 = getv %tmp.36 :min;
+        %tmp.38 = dup %tmp.33;
+        %tmp.39 = aputv %tmp.38 %tmp.35 %tmp.37;
+        ret %tmp.39;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_44_43_50_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 53; @symbol_functiondef = [todayEvents,53,13,24]; @symbol_return<0> = [Lang,53,30,34]; @symbol_return<1> = [Array,53,35,40]; ]
+    function todayEvents() as Lang.Array {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_53_41_56_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 54 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_53_41_56_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_53_41_56_4_stop" ]
+        %n.1 = local;
+        symbol [ n %n.1 54 12 13 ];
+        %tmp.1 = self;
+        symbol [ nowParts %tmp.2 54 16 24 ];
+        %tmp.2 = getv function %tmp.1 :nowParts;
+        %tmp.3 = invoke %tmp.1 %tmp.2();
+        lputv %n.1 %tmp.3;
+        symbol [ n %n.1 54 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 55 8 ]
+        symbol [ TideData %tmp.5 55 15 23 ];
+        %tmp.5 = getv ? :TideData;
+        symbol [ dayEvents %tmp.6 55 24 33 ];
+        %tmp.6 = getv function %tmp.5 :dayEvents;
+        %tmp.7 = lgetv %n.1;
+        symbol [ n %tmp.7 55 34 35 ];
+        %tmp.9 = const :year;
+        symbol [ year %tmp.9 55 37 41 const ];
+        %tmp.10 = agetv %tmp.7 %tmp.9;
+        %tmp.11 = self;
+        symbol [ dayOfYear %tmp.12 55 44 53 ];
+        %tmp.12 = getv function %tmp.11 :dayOfYear;
+        %tmp.13 = lgetv %n.1;
+        symbol [ n %tmp.13 55 54 55 ];
+        %tmp.15 = const :year;
+        symbol [ year %tmp.15 55 57 61 const ];
+        %tmp.16 = agetv %tmp.13 %tmp.15;
+        %tmp.17 = lgetv %n.1;
+        symbol [ n %tmp.17 55 64 65 ];
+        %tmp.19 = const :month;
+        symbol [ month %tmp.19 55 67 72 const ];
+        %tmp.20 = agetv %tmp.17 %tmp.19;
+        %tmp.21 = lgetv %n.1;
+        symbol [ n %tmp.21 55 75 76 ];
+        %tmp.23 = const :day;
+        symbol [ day %tmp.23 55 78 81 const ];
+        %tmp.24 = agetv %tmp.21 %tmp.23;
+        %tmp.25 = invoke %tmp.11 %tmp.12(%tmp.16, %tmp.20, %tmp.24);
+        %tmp.26 = invoke %tmp.5 %tmp.6(%tmp.10, %tmp.25);
+        ret %tmp.26;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_53_41_56_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 60; @symbol_functiondef = [nextTides,60,13,22]; @symbol_param<0> = [count,60,23,28]; @symbol_param<0>_type<0> = [Lang,60,32,36]; @symbol_param<0>_type<1> = [Number,60,37,43]; @symbol_return<0> = [Lang,60,48,52]; @symbol_return<1> = [Array,60,53,58]; ]
+    function nextTides(count as Lang.Number) as Lang.Array {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 61 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_stop" ]
+        %result.1 = local;
+        symbol [ result %result.1 61 12 18 ];
+        %tmp.1 = newa 0;
+        lputv %result.1 %tmp.1;
+        symbol [ result %result.1 61 12 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 62 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_stop" ]
+        %n.2 = local;
+        symbol [ n %n.2 62 12 13 ];
+        %tmp.2 = self;
+        symbol [ nowParts %tmp.3 62 16 24 ];
+        %tmp.3 = getv function %tmp.2 :nowParts;
+        %tmp.4 = invoke %tmp.2 %tmp.3();
+        lputv %n.2 %tmp.4;
+        symbol [ n %n.2 62 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 63 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_stop" ]
+        %nowMin.3 = local;
+        symbol [ nowMin %nowMin.3 63 12 18 ];
+        %tmp.5 = lgetv %n.2;
+        symbol [ n %tmp.5 63 21 22 ];
+        %tmp.7 = const :hour;
+        symbol [ hour %tmp.7 63 24 28 const ];
+        %tmp.8 = agetv %tmp.5 %tmp.7;
+        %tmp.9 = 60;
+        %tmp.10 = mul %tmp.8 %tmp.9;
+        %tmp.11 = lgetv %n.2;
+        symbol [ n %tmp.11 63 37 38 ];
+        %tmp.13 = const :min;
+        symbol [ min %tmp.13 63 40 43 const ];
+        %tmp.14 = agetv %tmp.11 %tmp.13;
+        %tmp.15 = add %tmp.10 %tmp.14;
+        lputv %nowMin.3 %tmp.15;
+        symbol [ nowMin %nowMin.3 63 12 18 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 65 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_stop" ]
+        %today.4 = local;
+        symbol [ today %today.4 65 12 17 ];
+        symbol [ TideData %tmp.17 65 20 28 ];
+        %tmp.17 = getv ? :TideData;
+        symbol [ dayEvents %tmp.18 65 29 38 ];
+        %tmp.18 = getv function %tmp.17 :dayEvents;
+        %tmp.19 = lgetv %n.2;
+        symbol [ n %tmp.19 65 39 40 ];
+        %tmp.21 = const :year;
+        symbol [ year %tmp.21 65 42 46 const ];
+        %tmp.22 = agetv %tmp.19 %tmp.21;
+        %tmp.23 = self;
+        symbol [ dayOfYear %tmp.24 65 49 58 ];
+        %tmp.24 = getv function %tmp.23 :dayOfYear;
+        %tmp.25 = lgetv %n.2;
+        symbol [ n %tmp.25 65 59 60 ];
+        %tmp.27 = const :year;
+        symbol [ year %tmp.27 65 62 66 const ];
+        %tmp.28 = agetv %tmp.25 %tmp.27;
+        %tmp.29 = lgetv %n.2;
+        symbol [ n %tmp.29 65 69 70 ];
+        %tmp.31 = const :month;
+        symbol [ month %tmp.31 65 72 77 const ];
+        %tmp.32 = agetv %tmp.29 %tmp.31;
+        %tmp.33 = lgetv %n.2;
+        symbol [ n %tmp.33 65 80 81 ];
+        %tmp.35 = const :day;
+        symbol [ day %tmp.35 65 83 86 const ];
+        %tmp.36 = agetv %tmp.33 %tmp.35;
+        %tmp.37 = invoke %tmp.23 %tmp.24(%tmp.28, %tmp.32, %tmp.36);
+        %tmp.38 = invoke %tmp.17 %tmp.18(%tmp.22, %tmp.37);
+        lputv %today.4 %tmp.38;
+        symbol [ today %today.4 65 12 17 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 66 8 ]
+        for @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_test @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_incr @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_init:
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_begin" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_end" ]
+        %i.5 = local;
+        symbol [ i %i.5 66 17 18 ];
+        %tmp.39 = 0;
+        lputv %i.5 %tmp.39;
+        symbol [ i %i.5 66 17 18 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_test:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_24_66_60_begin:
+        %tmp.40 = lgetv %i.5;
+        symbol [ i %tmp.40 66 24 25 ];
+        %tmp.41 = lgetv %today.4;
+        symbol [ today %tmp.41 66 28 33 ];
+        symbol [ size %tmp.42 66 34 38 ];
+        %tmp.42 = getv function %tmp.41 :size;
+        %tmp.43 = invoke %tmp.41 %tmp.42();
+        %tmp.44 = lt %tmp.40 %tmp.43;
+        %tmp.45 = dup %tmp.44;
+        bf %tmp.45 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_44_66_60_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_44_66_60_true:
+        %tmp.46 = lgetv %result.1;
+        symbol [ result %tmp.46 66 44 50 ];
+        symbol [ size %tmp.47 66 51 55 ];
+        %tmp.47 = getv function %tmp.46 :size;
+        %tmp.48 = invoke %tmp.46 %tmp.47();
+        %tmp.49 = lgetv %count;
+        symbol [ count %tmp.49 66 60 65 ];
+        %tmp.50 = lt %tmp.48 %tmp.49;
+        %tmp.51 = and %tmp.44 %tmp.50;
+        push %tmp.51;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_44_66_60_end:
+        %tmp.52 = phi [%tmp.45 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_24_66_60_begin] [%tmp.51 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_44_66_60_true] [%tmp.52 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_44_66_60_end];
+        bf %tmp.52 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_begin:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_72_71_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 67 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_72_71_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_72_71_8_stop" ]
+        %e.6 = local;
+        symbol [ e %e.6 67 16 17 ];
+        %tmp.53 = lgetv %today.4;
+        symbol [ today %tmp.53 67 20 25 ];
+        %tmp.54 = lgetv %i.5;
+        symbol [ i %tmp.54 67 26 27 ];
+        %tmp.55 = agetv %tmp.53 %tmp.54;
+        lputv %e.6 %tmp.55;
+        symbol [ e %e.6 67 16 17 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 68 12 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_12_70_12_if_stmt:
+        %tmp.56 = lgetv %e.6;
+        symbol [ e %tmp.56 68 16 17 ];
+        %tmp.57 = 1;
+        %tmp.58 = agetv %tmp.56 %tmp.57;
+        %tmp.59 = 60;
+        %tmp.60 = mul %tmp.58 %tmp.59;
+        %tmp.61 = lgetv %e.6;
+        symbol [ e %tmp.61 68 28 29 ];
+        %tmp.62 = 2;
+        %tmp.63 = agetv %tmp.61 %tmp.62;
+        %tmp.64 = add %tmp.60 %tmp.63;
+        %tmp.65 = lgetv %nowMin.3;
+        symbol [ nowMin %tmp.65 68 35 41 ];
+        %tmp.66 = gt %tmp.64 %tmp.65;
+        bf %tmp.66 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_12_70_12_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_12_70_12_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_43_70_12_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 69 16 ]
+        %tmp.67 = lgetv %result.1;
+        symbol [ result %tmp.67 69 16 22 ];
+        symbol [ add %tmp.68 69 23 26 ];
+        %tmp.68 = getv function %tmp.67 :add;
+        %tmp.69 = newd 5;
+        %tmp.71 = const :type;
+        symbol [ type %tmp.71 69 30 34 const ];
+        %tmp.72 = lgetv %e.6;
+        symbol [ e %tmp.72 69 38 39 ];
+        %tmp.73 = 0;
+        %tmp.74 = agetv %tmp.72 %tmp.73;
+        %tmp.75 = dup %tmp.69;
+        %tmp.76 = aputv %tmp.75 %tmp.71 %tmp.74;
+        %tmp.78 = const :hh;
+        symbol [ hh %tmp.78 69 45 47 const ];
+        %tmp.79 = lgetv %e.6;
+        symbol [ e %tmp.79 69 51 52 ];
+        %tmp.80 = 1;
+        %tmp.81 = agetv %tmp.79 %tmp.80;
+        %tmp.82 = dup %tmp.76;
+        %tmp.83 = aputv %tmp.82 %tmp.78 %tmp.81;
+        %tmp.85 = const :mm;
+        symbol [ mm %tmp.85 69 58 60 const ];
+        %tmp.86 = lgetv %e.6;
+        symbol [ e %tmp.86 69 64 65 ];
+        %tmp.87 = 2;
+        %tmp.88 = agetv %tmp.86 %tmp.87;
+        %tmp.89 = dup %tmp.83;
+        %tmp.90 = aputv %tmp.89 %tmp.85 %tmp.88;
+        %tmp.92 = const :coef;
+        symbol [ coef %tmp.92 69 71 75 const ];
+        %tmp.93 = lgetv %e.6;
+        symbol [ e %tmp.93 69 79 80 ];
+        %tmp.94 = 3;
+        %tmp.95 = agetv %tmp.93 %tmp.94;
+        %tmp.96 = dup %tmp.90;
+        %tmp.97 = aputv %tmp.96 %tmp.92 %tmp.95;
+        %tmp.99 = const :today;
+        symbol [ today %tmp.99 69 86 91 const ];
+        %tmp.100 = true;
+        %tmp.101 = dup %tmp.97;
+        %tmp.102 = aputv %tmp.101 %tmp.99 %tmp.100;
+        invoke %tmp.67 %tmp.68(%tmp.102);
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_43_70_12_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_12_70_12_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_68_12_70_12_if_end:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_72_71_8_stop:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_incr:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 66 ]
+        %tmp.105 = lgetv %i.5;
+        symbol [ i %tmp.105 66 67 68 ];
+        %tmp.106 = add %tmp.105 1;
+        lputv %i.5 %tmp.106;
+        symbol [ i %i.5 66 67 68 ];
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_test;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_66_8_71_8_for_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 73 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_8_80_8_if_stmt:
+        %tmp.107 = lgetv %result.1;
+        symbol [ result %tmp.107 73 12 18 ];
+        symbol [ size %tmp.108 73 19 23 ];
+        %tmp.108 = getv function %tmp.107 :size;
+        %tmp.109 = invoke %tmp.107 %tmp.108();
+        %tmp.110 = lgetv %count;
+        symbol [ count %tmp.110 73 28 33 ];
+        %tmp.111 = lt %tmp.109 %tmp.110;
+        bf %tmp.111 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_8_80_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_8_80_8_if_true:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 74 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_stop" ]
+        %tInfo.7 = local;
+        symbol [ tInfo %tInfo.7 74 16 21 ];
+        symbol [ Gregorian %tmp.112 74 24 33 ];
+        %tmp.112 = getm $.Toybox.Time.Gregorian;
+        symbol [ info %tmp.113 74 34 38 ];
+        %tmp.113 = getv function %tmp.112 :info;
+        symbol [ Time %tmp.114 74 39 43 ];
+        %tmp.114 = getm $.Toybox.Time;
+        symbol [ now %tmp.115 74 44 47 ];
+        %tmp.115 = getv function %tmp.114 :now;
+        %tmp.116 = invoke %tmp.114 %tmp.115();
+        symbol [ add %tmp.117 74 50 53 ];
+        %tmp.117 = getv function %tmp.116 :add;
+        symbol [ Time %tmp.120 74 58 62 ];
+        %tmp.120 = getm $.Toybox.Time;
+        symbol [ Duration %tmp.121 74 63 71 ];
+        %tmp.121 = getv function ? %tmp.120 :Duration;
+        %tmp.122 = 86400;
+        %tmp.118 = newc %tmp.121 (%tmp.122);
+        %tmp.123 = invoke %tmp.116 %tmp.117(%tmp.118);
+        symbol [ Time %tmp.124 74 81 85 ];
+        %tmp.124 = getm $.Toybox.Time;
+        symbol [ FORMAT_SHORT %tmp.125 74 86 98 ];
+        %tmp.125 = getv %tmp.124 :FORMAT_SHORT;
+        %tmp.126 = invoke %tmp.112 %tmp.113(%tmp.123, %tmp.125);
+        lputv %tInfo.7 %tmp.126;
+        symbol [ tInfo %tInfo.7 74 16 21 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 75 12 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_stop" ]
+        %tEvents.8 = local;
+        symbol [ tEvents %tEvents.8 75 16 23 ];
+        symbol [ TideData %tmp.128 75 26 34 ];
+        %tmp.128 = getv ? :TideData;
+        symbol [ dayEvents %tmp.129 75 35 44 ];
+        %tmp.129 = getv function %tmp.128 :dayEvents;
+        %tmp.130 = lgetv %tInfo.7;
+        symbol [ tInfo %tmp.130 75 45 50 ];
+        symbol [ year %tmp.131 75 51 55 ];
+        %tmp.131 = getv %tmp.130 :year;
+        %tmp.132 = self;
+        symbol [ dayOfYear %tmp.133 75 57 66 ];
+        %tmp.133 = getv function %tmp.132 :dayOfYear;
+        %tmp.134 = lgetv %tInfo.7;
+        symbol [ tInfo %tmp.134 75 67 72 ];
+        symbol [ year %tmp.135 75 73 77 ];
+        %tmp.135 = getv %tmp.134 :year;
+        %tmp.136 = lgetv %tInfo.7;
+        symbol [ tInfo %tmp.136 75 79 84 ];
+        symbol [ month %tmp.137 75 85 90 ];
+        %tmp.137 = getv %tmp.136 :month;
+        %tmp.138 = lgetv %tInfo.7;
+        symbol [ tInfo %tmp.138 75 92 97 ];
+        symbol [ day %tmp.139 75 98 101 ];
+        %tmp.139 = getv %tmp.138 :day;
+        %tmp.140 = invoke %tmp.132 %tmp.133(%tmp.135, %tmp.137, %tmp.139);
+        %tmp.141 = invoke %tmp.128 %tmp.129(%tmp.131, %tmp.140);
+        lputv %tEvents.8 %tmp.141;
+        symbol [ tEvents %tEvents.8 75 16 23 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 76 12 ]
+        for @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_test @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_incr @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_init:
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_begin" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_end" ]
+        %j.9 = local;
+        symbol [ j %j.9 76 21 22 ];
+        %tmp.142 = 0;
+        lputv %j.9 %tmp.142;
+        symbol [ j %j.9 76 21 22 ];
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_test:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_28_76_66_begin:
+        %tmp.143 = lgetv %j.9;
+        symbol [ j %tmp.143 76 28 29 ];
+        %tmp.144 = lgetv %tEvents.8;
+        symbol [ tEvents %tmp.144 76 32 39 ];
+        symbol [ size %tmp.145 76 40 44 ];
+        %tmp.145 = getv function %tmp.144 :size;
+        %tmp.146 = invoke %tmp.144 %tmp.145();
+        %tmp.147 = lt %tmp.143 %tmp.146;
+        %tmp.148 = dup %tmp.147;
+        bf %tmp.148 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_50_76_66_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_50_76_66_true:
+        %tmp.149 = lgetv %result.1;
+        symbol [ result %tmp.149 76 50 56 ];
+        symbol [ size %tmp.150 76 57 61 ];
+        %tmp.150 = getv function %tmp.149 :size;
+        %tmp.151 = invoke %tmp.149 %tmp.150();
+        %tmp.152 = lgetv %count;
+        symbol [ count %tmp.152 76 66 71 ];
+        %tmp.153 = lt %tmp.151 %tmp.152;
+        %tmp.154 = and %tmp.147 %tmp.153;
+        push %tmp.154;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_50_76_66_end:
+        %tmp.155 = phi [%tmp.148 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_28_76_66_begin] [%tmp.154 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_50_76_66_true] [%tmp.155 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_50_76_66_end];
+        bf %tmp.155 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_begin:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_78_79_12_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 77 16 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_78_79_12_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_78_79_12_stop" ]
+        %e.10 = local;
+        symbol [ e %e.10 77 20 21 ];
+        %tmp.156 = lgetv %tEvents.8;
+        symbol [ tEvents %tmp.156 77 24 31 ];
+        %tmp.157 = lgetv %j.9;
+        symbol [ j %tmp.157 77 32 33 ];
+        %tmp.158 = agetv %tmp.156 %tmp.157;
+        lputv %e.10 %tmp.158;
+        symbol [ e %e.10 77 20 21 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 78 16 ]
+        %tmp.159 = lgetv %result.1;
+        symbol [ result %tmp.159 78 16 22 ];
+        symbol [ add %tmp.160 78 23 26 ];
+        %tmp.160 = getv function %tmp.159 :add;
+        %tmp.161 = newd 5;
+        %tmp.163 = const :type;
+        symbol [ type %tmp.163 78 30 34 const ];
+        %tmp.164 = lgetv %e.10;
+        symbol [ e %tmp.164 78 38 39 ];
+        %tmp.165 = 0;
+        %tmp.166 = agetv %tmp.164 %tmp.165;
+        %tmp.167 = dup %tmp.161;
+        %tmp.168 = aputv %tmp.167 %tmp.163 %tmp.166;
+        %tmp.170 = const :hh;
+        symbol [ hh %tmp.170 78 45 47 const ];
+        %tmp.171 = lgetv %e.10;
+        symbol [ e %tmp.171 78 51 52 ];
+        %tmp.172 = 1;
+        %tmp.173 = agetv %tmp.171 %tmp.172;
+        %tmp.174 = dup %tmp.168;
+        %tmp.175 = aputv %tmp.174 %tmp.170 %tmp.173;
+        %tmp.177 = const :mm;
+        symbol [ mm %tmp.177 78 58 60 const ];
+        %tmp.178 = lgetv %e.10;
+        symbol [ e %tmp.178 78 64 65 ];
+        %tmp.179 = 2;
+        %tmp.180 = agetv %tmp.178 %tmp.179;
+        %tmp.181 = dup %tmp.175;
+        %tmp.182 = aputv %tmp.181 %tmp.177 %tmp.180;
+        %tmp.184 = const :coef;
+        symbol [ coef %tmp.184 78 71 75 const ];
+        %tmp.185 = lgetv %e.10;
+        symbol [ e %tmp.185 78 79 80 ];
+        %tmp.186 = 3;
+        %tmp.187 = agetv %tmp.185 %tmp.186;
+        %tmp.188 = dup %tmp.182;
+        %tmp.189 = aputv %tmp.188 %tmp.184 %tmp.187;
+        %tmp.191 = const :today;
+        symbol [ today %tmp.191 78 86 91 const ];
+        %tmp.192 = false;
+        %tmp.193 = dup %tmp.189;
+        %tmp.194 = aputv %tmp.193 %tmp.191 %tmp.192;
+        invoke %tmp.159 %tmp.160(%tmp.194);
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_78_79_12_stop:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_incr:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 76 ]
+        %tmp.197 = lgetv %j.9;
+        symbol [ j %tmp.197 76 73 74 ];
+        %tmp.198 = add %tmp.197 1;
+        lputv %j.9 %tmp.198;
+        symbol [ j %j.9 76 73 74 ];
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_test;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_76_12_79_12_for_end:
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_35_80_8_stop:
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_8_80_8_if_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_73_8_80_8_if_end:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 81 8 ]
+        %tmp.199 = lgetv %result.1;
+        symbol [ result %tmp.199 81 15 21 ];
+        ret %tmp.199;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_60_59_82_4_stop:
+    }
+    [ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 85; @symbol_functiondef = [nextTide,85,13,21]; @symbol_return<0> = [Lang,85,27,31]; @symbol_return<1> = [Dictionary,85,32,42]; ]
+    function nextTide() as Lang.Dictionary or Null {
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_85_51_88_4_start:
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 86 8 ]
+        [ "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_85_51_88_4_start" "_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_85_51_88_4_stop" ]
+        %t.1 = local;
+        symbol [ t %t.1 86 12 13 ];
+        %tmp.1 = self;
+        symbol [ nextTides %tmp.2 86 16 25 ];
+        %tmp.2 = getv function %tmp.1 :nextTides;
+        %tmp.3 = 1;
+        %tmp.4 = invoke %tmp.1 %tmp.2(%tmp.3);
+        lputv %t.1 %tmp.4;
+        symbol [ t %t.1 86 12 13 ];
+[ "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc" 87 8 ]
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_begin:
+        %tmp.5 = lgetv %t.1;
+        symbol [ t %tmp.5 87 15 16 ];
+        symbol [ size %tmp.6 87 17 21 ];
+        %tmp.6 = getv function %tmp.5 :size;
+        %tmp.7 = invoke %tmp.5 %tmp.6();
+        %tmp.8 = 0;
+        %tmp.9 = gt %tmp.7 %tmp.8;
+        bf %tmp.9 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_else_false;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_true:
+        %tmp.10 = lgetv %t.1;
+        symbol [ t %tmp.10 87 30 31 ];
+        %tmp.11 = 0;
+        %tmp.12 = agetv %tmp.10 %tmp.11;
+        push %tmp.12;
+        goto @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_end;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_else_false:
+        %tmp.13 = null;
+        push %tmp.13;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_end:
+        %tmp.14 = phi [%tmp.9 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_begin] [%tmp.12 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_true] [%tmp.13 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_else_false] [%tmp.14 @_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_87_15_87_37_end];
+        ret %tmp.14;
+_Users_mattsco_kerbrise_garmin_kerbrise_tides_source_TideLogic_mc_85_51_88_4_stop:
+    }
+}
+[ @file = "/Users/mattsco/kerbrise/garmin/kerbrise-tides/source/TideLogic.mc"; @line = 7; ]
+<init> {
+}
