@@ -1,7 +1,6 @@
 import { getConditions } from "@/lib/conditions";
 import {
   Waves,
-  Droplets,
   Thermometer,
   Sunset,
   Sparkles,
@@ -23,16 +22,11 @@ export default async function BannerConditions({
 }: {
   todayISO: string;
 }) {
-  const { sea, tide, upcomingTides, weather } = await getConditions(todayISO);
-
-  // Nom du mois courant (pour « mer ~14° en juin »)
-  const monthLabel = new Date(`${todayISO}T12:00:00`).toLocaleDateString("fr-FR", {
-    month: "long",
-  });
+  const { tide, upcomingTides, weather } = await getConditions(todayISO);
 
   const hasTimes = upcomingTides.length > 0;
   const showTideRow = hasTimes || tide !== null;
-  if (!showTideRow && !sea && !weather) return null;
+  if (!showTideRow && !weather) return null;
 
   const delta = weather?.deltaVsNormalC;
   const deltaText =
@@ -95,20 +89,6 @@ export default async function BannerConditions({
               {weather.sunset}
             </span>
           )}
-        </div>
-      )}
-
-      {/* Température de l'eau (moyenne saisonnière du mois) */}
-      {sea && (
-        <div className="flex items-center gap-2 text-xs">
-          <Droplets className="w-3.5 h-3.5 text-sky-500/80 shrink-0" />
-          <span className="text-slate-600">
-            mer ~
-            <span className="font-semibold text-slate-700">
-              {Math.round(sea.tempC)}°
-            </span>
-            <span className="text-slate-400"> en {monthLabel}</span>
-          </span>
         </div>
       )}
 

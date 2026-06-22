@@ -39,7 +39,7 @@ export async function GET(req: Request) {
   }
 
   const today = todayInParis();
-  const [{ sea, tide, upcomingTides, todayTides, weather }, sejour] =
+  const [{ tide, upcomingTides, todayTides, weather }, sejour] =
     await Promise.all([getConditions(today), getSejourSnapshot(today)]);
 
   const highs = todayTides.filter((t) => t.type === "PM").map((t) => t.time);
@@ -63,9 +63,6 @@ export async function GET(req: Request) {
         ? "dans la normale"
         : `${delta > 0 ? "+" : ""}${delta}° vs la normale`;
 
-  const monthLabel = fmt({ month: "long" });
-  const seaTemp = sea ? Math.round(sea.tempC) : null;
-
   const payload = {
     generated_at: new Date().toISOString(),
     generated_at_label: `${fmt({ weekday: "short", day: "numeric", month: "long" })} · ${fmt({ hour: "2-digit", minute: "2-digit" })}`,
@@ -73,16 +70,6 @@ export async function GET(req: Request) {
     status: sejour.status,
     stay: sejour.stay,
     next: sejour.next,
-
-    sea:
-      seaTemp === null
-        ? null
-        : {
-            temp_c: seaTemp,
-            month_label: monthLabel,
-            label: `Mer ~${seaTemp}° en ${monthLabel}`,
-            note: "moyenne saisonnière",
-          },
 
     weather: weather
       ? {
