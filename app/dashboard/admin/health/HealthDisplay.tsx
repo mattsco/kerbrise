@@ -38,8 +38,11 @@ export default function HealthDisplay() {
     return () => clearInterval(interval);
   }, [report]);
 
-  const allOk = report?.results.every((r) => r.status === "ok");
   const hasFail = report?.results.some((r) => r.status === "fail");
+  const hasWarn = report?.results.some((r) => r.status === "warn");
+  const skipped = report?.results.filter((r) => r.status === "skip").length ?? 0;
+  // `skip` est neutre : tout vert si rien n'est en fail/warn (skips tolérés).
+  const allClear = report ? !hasFail && !hasWarn : false;
 
   return (
     <main className="min-h-screen bg-black text-emerald-400 font-mono p-4 sm:p-6">
@@ -69,7 +72,7 @@ export default function HealthDisplay() {
             className={`border rounded p-3 mb-6 ${
               hasFail
                 ? "border-red-500 bg-red-950/30 text-red-300"
-                : allOk
+                : allClear
                 ? "border-emerald-700 bg-emerald-950/30"
                 : "border-amber-500 bg-amber-950/30 text-amber-300"
             }`}
@@ -77,10 +80,16 @@ export default function HealthDisplay() {
             <p className="text-sm font-bold">
               {hasFail
                 ? "⚠ SYSTEM DEGRADED"
-                : allOk
+                : allClear
                 ? "✓ ALL SYSTEMS OPERATIONAL"
                 : "⚠ WARNINGS DETECTED"}
             </p>
+            {skipped > 0 && (
+              <p className="text-xs mt-1 text-zinc-500">
+                {skipped} check{skipped > 1 ? "s" : ""} skipped (RPC diag non
+                installé)
+              </p>
+            )}
           </div>
         )}
 
@@ -100,18 +109,24 @@ export default function HealthDisplay() {
                     ? "OK"
                     : r.status === "warn"
                     ? "WARN"
+                    : r.status === "skip"
+                    ? "SKIP"
                     : "FAIL";
                 const statusColor =
                   r.status === "ok"
                     ? "text-emerald-400"
                     : r.status === "warn"
                     ? "text-amber-400"
+                    : r.status === "skip"
+                    ? "text-zinc-500"
                     : "text-red-400";
                 const bracketColor =
                   r.status === "ok"
                     ? "text-emerald-600"
                     : r.status === "warn"
                     ? "text-amber-600"
+                    : r.status === "skip"
+                    ? "text-zinc-600"
                     : "text-red-600";
 
                 return (

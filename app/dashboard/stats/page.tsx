@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { CountUp, GrowBar } from "./StatsClient";
 
 const FRENCH_MONTHS_SHORT = [
   "Jan",
@@ -269,14 +270,16 @@ export default async function StatsPage({
           <BigStatCard
             icon={<Home className="w-4 h-4" />}
             label="Taux d'occupation"
-            value={`${occupationRate}%`}
+            value={occupationRate}
+            suffix="%"
             sub={`${totalDaysReserved} / ${daysInYear} j`}
           />
 
           <BigStatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Printemps-été"
-            value={`${springRate}%`}
+            value={springRate}
+            suffix="%"
             sub={`${springDaysReserved} / ${springDays} j`}
           />
         </div>
@@ -292,22 +295,14 @@ export default async function StatsPage({
           {totalDaysReserved > 0 ? (
             <div className="space-y-4">
               <div className="h-3 rounded-full overflow-hidden bg-slate-100">
-                <div className="h-full flex">
-                  {familyStats.map((f) =>
-                    f.totalDays > 0 ? (
-                      <div
-                        key={f.name}
-                        style={{
-                          width: `${
-                            (f.totalDays / totalDaysReserved) * 100
-                          }%`,
-                          backgroundColor: f.color,
-                        }}
-                        title={`${f.name} : ${f.totalDays} jours`}
-                      />
-                    ) : null
-                  )}
-                </div>
+                <GrowBar
+                  segments={familyStats.map((f) => ({
+                    key: f.name,
+                    pct: (f.totalDays / totalDaysReserved) * 100,
+                    color: f.color,
+                    title: `${f.name} : ${f.totalDays} jours`,
+                  }))}
+                />
               </div>
 
               <div className="space-y-2.5">
@@ -371,26 +366,15 @@ export default async function StatsPage({
                 </span>
 
                 <div className="flex-1 h-7 bg-slate-50 rounded-md overflow-hidden">
-                  <div className="h-full flex">
-                    {familyStats.map((f) => {
-                      const days = m.families[f.name];
-
-                      if (days === 0) return null;
-
-                      const segmentPct = (days / maxMonth) * 100;
-
-                      return (
-                        <div
-                          key={f.name}
-                          style={{
-                            width: `${segmentPct}%`,
-                            backgroundColor: f.color,
-                          }}
-                          title={`${f.name} : ${days} j`}
-                        />
-                      );
-                    })}
-                  </div>
+                  <GrowBar
+                    delay={m.month * 45}
+                    segments={familyStats.map((f) => ({
+                      key: f.name,
+                      pct: (m.families[f.name] / maxMonth) * 100,
+                      color: f.color,
+                      title: `${f.name} : ${m.families[f.name]} j`,
+                    }))}
+                  />
                 </div>
               </div>
             ))}
@@ -461,11 +445,13 @@ function BigStatCard({
   icon,
   label,
   value,
+  suffix,
   sub,
 }: {
   icon: ReactNode;
   label: string;
-  value: string;
+  value: number;
+  suffix?: string;
   sub?: string;
 }) {
   return (
@@ -476,7 +462,7 @@ function BigStatCard({
       </div>
 
       <p className="text-[26px] sm:text-3xl leading-none font-bold text-slate-900">
-        {value}
+        <CountUp value={value} suffix={suffix} />
       </p>
 
       {sub && (

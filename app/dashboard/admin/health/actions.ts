@@ -5,10 +5,27 @@ import { createServerClient } from "@supabase/ssr";
 
 export type HealthCheckResult = {
   name: string;
-  status: "ok" | "warn" | "fail";
+  // `skip` = check structurellement non exécutable ici (ex: RPC de diagnostic
+  // pas encore installé). Neutre — n'allume pas la bannière warnings.
+  status: "ok" | "warn" | "fail" | "skip";
   detail: string;
   duration_ms?: number;
 };
+
+/**
+ * Un RPC `public` de diagnostic absent (migration pas appliquée) ne doit pas
+ * être traité comme un warning : c'est un check sauté, pas un check rouge.
+ */
+function isMissingRpc(error: any): boolean {
+  const code = error?.code;
+  const msg = (error?.message ?? "").toLowerCase();
+  return (
+    code === "PGRST202" || // PostgREST: function not found in schema cache
+    code === "42883" || // Postgres: undefined_function
+    msg.includes("could not find the function") ||
+    msg.includes("does not exist")
+  );
+}
 
 export type HealthReport = {
   results: HealthCheckResult[];
@@ -43,13 +60,25 @@ export async function getHealthStatus(): Promise<HealthReport> {
     return finalize(results);
   }
 
-  const adminClient = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: { getAll: () => [], setAll: () => {} },
-    }
-  );
+  // Guard : une page health ne doit jamais crasher parce qu'une env var
+  // manque — elle doit le signaler en `fail` (c'est son boulot).
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    results.push({
+      name: "supabase.admin_client",
+      status: "fail",
+      detail: !supabaseUrl
+        ? "NEXT_PUBLIC_SUPABASE_URL manquante"
+        : "SUPABASE_SERVICE_ROLE_KEY manquante",
+    });
+    return finalize(results);
+  }
+
+  const adminClient = createServerClient(supabaseUrl, serviceRoleKey, {
+    cookies: { getAll: () => [], setAll: () => {} },
+  });
 
   // 2. supabase.postgres
   try {
@@ -109,21 +138,27 @@ export async function getHealthStatus(): Promise<HealthReport> {
     });
   }
 
-  // 4. pg_cron.weekly_digest
+  // 4. pg_cron.weekly_digest — via RPC public.health_cron_job (migration 0006)
   try {
-    const { data: cronData, error: cronErr } = await (adminClient as any)
-      .from("cron.job")
-      .select("jobname, schedule, active")
-      .eq("jobname", "weekly-digest")
-      .maybeSingle();
+    const { data, error } = await (adminClient as any).rpc("health_cron_job", {
+      p_jobname: "weekly-digest",
+    });
 
-    if (cronErr || !cronData) {
+    if (error) {
       results.push({
         name: "pg_cron.weekly_digest",
-        status: "warn",
-        detail: "non vérifiable (schema protégé)",
+        status: isMissingRpc(error) ? "skip" : "warn",
+        detail: isMissingRpc(error)
+          ? "RPC non installé (migration 0006)"
+          : error.message,
       });
-    } else if (!cronData.active) {
+    } else if (!data || data.length === 0) {
+      results.push({
+        name: "pg_cron.weekly_digest",
+        status: "fail",
+        detail: "job introuvable",
+      });
+    } else if (!data[0].active) {
       results.push({
         name: "pg_cron.weekly_digest",
         status: "fail",
@@ -133,14 +168,14 @@ export async function getHealthStatus(): Promise<HealthReport> {
       results.push({
         name: "pg_cron.weekly_digest",
         status: "ok",
-        detail: `active · ${cronData.schedule}`,
+        detail: `active · ${data[0].schedule}`,
       });
     }
   } catch (e: any) {
     results.push({
       name: "pg_cron.weekly_digest",
       status: "warn",
-      detail: "non vérifiable depuis client",
+      detail: e?.message ?? "unknown error",
     });
   }
 
@@ -164,17 +199,17 @@ export async function getHealthStatus(): Promise<HealthReport> {
       "trigger_new_or_modified",
     ];
 
-    const { data: triggers, error } = await (adminClient as any)
-      .schema("information_schema")
-      .from("triggers")
-      .select("trigger_name")
-      .eq("trigger_schema", "public");
+    const { data: triggers, error } = await (adminClient as any).rpc(
+      "health_triggers"
+    );
 
     if (error) {
       results.push({
         name: "triggers.installed",
-        status: "warn",
-        detail: "non vérifiable",
+        status: isMissingRpc(error) ? "skip" : "warn",
+        detail: isMissingRpc(error)
+          ? "RPC non installé (migration 0006)"
+          : error.message,
       });
     } else {
       const found = new Set((triggers ?? []).map((t: any) => t.trigger_name));
@@ -208,33 +243,39 @@ export async function getHealthStatus(): Promise<HealthReport> {
     detail: "4/4 (notify-new-booking, notify-decision, notify-cancelled-approved, send-weekly-digest)",
   });
 
-  // 8. vault.service_role_key
+  // 8. vault.service_role_key — via RPC public.health_vault_secret (migration 0006)
   try {
-    const { data, error } = await (adminClient as any)
-      .schema("vault")
-      .from("secrets")
-      .select("name")
-      .eq("name", "service_role_key")
-      .maybeSingle();
+    const { data, error } = await (adminClient as any).rpc(
+      "health_vault_secret",
+      { p_name: "service_role_key" }
+    );
 
-    if (error || !data) {
+    if (error) {
       results.push({
         name: "vault.service_role_key",
-        status: "warn",
-        detail: "non vérifiable",
+        status: isMissingRpc(error) ? "skip" : "warn",
+        detail: isMissingRpc(error)
+          ? "RPC non installé (migration 0006)"
+          : error.message,
       });
-    } else {
+    } else if (data === true) {
       results.push({
         name: "vault.service_role_key",
         status: "ok",
         detail: "configured",
+      });
+    } else {
+      results.push({
+        name: "vault.service_role_key",
+        status: "fail",
+        detail: "secret absent du vault",
       });
     }
   } catch (e: any) {
     results.push({
       name: "vault.service_role_key",
       status: "warn",
-      detail: "non vérifiable",
+      detail: e?.message ?? "unknown error",
     });
   }
 

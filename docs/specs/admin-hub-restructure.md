@@ -1,10 +1,10 @@
 # Spec — Restructure du hub Admin (#30)
 
-> **Statut** : 📋 Spec validée (structure discutée)
+> **Statut** : ✅ Implémentée
 > **Type** : Refactor / réorganisation UI
 > **Cible** : Pas de date fixée
 > **Estimation** : ~45 min - 1h
-> **Dernière MAJ** : 28 mai 2026
+> **Dernière MAJ** : 24 juin 2026
 
 ## Problème
 

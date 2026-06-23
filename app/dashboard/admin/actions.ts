@@ -25,15 +25,16 @@ export async function toggleFamilyHead() {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/admin/lab");
 
     const message = newValue
       ? "Tu es maintenant chef de famille"
       : "Tu es repassé en simple membre";
-    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/admin/lab?status=success&message=${encodeURIComponent(message)}`);
   } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     const msg = e?.message ?? "Erreur inconnue";
-    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+    redirect(`/dashboard/admin/lab?status=error&message=${encodeURIComponent(msg)}`);
   }
 }
 
@@ -58,17 +59,18 @@ export async function toggleCalendarAdmin() {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/admin/lab");
     revalidatePath("/dashboard/calendrier");
     revalidatePath("/dashboard/demandes");
 
     const message = newValue
       ? "🛡️ Mode Admin Calendrier ACTIVÉ"
       : "Mode Admin Calendrier désactivé";
-    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/admin/lab?status=success&message=${encodeURIComponent(message)}`);
   } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     const msg = e?.message ?? "Erreur inconnue";
-    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+    redirect(`/dashboard/admin/lab?status=error&message=${encodeURIComponent(msg)}`);
   }
 }
 
@@ -105,7 +107,7 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
     );
 
     if (bookingsToApprove.length === 0) {
-      redirect(`/dashboard/admin?status=info&message=${encodeURIComponent(`Aucune demande à approuver pour ${familyName}`)}`);
+      redirect(`/dashboard/admin/lab?status=info&message=${encodeURIComponent(`Aucune demande à approuver pour ${familyName}`)}`);
     }
 
     let inserted = 0;
@@ -121,15 +123,16 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/admin/lab");
     revalidatePath("/dashboard/demandes");
     revalidatePath("/dashboard/calendrier");
 
     const message = `✅ ${inserted} demande${inserted > 1 ? "s" : ""} approuvée${inserted > 1 ? "s" : ""} pour ${familyName}`;
-    redirect(`/dashboard/admin?status=success&message=${encodeURIComponent(message)}`);
+    redirect(`/dashboard/admin/lab?status=success&message=${encodeURIComponent(message)}`);
   } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
     const msg = e?.message ?? "Erreur inconnue";
-    redirect(`/dashboard/admin?status=error&message=${encodeURIComponent(msg)}`);
+    redirect(`/dashboard/admin/lab?status=error&message=${encodeURIComponent(msg)}`);
   }
 }
 
@@ -169,6 +172,7 @@ export async function adminCreateBooking(formData: FormData) {
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/admin/data");
     revalidatePath("/dashboard/calendrier");
     revalidatePath("/dashboard/demandes");
 
