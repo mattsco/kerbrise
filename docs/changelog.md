@@ -14,7 +14,6 @@ Pour le journal de dev complet (refactors, bugs techniques), voir `CHANGELOG.md`
 - 📶 **Statut Freebox + wifi** : un voyant sur À propos indique si la box est joignable, avec le mot de passe wifi juste à côté.
 - 🏠 **À propos réorganisée** : plus claire et plus simple à parcourir.
 - 📷 **Webcams de Saint-Malo** : accès aux webcams publiques de la ville, en plus de celle de la maison.
-- ✨ **Stats animées** : les chiffres et les barres s'animent à l'ouverture.
 
 ---
 
