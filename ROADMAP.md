@@ -12,8 +12,8 @@
 
 - **Unifier les fragments « la maison maintenant »** : décider si la **webcam** et les **poubelles** rejoignent la bannière contextuelle (intégration in-place, pas de widget). Issu du périmètre élargi de #26.
 - **Événements / sorties** : non faits faute de source fiable — à ne ré-ouvrir qu'en **curation admin manuelle** (#26 a tranché : pas de reco auto, risque d'info fausse).
-- **#14 (évolué) Monitoring wifi par Raspberry Pi** : RPi sur place qui ping internet toutes les 5 min, statut wifi de la maison visible dans l'app. Côté app codable avant ; installation physique sur place. Le mot de passe wifi rejoint les infos pratiques d'À propos (l'ex-#14 « password en DB » est absorbé).
-- **Documents & infos pratiques dans À propos** : manuels, assurance, infos d'arrivée — au fil de l'eau. C'est le rôle confirmé de la page À propos, pas d'une nouvelle surface.
+- **#14 (évolué) Monitoring wifi par Raspberry Pi** : RPi sur place qui ping internet toutes les 5 min, statut wifi de la maison visible dans l'app. Côté app codable avant ; installation physique sur place. Le mot de passe wifi rejoint les infos pratiques d'À propos (l'ex-#14 « password en DB » est absorbé). *(Avancé : carte statut Freebox online/offline via `/api/maison-status` + bouton mdp wifi livrés — cf. `CHANGELOG.md`. Reste le monitoring RPi physique.)*
+- **Documents & infos pratiques dans À propos** : manuels, assurance, infos d'arrivée — au fil de l'eau. C'est le rôle confirmé de la page À propos, pas d'une nouvelle surface. *(En cours : refonte À propos en lecture seule + guide télé Philips livrés.)*
 
 ## 🍂 Septembre–octobre 2026
 
@@ -40,8 +40,7 @@
 - Accès invités lecture seule — si une vraie demande émerge ; coût RLS à chiffrer avant.
 - **Indicateur qualité de l'eau de baignade** : afficher un statut « eau OK / déconseillée » dans la bannière vacances **si on trouve une source fiable et exploitable** (piste : données « Qualité des eaux de baignade » du ministère de la Santé / ARS Bretagne pour les plages de Saint-Malo–Rothéneuf). À creuser ; pas de source confirmée à ce jour.
 - **Photo `house.jpg` saisonnière** : 4 visuels du hero dashboard selon la saison (printemps / été / automne / hiver). Le **code est trivial** (~30 min) : `house.jpg` est consommé en chemin string dans `app/dashboard/page.tsx` (hero, server component) → calculer la saison depuis la date Paris et passer `src={`/house-${saison}.jpg`}`, avec **repli sur `house.jpg`** si le visuel manque. ⚠️ **Le vrai coût n'est pas le code, c'est l'asset** : il faut 4 vraies photos de la maison, une par saison, sous le même cadrage — c'est ça le blocage, pas l'ingénierie. Bornes = saisons météo (hémisphère nord : mars/juin/sept/déc), pas besoin d'astronomique. À sortir d'ici quand les 4 photos existent.
-- **#25** Page admin « Config » pour éditer les flags `lib/config.ts` via UI — quand on aura 2-3 flags. Spec `docs/specs/config-page-admin.md`.
-- **#30** Restructurer `/dashboard/admin` en hub — audience = 1 ; à ressortir seulement si l'admin actuel devient pénible. Spec `docs/specs/admin-hub-restructure.md`.
+- **#25** Page admin « Config » pour éditer les flags `lib/config.ts` via UI — quand on aura 2-3 flags. Spec `docs/specs/config-page-admin.md`. *(Pourrait devenir une sous-page `/admin/config` dans le hub désormais en place — cf. #30.)*
 
 ## ⛔ Décidé skippé
 
@@ -49,4 +48,5 @@
 - **#9** RLS placeholder été côté Supabase — pas de hackers dans la famille, RLS protège déjà les queries.
 - Module charges / dépenses — on ne fait pas Tricount : autre produit, générateur de conflits.
 - Flux iCal abonnement auto-sync — inutile, l'export ponctuel (bouton agenda) suffit pour 14 users.
-- **#23** Animations Stats (Framer Motion) — c'est du loisir, à faire pour le plaisir si l'envie vient, pas à planifier.
+
+> **#23 Animations Stats — finalement fait** (envie venue) malgré le « skip ». Réalisé **sans Framer Motion** (CSS + composant client) pour éviter la dépendance. Détail : `CHANGELOG.md`.

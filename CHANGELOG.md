@@ -5,6 +5,45 @@
 
 ---
 
+## [Unreleased]
+
+> Livré depuis la v1.3.0, pas encore taggé en version famille.
+
+### 🕵🏻 Admin
+
+- **#30 — Restructure du hub Admin (sorti de la roadmap)** : `/dashboard/admin` redevient un **vrai hub léger** (stats rapides + 6 cartes Health / Analytics / Locations / **Lab** / **Data** / Product) au lieu d'un placard fourre-tout. Deux nouvelles sous-pages :
+  - **`/admin/lab`** : outils de simulation déplacés ici (toggle chef de famille, toggle mode admin calendrier, simuler approbation François/Vincent) + section « Mode email ». Les server actions redirigent désormais vers `/admin/lab` pour y afficher le feedback.
+  - **`/admin/data`** : `AdminBookingForm` (création de séjour mode admin, sans email), gardé derrière `is_calendar_admin`. Réservé aux futures opérations data (imports, resets, exports).
+  - Liens externes (Supabase, Vercel, Resend, Edge Functions) passés en **footer discret** au lieu d'une grosse section. Composant `AdminFeedbackBanner` mutualisé. Spec `docs/specs/admin-hub-restructure.md` (✅).
+- **Page Product (`/admin/feature-requests`) — Roadmap & Changelog** : un toggle à deux onglets affiche désormais **les deux** docs (`ROADMAP.md` = à faire, `CHANGELOG.md` = livré). Avant, seul le changelog s'affichait, sous un titre « Roadmap » trompeur. Composant `RoadmapChangelogTabs`.
+- **Page Health durcie** :
+  - Ne **crashe plus** si `NEXT_PUBLIC_SUPABASE_URL` ou `SUPABASE_SERVICE_ROLE_KEY` manque : un guard pousse un check `fail` explicite au lieu de lever une exception (`createServerClient` qui plantait toute la page). Une page de diagnostic doit survivre à la panne qu'elle détecte.
+  - Checks `pg_cron` / `triggers` / `vault` qui tombaient en permanence sur `warn` « non vérifiable » (ils interrogeaient les schémas internes `cron` / `information_schema` / `vault` via PostgREST, qui n'expose que `public`) → désormais via **RPC `public` SECURITY DEFINER** (`db/migrations/0006_health_checks.sql` : `health_cron_job`, `health_triggers`, `health_vault_secret`). Tant que la migration n'est pas appliquée, ils s'affichent en nouveau statut **`skip`** (neutre, gris) au lieu de polluer la bannière warnings.
+
+### 📊 Stats
+
+- **#23 — Animations Stats (sorti de « décidé skippé »)** : compteurs qui montent (easeOutCubic) sur le taux d'occupation et le printemps-été ; barre de répartition famille et 12 barres mensuelles qui poussent de 0 à leur largeur, les mois **en cascade** (45 ms/mois) ; rejoue au changement d'année ; respecte `prefers-reduced-motion`. **Fait sans Framer Motion** : CSS + petit composant client (`StatsClient.tsx`, ~1 ko) plutôt qu'une dépendance ~40  ko, pour ne pas alourdir une page jusque-là 100 % server-rendered.
+
+### 🏠 À propos & maison
+
+- **Refonte de la page À propos** : figée en **lecture seule** (suppression de l'édition en ligne intro/liens/contacts), réordonnée (Règles, Freebox, Télé, Poubelles, Liens & contacts), liens/contacts en dur (Compta, Ancien calendrier, Taxi ABC, Phytomer), poubelles toujours visibles.
+- **Nouvelle page `/a-propos/tele`** : guide de la télé Philips 40PFS6050 (télécommande unique à boutons 3D + touche 123, app Freebox TV vs Free TV, comportement extinction, retour Freebox via HDMI 1), photo + vidéo démo compressée. Lisibilité soignée : encart « l'essentiel en 3 points », pièges en alertes ambre.
+- **Carte statut Freebox** sur À propos : route `/api/maison-status` (check `/api_version` non authentifié via `FREEBOX_API_BASE`, timeout 5 s, cache 60 s, pas de ping ICMP), bouton mot de passe wifi déplacé dedans. Le champ **`reason`** distingue les causes d'échec (`no-env` / `timeout` / `dns` / `tls` / `http-<code>` / `no-api-version` / `fetch-error`) au lieu d'un `online:false` opaque indébogable. ⚠️ Le port HTTPS direct n'est ouvert que si « Activer l'auth par mdp » est coché dans Freebox OS.
+
+### 🌊 Conditions
+
+- **Retrait de l'affichage temp. mer** (bannière dashboard + écran e-ink du salon) : la moyenne saisonnière statique était trop loin du réel et sans intérêt pour les users. Couche données (`lib/sea-temp.ts`) laissée en place — coût nul, réversible.
+
+### 📺 TRMNL salon
+
+- Vue salon : « MAJ {{ generated_at_label }} » dans le title bar + **coucher de soleil** en bas à droite (repli propre si météo `null`). Guide TRMNL enrichi d'une section Refresh Rate (device vs plugin, modèle on-demand, runbook debug).
+
+### ⌚ Garmin
+
+- Premiers travaux d'app **Garmin Connect IQ** (widget marées Kerbrise) — cf. `docs/guides/garmin-app-guide.md`.
+
+---
+
 ## [1.3.0] — 16 juin 2026
 
 ### ✨ Ajouts
