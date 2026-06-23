@@ -5,11 +5,16 @@ Pour le journal de dev complet (refactors, bugs techniques), voir `CHANGELOG.md`
 
 ---
 
-## Version 1.3.0 — 16 juin 2026
+## Version 1.3.0 — 24 juin 2026
 
-🌊 **La mer et le temps dans la bannière d'accueil**
+🌊 **La mer, la météo et la maison en un coup d'œil**
 
-- 🌊 **Marées, eau et météo** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient), la **température de l'eau**, la **météo du jour** (mini/maxi, écart avec la normale de saison, heure du coucher du soleil) et une petite phrase sur le **temps de la semaine**. De quoi savoir d'un coup d'œil quand l'eau monte, si elle est baignable, et s'il faut sortir le ciré ou la crème solaire. Les horaires de marée sont embarqués dans l'app, donc fiables même quand les sites de marées extérieurs ne répondent pas.
+- 🌊 **Marées et météo dans la bannière d'accueil** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient) et la **météo du jour** (mini/maxi, écart avec la normale de saison, heure du coucher du soleil). De quoi savoir d'un coup d'œil quand l'eau monte et s'il faut sortir le ciré ou la crème solaire. Les horaires de marée sont embarqués dans l'app, donc fiables même quand les sites de marées extérieurs ne répondent pas.
+- 📺 **Nouveau guide de la télé** : une page dédiée explique la télé du salon — la télécommande (boutons à pousser, touche **123** pour taper directement une chaîne), l'appli pour regarder la TV, comment l'éteindre et revenir à la Freebox. Avec photos et une petite vidéo de démo.
+- 📶 **Statut de la Freebox + mot de passe wifi** : sur la page À propos, un voyant indique si la box de la maison est allumée et joignable, et le **mot de passe wifi** est juste à côté.
+- 🏠 **Page À propos réorganisée** : plus claire et plus simple à parcourir (règles, Freebox, télé, poubelles, liens & contacts), avec les poubelles toujours visibles.
+- 📷 **Webcams de Saint-Malo** : en plus de la webcam de la maison, accès aux webcams publiques de la ville.
+- ✨ **Stats animées** : sur la page Stats, les chiffres montent et les barres se remplissent à l'ouverture — juste pour le plaisir des yeux.
 
 ---
 
