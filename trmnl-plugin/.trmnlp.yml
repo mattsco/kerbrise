@@ -48,7 +48,6 @@ variables:
     temp_label: "15° / 19°"
     delta_label: "+1° vs la normale"
     sunset_label: "22h12"
-    week_label: "Semaine en demi-teinte, soleil et pluie"
 
   tides:
     coef_label: "Coef 95"

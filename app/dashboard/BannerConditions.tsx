@@ -3,7 +3,6 @@ import {
   Waves,
   Thermometer,
   Sunset,
-  Sparkles,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
@@ -89,14 +88,6 @@ export default async function BannerConditions({
               {weather.sunset}
             </span>
           )}
-        </div>
-      )}
-
-      {/* Tendance de la semaine, ton léger */}
-      {weather?.weekSummary && (
-        <div className="flex items-center gap-2 text-xs">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
-          <span className="text-slate-500 italic">{weather.weekSummary}</span>
         </div>
       )}
     </div>

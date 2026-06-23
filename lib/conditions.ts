@@ -12,7 +12,7 @@
  *                    sur le futur. Plus de scrape maree.info (bloqué sur IP
  *                    datacenter → vide en prod). Cf. guide TRMNL §11.
  *   - coef marée   → coefficients committés dans `lib/tides.ts` (offline, le + sûr)
- *   - météo + coucher du soleil + tendance semaine → Open-Meteo Forecast
+ *   - météo + coucher du soleil → Open-Meteo Forecast
  *
  * ⚠️ Mode dégradé obligatoire. Chaque source échoue indépendamment → la donnée
  * vaut `null`/`[]` et la ligne disparaît. Le coef reste toujours dispo (statique).
@@ -53,8 +53,6 @@ export type WeatherNow = {
   deltaVsNormalC: number | null;
   /** Heure du coucher du soleil "22h03", ou null. */
   sunset: string | null;
-  /** Phrase courte sur la tendance des 7 prochains jours, ou null. */
-  weekSummary: string | null;
 };
 
 // Normales mensuelles de température MOYENNE de l'air à Saint-Malo (°C, index
@@ -119,31 +117,14 @@ function isoTimeToHHhMM(iso: unknown): string | null {
   return m ? `${m[1]}h${m[2]}` : null;
 }
 
-/** Tendance météo des 7 prochains jours, ton léger. Déterministe (pas de LLM). */
-function weekSummary(codes: number[], maxes: number[]): string | null {
-  if (codes.length === 0) return null;
-  const rainy = codes.filter((c) => c >= 51 && c <= 99).length; // bruine → orage
-  const clearish = codes.filter((c) => c <= 2).length; // dégagé / peu nuageux
-  const avgMax =
-    maxes.length > 0 ? maxes.reduce((a, b) => a + b, 0) / maxes.length : 0;
-
-  if (rainy === 0 && avgMax >= 22)
-    return "Grand beau et chaud toute la semaine, tu as de la chance ☀️";
-  if (rainy === 0) return "Beau temps toute la semaine ☀️";
-  if (rainy <= 1 && clearish >= 4) return "Surtout du soleil cette semaine";
-  if (rainy >= 5) return "Semaine bien pluvieuse, prévois le ciré 🧥";
-  if (rainy >= 3) return "Semaine en demi-teinte, soleil et pluie";
-  return "Temps variable cette semaine";
-}
-
 async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   // Pas de past_days : on ne compare plus à hier (valeur de grille volatile, p.ex.
   // un 15 juin à 28° dans la cellule alors que la plage était à ~21°). On compare
   // la MOYENNE du jour à la normale saisonnière du mois (base stable).
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-    `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code,sunset` +
-    `&forecast_days=7&timezone=Europe%2FParis`;
+    `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,sunset` +
+    `&forecast_days=1&timezone=Europe%2FParis`;
 
   const j = (await fetchJson(url)) as
     | {
@@ -152,7 +133,6 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
           temperature_2m_max?: unknown[];
           temperature_2m_min?: unknown[];
           temperature_2m_mean?: unknown[];
-          weather_code?: unknown[];
           sunset?: unknown[];
         };
       }
@@ -166,7 +146,6 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   const maxArr = d?.temperature_2m_max ?? [];
   const minArr = d?.temperature_2m_min ?? [];
   const meanArr = d?.temperature_2m_mean ?? [];
-  const codeArr = d?.weather_code ?? [];
   const sunsetArr = d?.sunset ?? [];
 
   const maxC = num(maxArr[todayIdx]);
@@ -179,22 +158,11 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   const deltaVsNormalC =
     normal === undefined ? null : Math.round(meanC - normal);
 
-  // 7 jours à partir d'aujourd'hui pour la tendance
-  const weekCodes: number[] = [];
-  const weekMaxes: number[] = [];
-  for (let i = todayIdx; i < todayIdx + 7 && i < times.length; i++) {
-    const c = num(codeArr[i]);
-    const mx = num(maxArr[i]);
-    if (c !== null) weekCodes.push(c);
-    if (mx !== null) weekMaxes.push(mx);
-  }
-
   return {
     minC: Math.round(minC),
     maxC: Math.round(maxC),
     deltaVsNormalC,
     sunset: isoTimeToHHhMM(sunsetArr[todayIdx]),
-    weekSummary: weekSummary(weekCodes, weekMaxes),
   };
 }
 

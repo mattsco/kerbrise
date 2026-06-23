@@ -39,13 +39,14 @@ export default async function ProfilPage() {
 
   const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "?";
 
-  // Stats : nombre de séjours créés depuis le lancement (hors imports admin)
+  // Stats : nombre de séjours créés depuis le lancement (hors imports admin, hors annulés)
   const { count: mySejourCount } = await supabase
     .from("bookings")
     .select("*", { count: "exact", head: true })
     .eq("created_by", user.id)
     .gt("created_at", LAUNCH_DATE)
-    .eq("is_admin_created", false);
+    .eq("is_admin_created", false)
+    .neq("status", "cancelled");
 
   // Construction du label de rôle
   const roles: string[] = [];

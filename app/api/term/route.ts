@@ -78,7 +78,6 @@ export async function GET(req: Request) {
           temp_label: `${weather.minC}° / ${weather.maxC}°`,
           delta_label: deltaLabel,
           sunset_label: weather.sunset,
-          week_label: weather.weekSummary,
         }
       : null,
 

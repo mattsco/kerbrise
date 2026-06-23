@@ -1,11 +1,32 @@
 # Spec — Écran TRMNL « Séjour » + API screen
 
-> **Statut** : 🚧 Draft v0.3 — Q3 / Q5 / Q6 ouverts, le reste arbitré
+> **Statut** : ✅ Implémentée (24 juin 2026) — écran « Séjour » + API screen livrés. Voir rendu final ci-dessous.
 > **Créée** : 11/06/2026 · **Cible** : v1.2.x · **Backlog** : #32 [Hypothèse — numéro à confirmer]
 > **Dépendances** : aucune bloquante. Synergie forte avec #26 (Mode vacances). #14 (WiFi en DB) : contourné en v1 par env vars.
 >
 > **Historique** :
-> v0.1 (11/06) draft initial · v0.2 (11/06) Q1/Q2 arbitrés (contenu élargi, transit cloud OK), phasage v1/v1.1, D12–D15 · v0.3 (11/06) **switch d'écrans arbitré** (état DB Kerbrise ; famille en séjour + admins) → D16/D17, endpoint renommé `/api/trmnl/screen`, clé `screen` au contrat v1, phase v1.2.
+> v0.1 (11/06) draft initial · v0.2 (11/06) Q1/Q2 arbitrés (contenu élargi, transit cloud OK), phasage v1/v1.1, D12–D15 · v0.3 (11/06) **switch d'écrans arbitré** (état DB Kerbrise ; famille en séjour + admins) → D16/D17, endpoint renommé `/api/trmnl/screen`, clé `screen` au contrat v1, phase v1.2 · ✅ (24/06) **implémentée**.
+
+---
+
+## ✅ Rendu final (24 juin 2026)
+
+![Rendu final de l'écran TRMNL « Séjour »](/specs/trmnl-sejour-render.png)
+
+## ✅ Note de réalisation (24 juin 2026)
+
+Ce document reste le **dossier de conception**. Le chantier a été livré ; voici les écarts entre le plan (v0.3) et le code réellement déployé. Source : `app/api/term/route.ts`, `lib/data/sejour.ts`, `trmnl-plugin/src/full.liquid`.
+
+**Écarts d'architecture (plan → livré) :**
+
+- **Endpoint** : prévu `/api/trmnl/screen`, livré **`/api/term`** (payload unique séjour + conditions). Auth conforme au §9 : `Authorization: Bearer <TRMNL_API_TOKEN>`, comparaison `timingSafeEqual`.
+- **Switch multi-écrans + état en DB (v1.2, D16/D17)** : **non livré**. Le `/api/term` renvoie **un seul écran combiné** (séjour + météo + marées + coucher), pas le mécanisme `screen = sejour/marees/calendrier` piloté depuis l'app. La clé `screen` du contrat v1 et l'UI de choix d'écran dans le Profil sont **reportées** — à rouvrir si le besoin multi-écrans revient.
+
+**Résolution des questions ouvertes :**
+
+- **Q3 — « Jour x/y »** : tranché en **jours inclusifs** (reco), `daysInRangeInclusive` dans `sejour.ts` (`progress_label = "Jour 1/13"`). Note : le rendu final affiche la **plage de dates** (« Ton séjour 15 → 28 juin ») plutôt que « Jour x/y » ; le label progress existe en données mais n'est pas mis en avant à l'écran.
+- **Q5 — « Prochain guest »** : **écarté**. Aucune notion de guest dans le code livré ; seuls `stay` / `next` (prochaine famille) sont exposés. Concept abandonné en v1.
+- **Q6 — Sourcing marées** : tranché, marées livrées (rendu : coef 51, PM 14h34, BM 21h18, via `getConditions`). [Probable] Source = tables offline committées (cf. mémoire « tides-offline »), mais un commentaire du code évoque encore un scraper `maree.info` — **à vérifier** quelle voie est réellement active en prod.
 
 ---
 
