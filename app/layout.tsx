@@ -36,7 +36,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="bg-slate-50 text-slate-900 antialiased">
+      {/* suppressHydrationWarning : des extensions navigateur (ColorZilla → cz-shortcut-listen,
+          Grammarly → data-gr-*) injectent des attributs sur <body> avant l'hydratation.
+          Ne masque QUE les attributs de <body> lui-même, pas ceux des enfants. */}
+      <body
+        suppressHydrationWarning
+        className="bg-slate-50 text-slate-900 antialiased"
+      >
         {children}
        <SpeedInsights />
       </body>
