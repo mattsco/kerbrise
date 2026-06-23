@@ -9,12 +9,12 @@ Pour le journal de dev complet (refactors, bugs techniques), voir `CHANGELOG.md`
 
 🌊 **La mer, la météo et la maison en un coup d'œil**
 
-- 🌊 **Marées et météo dans la bannière d'accueil** : quand un séjour est en cours, le message d'accueil du dashboard affiche les **prochaines marées** (haute/basse + coefficient) et la **météo du jour** (mini/maxi, écart avec la normale de saison, heure du coucher du soleil). De quoi savoir d'un coup d'œil quand l'eau monte et s'il faut sortir le ciré ou la crème solaire. Les horaires de marée sont embarqués dans l'app, donc fiables même quand les sites de marées extérieurs ne répondent pas.
-- 📺 **Nouveau guide de la télé** : une page dédiée explique la télé du salon — la télécommande (boutons à pousser, touche **123** pour taper directement une chaîne), l'appli pour regarder la TV, comment l'éteindre et revenir à la Freebox. Avec photos et une petite vidéo de démo.
-- 📶 **Statut de la Freebox + mot de passe wifi** : sur la page À propos, un voyant indique si la box de la maison est allumée et joignable, et le **mot de passe wifi** est juste à côté.
-- 🏠 **Page À propos réorganisée** : plus claire et plus simple à parcourir (règles, Freebox, télé, poubelles, liens & contacts), avec les poubelles toujours visibles.
-- 📷 **Webcams de Saint-Malo** : en plus de la webcam de la maison, accès aux webcams publiques de la ville.
-- ✨ **Stats animées** : sur la page Stats, les chiffres montent et les barres se remplissent à l'ouverture — juste pour le plaisir des yeux.
+- 🌊 **Marées et météo dans la bannière** : pendant un séjour, l'accueil affiche les prochaines marées (+ coefficient) et la météo du jour. Horaires de marée embarqués, fiables même quand les sites extérieurs ne répondent pas.
+- 📺 **Guide de la télé** : une page explique comment utiliser la télé du salon et revenir à la Freebox.
+- 📶 **Statut Freebox + wifi** : un voyant sur À propos indique si la box est joignable, avec le mot de passe wifi juste à côté.
+- 🏠 **À propos réorganisée** : plus claire et plus simple à parcourir.
+- 📷 **Webcams de Saint-Malo** : accès aux webcams publiques de la ville, en plus de celle de la maison.
+- ✨ **Stats animées** : les chiffres et les barres s'animent à l'ouverture.
 
 ---
 
