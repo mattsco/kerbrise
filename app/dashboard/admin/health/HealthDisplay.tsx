@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getHealthStatus, type HealthReport } from "./actions";
 
 export default function HealthDisplay() {
+  const router = useRouter();
   const [report, setReport] = useState<HealthReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [visibleLines, setVisibleLines] = useState(0);
+
+  // Retour navigateur (comme BackButton) au lieu d'un push : un push réajouterait
+  // une entrée /dashboard/admin et créerait une boucle health ↔ admin.
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/dashboard/admin");
+    }
+  }
 
   async function runChecks() {
     setLoading(true);
@@ -48,12 +59,12 @@ export default function HealthDisplay() {
     <main className="min-h-screen bg-black text-emerald-400 font-mono p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
         {/* Back link */}
-        <Link
-          href="/dashboard/admin"
+        <button
+          onClick={handleBack}
           className="inline-block text-emerald-500 hover:text-emerald-300 text-xs mb-4 transition"
         >
           ← back
-        </Link>
+        </button>
 
         {/* Header */}
         <div className="border border-emerald-700 rounded p-4 mb-6">
