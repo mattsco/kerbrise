@@ -60,7 +60,15 @@ export async function middleware(
   // donc préservé. Filet de sécurité : si l'algo était symétrique (HS256) ou
   // si WebCrypto était indisponible, getClaims retombe automatiquement sur
   // getUser() (réseau). Jamais cassé, au pire aussi lent qu'avant.
+  // ⏱️ MESURE TEMPORAIRE : compare la latence vs l'ancien getUser() et révèle
+  // l'algo de signature. alg=ES256 → vérif locale (rapide, clé "in use").
+  // alg=HS256 → fallback réseau (clé encore en "standby", pas de gain).
+  // À retirer après comparaison.
+  const __t0 = Date.now();
   const { data: claimsData } = await supabase.auth.getClaims();
+  console.log(
+    `[mw] getClaims ${Date.now() - __t0}ms alg=${claimsData?.header.alg ?? "none"} region=${process.env.VERCEL_REGION ?? "?"} path=${request.nextUrl.pathname}`
+  );
   const userId = claimsData?.claims.sub ?? null;
 
   // Tracking de la dernière visite + device + geo (throttle 15 min)
