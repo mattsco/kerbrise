@@ -9,6 +9,17 @@
 
 > Livré depuis la v1.3.0, pas encore taggé en version famille.
 
+### 🗄️ Base de données & data layer
+
+- **Schéma mis sous version (clôture §3.4 du review)** : les tables, fonctions, triggers et policies ne vivaient plus que dans le dashboard Supabase. Ajout de `db/migrations/0000_baseline.sql` — snapshot de référence des **7 tables, 16 fonctions, 11 triggers et 21 policies RLS** (dump via `pg_get_functiondef` / `pg_get_triggerdef` / `pg_policies`, pas à la main : le « 6 fonctions » estimé en oubliait 10, surtout les `call_notify_*` email). ⚠️ Trace de référence, **non rejouée sur la prod** (CREATE TABLE/POLICY sans `IF NOT EXISTS`) ; rejouable seulement sur un env vierge via la séquence `0000 → 0010`. Les `CREATE TABLE` excluent volontairement les 2 contraintes ajoutées par 0007/0008 pour éviter la collision au replay.
+- **`0007` — anti-double-vote** : `UNIQUE (booking_id, family_id)` sur `approvals` + `update_booking_status_after_approval` passé en `count(distinct family_id)`. Avant, une même famille pouvait voter « approved » plusieurs fois et forcer seule l'approbation (la règle exige 2 familles sur 3).
+- **`0008` — anti-chevauchement atomique** : contrainte `EXCLUDE USING gist` sur les séjours `approved`. Le trigger procédural `check_booking_overlap` faisait SELECT-puis-INSERT sans verrou → deux insertions concurrentes passaient. La contrainte EXCLUDE sérialise réellement au niveau base. Périmètre `approved` uniquement (plusieurs familles peuvent demander la même semaine d'été, départagées ensuite).
+- **`0009`** : `WITH CHECK` manquant sur la policy UPDATE admin de `feature_requests` (un admin pouvait réassigner `user_id` à quelqu'un d'autre).
+- **`0010`** : drop des **2 contraintes en double** présentes en prod (une `UNIQUE` orpheline sur `approvals`, une `EXCLUDE` préexistante sur `bookings`), héritage hors-repo. On garde celles nommées par les migrations.
+- **Gestion d'erreurs UI (`lib/db-errors.ts`)** : 0007/0008 font remonter des violations Postgres brutes. Traduction de `23505` (unique) / `23P01` (exclusion) en messages FR **par code SQLSTATE**, pas par regex sur le message (robuste aux versions PG et à la locale). Câblé dans `ApprovalButtons` (approuver + refuser) et les server actions `admin/actions` (création/édition admin) et `calendrier/actions` (réservation prioritaire). Avant, l'utilisateur voyait une stack technique anglaise.
+- **Refacto data layer bookings** : 5 pages requêtaient `bookings` en inline avec leur propre select et fallback `?? "?"`. Centralisé dans `lib/data/bookings.ts` (`getUpcomingApprovedBookings`, `getApprovedBookingsOverlappingRange`, `getSummerBookings`, `getPendingBookingsAwaitingFamily`) : un renommage de colonne = une seule édition. Les sémantiques **divergentes** (chevauchement d'année pour les stats vs inclusion dans l'été pour les priorités) sont gardées distinctes, pas fusionnées — les confondre aurait été un bug.
+- **chore** : suppression de `public/logo.png` (430 ko, doublon non référencé d'`icon-512`, jamais servi) ; commentaires timezone obsolètes corrigés (le bug `new Date(iso)` de `demandes/page.tsx` était déjà résolu via `parseLocalDate`).
+
 ### 🕵🏻 Admin
 
 - **#30 — Restructure du hub Admin (sorti de la roadmap)** : `/dashboard/admin` redevient un **vrai hub léger** (stats rapides + 6 cartes Health / Analytics / Locations / **Lab** / **Data** / Product) au lieu d'un placard fourre-tout. Deux nouvelles sous-pages :
