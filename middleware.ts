@@ -51,24 +51,25 @@ export async function middleware(
     }
   );
 
-  // Rafraîchit la session si elle existe
-  // ⏱️ MESURE TEMPORAIRE : latence du round-trip getUser() vers Supabase.
-  // À retirer une fois la décision prise. Voir les logs Vercel ("[mw] getUser").
-  const __t0 = Date.now();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  console.log(
-    `[mw] getUser ${Date.now() - __t0}ms region=${process.env.VERCEL_REGION ?? "?"} path=${request.nextUrl.pathname}`
-  );
+  // Rafraîchit la session ET valide le JWT.
+  //
+  // getClaims() vérifie la signature du token LOCALEMENT via la clé publique
+  // ES256 (JWKS mis en cache en mémoire) — aucun round-trip vers le serveur
+  // Auth. En interne il appelle getSession(), qui rafraîchit le token expiré
+  // et déclenche le setAll des cookies ci-dessus : le refresh de session est
+  // donc préservé. Filet de sécurité : si l'algo était symétrique (HS256) ou
+  // si WebCrypto était indisponible, getClaims retombe automatiquement sur
+  // getUser() (réseau). Jamais cassé, au pire aussi lent qu'avant.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub ?? null;
 
   // Tracking de la dernière visite + device + geo (throttle 15 min)
-  if (user) {
-    const cached = lastSeenCache.get(user.id);
+  if (userId) {
+    const cached = lastSeenCache.get(userId);
     const now = Date.now();
 
     if (!cached || now - cached > THROTTLE_MS) {
-      lastSeenCache.set(user.id, now);
+      lastSeenCache.set(userId, now);
 
       // Parse user-agent
       const ua = request.headers.get("user-agent");
@@ -103,7 +104,7 @@ export async function middleware(
               last_lat: lat,
               last_lng: lng,
             })
-            .eq("id", user.id);
+            .eq("id", userId);
 
           if (error) {
             console.error(

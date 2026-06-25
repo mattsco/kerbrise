@@ -5,19 +5,22 @@ import { createClient } from "./server";
 /**
  * Récupère l'utilisateur authentifié.
  *
- * Utilise getSession() (lecture cookie locale, ~5ms) au lieu de getUser()
- * (round-trip Supabase, ~100ms). Safe parce que le middleware valide déjà
- * le JWT à chaque requête via getUser(). On ne fait QUE lire le cookie
- * qu'il a fraîchement validé.
+ * Utilise getClaims() : vérifie la signature du JWT LOCALEMENT via la clé
+ * publique ES256 (JWKS en cache mémoire), sans round-trip vers le serveur Auth
+ * (~0ms). Remplace l'ancien getSession() qui lisait le cookie sans en vérifier
+ * la signature (d'où les warnings "insecure" de Supabase). On a maintenant la
+ * vitesse ET la validation cryptographique.
+ *
+ * On ne renvoie que { id, email } : les seuls champs consommés par les pages.
  *
  * `cache()` dedupe les appels dans un même render path.
  */
 export const getAuthUser = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session?.user ?? null;
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims) return null;
+  return { id: claims.sub, email: claims.email };
 });
 
 /**
