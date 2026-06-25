@@ -52,9 +52,15 @@ export async function middleware(
   );
 
   // Rafraîchit la session si elle existe
+  // ⏱️ MESURE TEMPORAIRE : latence du round-trip getUser() vers Supabase.
+  // À retirer une fois la décision prise. Voir les logs Vercel ("[mw] getUser").
+  const __t0 = Date.now();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  console.log(
+    `[mw] getUser ${Date.now() - __t0}ms region=${process.env.VERCEL_REGION ?? "?"} path=${request.nextUrl.pathname}`
+  );
 
   // Tracking de la dernière visite + device + geo (throttle 15 min)
   if (user) {
