@@ -20,6 +20,11 @@ import {
   Home,
 } from "lucide-react";
 import { computeBannerContext } from "@/lib/dashboard-banner";
+import {
+  getUpcomingApprovedBookings,
+  getPendingBookingsAwaitingFamily,
+} from "@/lib/data/bookings";
+import type { PendingApprovalBooking } from "@/lib/data/types";
 import ContextualBanner from "./ContextualBanner";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import { APP_VERSION } from "@/lib/config";
@@ -47,26 +52,17 @@ const supabase = await createClient();
   // PHASE 2 : les 2 queries restantes en parallèle
   const todayISO = getTodayISO();
 
-  const upcomingPromise = supabase
-    .from("bookings")
-    .select("id, start_date, end_date, family_id, families(name, color)")
-    .eq("status", "approved")
-    .gte("end_date", todayISO)
-    .order("start_date")
-    .limit(5);
+  const upcomingPromise = getUpcomingApprovedBookings(supabase, todayISO, 5);
 
-  const pendingPromise = profile.is_family_head
-    ? supabase
-        .from("bookings")
-        .select("id, approvals(family_id)")
-        .eq("status", "pending")
-        .neq("family_id", profile.family_id)
-    : Promise.resolve({ data: null });
+  const pendingPromise: Promise<PendingApprovalBooking[]> =
+    profile.is_family_head
+      ? getPendingBookingsAwaitingFamily(supabase, profile.family_id)
+      : Promise.resolve([]);
 
-  const [
-    { data: upcoming },
-    { data: pending },
-  ] = await Promise.all([upcomingPromise, pendingPromise]);
+  const [allUpcoming, pending] = await Promise.all([
+    upcomingPromise,
+    pendingPromise,
+  ]);
 
   // @ts-ignore
   const familyName: string = profile.families?.name ?? "?";
@@ -75,20 +71,10 @@ const supabase = await createClient();
   const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "ami";
 
   const pendingCount = profile.is_family_head
-    ? pending?.filter(
-        (b: any) =>
-          !b.approvals?.some((a: any) => a.family_id === profile.family_id)
-      ).length ?? 0
+    ? pending.filter(
+        (b) => !b.approved_by_family_ids.includes(profile.family_id)
+      ).length
     : 0;
-
-  const allUpcoming = (upcoming ?? []).map((b: any) => ({
-    id: b.id,
-    start_date: b.start_date,
-    end_date: b.end_date,
-    family_id: b.family_id,
-    family_name: b.families?.name ?? "?",
-    family_color: b.families?.color ?? "#888",
-  }));
 
   const bannerContext = computeBannerContext(
     allUpcoming,

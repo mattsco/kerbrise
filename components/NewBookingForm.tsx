@@ -103,7 +103,7 @@ export default function NewBookingForm({
     if (!result.ok) {
       // Cas race : deux membres réservent les mêmes dates au même moment.
       // Le check advisory ci-dessus les a tous les deux laissés passer, mais la
-      // contrainte DB (bookings_no_overlap_when_approved) bloque le perdant.
+      // contrainte DB (bookings_no_overlap_approved) bloque le perdant.
       // On traduit le message Postgres cryptique en message clair.
       const isOverlapConstraint =
         /no_overlap|exclusion constraint|conflicting key/i.test(result.error);

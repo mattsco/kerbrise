@@ -6,9 +6,10 @@
 //   - the date formatters
 //
 // IMPORTANT: every formatter here uses parseLocalDate (local midnight) rather
-// than new Date(iso) (UTC). demandes/page.tsx currently used new Date(iso),
-// which is the live timezone bug (#2/#3): a stay can render one day early in
-// Paris winter. Routing that page through formatLong() below fixes it.
+// than new Date(iso) (UTC). demandes/page.tsx previously used new Date(iso),
+// the timezone bug where a stay could render one day early. It now routes
+// through formatMedium() below — fixed. New date-only display goes through
+// these helpers, never raw new Date(iso).
 
 import { parseLocalDate } from "@/lib/dates";
 import type { BookingStatus } from "@/lib/data/types";

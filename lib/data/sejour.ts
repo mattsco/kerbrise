@@ -9,6 +9,7 @@ import {
   formatRange,
   getRelayPhrase,
 } from "@/lib/dashboard-banner";
+import { getUpcomingApprovedBookings } from "@/lib/data/bookings";
 
 /**
  * Snapshot « séjour » niveau maison pour le TRMNL (et plus tard la page #26).
@@ -44,14 +45,6 @@ export type SejourSnapshot = {
 
 type Row = { start_date: string; end_date: string; family: string };
 
-function familyName(families: unknown): string {
-  if (Array.isArray(families)) {
-    const f = families[0] as { name?: string } | undefined;
-    return f?.name ?? "?";
-  }
-  return (families as { name?: string } | null)?.name ?? "?";
-}
-
 function countdownLabel(today: string, start: string): string {
   const d = daysBetween(today, start);
   if (d <= 0) return "aujourd'hui";
@@ -70,19 +63,12 @@ function remainingLabel(days: number): string {
 export async function getSejourSnapshot(today: string): Promise<SejourSnapshot> {
   try {
     const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("start_date, end_date, families(name)")
-      .eq("status", "approved")
-      .gte("end_date", today)
-      .order("start_date");
+    const bookings = await getUpcomingApprovedBookings(supabase, today);
 
-    if (error) throw error;
-
-    const rows: Row[] = (data ?? []).map((b) => ({
-      start_date: b.start_date as string,
-      end_date: b.end_date as string,
-      family: familyName((b as { families?: unknown }).families),
+    const rows: Row[] = bookings.map((b) => ({
+      start_date: b.start_date,
+      end_date: b.end_date,
+      family: b.family_name,
     }));
 
     const current =

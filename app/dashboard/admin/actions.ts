@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin, requireCalendarAdmin } from "@/lib/data/profile";
+import { friendlyDbError } from "@/lib/db-errors";
+import { getPendingBookingsAwaitingFamily } from "@/lib/data/bookings";
 
 // Toggle chef de famille
 export async function toggleFamilyHead() {
@@ -96,14 +98,13 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
       .single();
     if (!head) throw new Error(`Aucun chef trouvé pour ${familyName}`);
 
-    const { data: pendingBookings } = await supabase
-      .from("bookings")
-      .select("id, family_id, approvals(family_id)")
-      .eq("status", "pending")
-      .neq("family_id", family.id);
+    const pendingBookings = await getPendingBookingsAwaitingFamily(
+      supabase,
+      family.id
+    );
 
-    const bookingsToApprove = (pendingBookings ?? []).filter(
-      (b: any) => !b.approvals?.some((a: any) => a.family_id === family.id)
+    const bookingsToApprove = pendingBookings.filter(
+      (b) => !b.approved_by_family_ids.includes(family.id)
     );
 
     if (bookingsToApprove.length === 0) {
@@ -167,7 +168,8 @@ export async function adminCreateBooking(formData: FormData) {
       .single();
 
     if (error) {
-      return { success: false, error: error.message };
+      // Création d'un séjour "approved" chevauchant un autre approved → 23P01.
+      return { success: false, error: friendlyDbError(error, "booking") };
     }
 
     revalidatePath("/dashboard");
@@ -217,7 +219,8 @@ export async function adminUpdateBooking(
       .eq("id", bookingId);
 
     if (error) {
-      return { success: false, error: error.message };
+      // Déplacement de dates d'un séjour approved sur un créneau déjà pris → 23P01.
+      return { success: false, error: friendlyDbError(error, "booking") };
     }
 
     revalidatePath("/dashboard");

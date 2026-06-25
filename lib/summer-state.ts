@@ -6,6 +6,7 @@ import {
   type SummerPeriod,
 } from "./summer-priorities";
 import { FAMILIES, type FamilyName } from "./families";
+import { getSummerBookings } from "./data/bookings";
 
 export type PeriodStatus =
   | { state: "free"; period: SummerPeriod }
@@ -40,14 +41,8 @@ export async function getSummerSnapshot(
 ): Promise<SummerSnapshot> {
   const supabase = await createClient();
 
-  // Fetch tous les bookings qui chevauchent l'été de cette année
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, start_date, end_date, family_id, families(name)")
-    .in("status", ["pending", "approved"])
-    .gte("start_date", `${year}-06-01`)
-    .lte("end_date", `${year}-09-30`)
-    .order("start_date");
+  // Fetch tous les bookings inclus dans l'été de cette année (juin→sept)
+  const bookings = await getSummerBookings(supabase, year);
 
   // Pour chaque période, on cherche si un booking matche pile ses dates
   const periods: Record<1 | 2 | 3, PeriodStatus> = {} as any;
@@ -56,13 +51,12 @@ export async function getSummerSnapshot(
   for (const period of SUMMER_PERIODS) {
     const { start, end } = getPeriodDates(year, period);
 
-    const match = (bookings ?? []).find(
-      (b: any) => b.start_date === start && b.end_date === end
+    const match = bookings.find(
+      (b) => b.start_date === start && b.end_date === end
     );
 
     if (match) {
-      // @ts-ignore
-      const familyName = match.families?.name as FamilyName;
+      const familyName = match.family_name as FamilyName;
 
       pickedNames.add(familyName);
 

@@ -11,6 +11,7 @@ import {
 import { SUMMER_CHOICE_FREEDOM } from "@/lib/config";
 import type { FamilyName } from "@/lib/families";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { friendlyDbError } from "@/lib/db-errors";
 
 type ReserveResult =
   | { ok: true; autoAssigned: boolean }
@@ -104,7 +105,10 @@ export async function reservePlaceholder(
   });
 
   if (insertError) {
-    return { ok: false, error: insertError.message };
+    // Deux familles cliquent quasi simultanément sur la même période → la
+    // contrainte EXCLUDE tranche la course côté base (23P01), là où la
+    // validation applicative en 7/8 ci-dessus peut laisser passer.
+    return { ok: false, error: friendlyDbError(insertError, "booking") };
   }
 
   // 10. Auto-assignment : on re-snapshot pour voir l'état après notre insert

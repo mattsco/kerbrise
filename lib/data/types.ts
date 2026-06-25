@@ -32,6 +32,32 @@ export type CalendarBooking = {
   status: "pending" | "approved";
 };
 
+/**
+ * Lightweight booking row with the family join already mapped. Used by the
+ * dashboard "upcoming", stats and summer queries — anywhere that needs
+ * dates + family identity but not the full approvals tree.
+ */
+export type BookingSummary = {
+  id: string;
+  start_date: string;
+  end_date: string;
+  status: BookingStatus;
+  family_id: string;
+  family_name: string;
+  family_color: string;
+};
+
+/**
+ * A pending booking from another family, with the ids of families that have
+ * already approved it. Lets a caller compute "is my family's vote still
+ * missing?" without re-fetching the approvals tree.
+ */
+export type PendingApprovalBooking = {
+  id: string;
+  family_id: string;
+  approved_by_family_ids: string[];
+};
+
 /** A neighbouring booking used for adjacency / overlap UI. */
 export type RelatedBooking = {
   id: string;

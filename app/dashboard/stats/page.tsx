@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { getApprovedBookingsOverlappingRange } from "@/lib/data/bookings";
 import {
   dateToISO,
   daysInRangeInclusive,
@@ -93,15 +94,13 @@ export default async function StatsPage({
 
   const springDays = daysInRangeInclusive(springStart, springEnd);
 
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, start_date, end_date, families(name)")
-    .eq("status", "approved")
-    .lte("start_date", endOfYear)
-    .gte("end_date", startOfYear)
-    .order("start_date");
+  const bookings = await getApprovedBookingsOverlappingRange(
+    supabase,
+    startOfYear,
+    endOfYear
+  );
 
-  const allBookings: BookingRow[] = (bookings ?? []).map((b: any) => {
+  const allBookings: BookingRow[] = bookings.map((b) => {
     const effectiveStart =
       b.start_date < startOfYear ? startOfYear : b.start_date;
 
@@ -112,7 +111,7 @@ export default async function StatsPage({
       id: b.id,
       start_date: b.start_date,
       end_date: b.end_date,
-      family_name: b.families?.name ?? "?",
+      family_name: b.family_name,
       days_in_year: daysInRangeClipped(
         effectiveStart,
         effectiveEnd,

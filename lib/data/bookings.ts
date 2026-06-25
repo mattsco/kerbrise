@@ -17,6 +17,8 @@ import {
   type CalendarBooking,
   type BookingDetail,
   type BookingWithApprovals,
+  type BookingSummary,
+  type PendingApprovalBooking,
   type RelatedBooking,
 } from "./types";
 
@@ -51,6 +53,13 @@ const APPROVALS_SELECT = `
 
 const RELATED_SELECT = `id, start_date, end_date, families(name, color)`;
 
+const SUMMARY_SELECT = `
+  id, start_date, end_date, status, family_id,
+  families(name, color)
+`;
+
+const PENDING_APPROVAL_SELECT = `id, family_id, approvals(family_id)`;
+
 const LIST_SELECT = `
   id, start_date, end_date, note, status, family_id, created_by, created_at,
   families(name, color),
@@ -72,6 +81,18 @@ function mapCalendarBooking(b: any): CalendarBooking {
     family_name: b.families?.name ?? UNKNOWN_FAMILY_NAME,
     color: b.families?.color ?? UNKNOWN_FAMILY_COLOR,
     status: b.status,
+  };
+}
+
+function mapSummaryBooking(b: any): BookingSummary {
+  return {
+    id: b.id,
+    start_date: b.start_date,
+    end_date: b.end_date,
+    status: b.status,
+    family_id: b.family_id,
+    family_name: b.families?.name ?? UNKNOWN_FAMILY_NAME,
+    family_color: b.families?.color ?? UNKNOWN_FAMILY_COLOR,
   };
 }
 
@@ -239,6 +260,95 @@ export async function getBookingDetail(
     })),
     adjacent,
   };
+}
+
+/**
+ * Approved bookings whose stay isn't over yet (end_date >= fromISO), ordered
+ * by start. Shared by the dashboard "prochains séjours" block and the sejour
+ * snapshot. Pass `limit` to cap the result (dashboard shows 5).
+ */
+export async function getUpcomingApprovedBookings(
+  supabase: SupabaseLike,
+  fromISO: string,
+  limit?: number
+): Promise<BookingSummary[]> {
+  let query = supabase
+    .from("bookings")
+    .select(SUMMARY_SELECT)
+    .eq("status", "approved")
+    .gte("end_date", fromISO)
+    .order("start_date");
+
+  if (limit !== undefined) query = query.limit(limit);
+
+  const { data } = await query;
+  return (data ?? []).map(mapSummaryBooking);
+}
+
+/**
+ * Approved bookings that OVERLAP the [startISO, endISO] window
+ * (start_date <= endISO AND end_date >= startISO). Used by the yearly stats
+ * page, which clips each stay to the year. NB: overlap semantics — distinct
+ * from getSummerBookings' "contained in" test.
+ */
+export async function getApprovedBookingsOverlappingRange(
+  supabase: SupabaseLike,
+  startISO: string,
+  endISO: string
+): Promise<BookingSummary[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select(SUMMARY_SELECT)
+    .eq("status", "approved")
+    .lte("start_date", endISO)
+    .gte("end_date", startISO)
+    .order("start_date");
+
+  return (data ?? []).map(mapSummaryBooking);
+}
+
+/**
+ * Pending + approved bookings fully CONTAINED in the given year's summer
+ * window (June 1 → Sept 30). Used by the summer-priority snapshot, which then
+ * matches each booking against exact period dates. NB: containment semantics —
+ * intentionally different from the overlap test above.
+ */
+export async function getSummerBookings(
+  supabase: SupabaseLike,
+  year: number
+): Promise<BookingSummary[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select(SUMMARY_SELECT)
+    .in("status", ACTIVE_STATUSES as unknown as string[])
+    .gte("start_date", `${year}-06-01`)
+    .lte("end_date", `${year}-09-30`)
+    .order("start_date");
+
+  return (data ?? []).map(mapSummaryBooking);
+}
+
+/**
+ * Pending bookings from OTHER families (family_id != myFamilyId), each with
+ * the list of families that already voted. Lets the dashboard count, and the
+ * admin "simulate approvals" tool act on, the bookings still awaiting a given
+ * family's decision — without re-querying the approvals tree.
+ */
+export async function getPendingBookingsAwaitingFamily(
+  supabase: SupabaseLike,
+  myFamilyId: string
+): Promise<PendingApprovalBooking[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select(PENDING_APPROVAL_SELECT)
+    .eq("status", "pending")
+    .neq("family_id", myFamilyId);
+
+  return (data ?? []).map((b: any) => ({
+    id: b.id,
+    family_id: b.family_id,
+    approved_by_family_ids: (b.approvals ?? []).map((a: any) => a.family_id),
+  }));
 }
 
 /**
