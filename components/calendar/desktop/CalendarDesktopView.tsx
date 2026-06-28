@@ -84,6 +84,14 @@ export default function CalendarDesktopView({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [rangeStart, onCancelSelection]);
 
+  // Toutes les dates de FIN de séjour : sert à détecter un jour pivot
+  // (un séjour qui démarre un jour où un autre se termine) côté cellule,
+  // pour décaler son étiquette au 1er jour plein.
+  const endDates = useMemo(
+    () => new Set(events.map((e) => e.end_date)),
+    [events]
+  );
+
   // Fériés de l'année affichée : date → nom court (ex. "Assomption")
   const holidaysByDate = useMemo(() => {
     const map = new Map<string, string>();
@@ -176,6 +184,7 @@ export default function CalendarDesktopView({
             year={year}
             view={view}
             eventsByDate={eventsByDate}
+            endDates={endDates}
             placeholdersByDate={placeholdersByDate}
             holidaysByDate={holidaysByDate}
             todayStr={todayStr}

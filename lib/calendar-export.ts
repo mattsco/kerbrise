@@ -13,7 +13,7 @@
 // sur la date de fin. Si le jour de départ ne doit PAS être couvert (départ le
 // matin), il suffira de retirer ce +1 dans addDaysISO(e.endDate, 1).
 
-import { parseLocalDate, daysInRangeInclusive } from "@/lib/dates";
+import { parseLocalDate, daysBetween } from "@/lib/dates";
 
 export type CalendarEventInput = {
   title: string;
@@ -59,7 +59,8 @@ function humanDate(iso: string): string {
  * C'est ICI qu'on ajuste le titre, le lieu et le texte de la description.
  */
 export function buildStayCalendarEvent(stay: StayInfo): CalendarEventInput {
-  const days = daysInRangeInclusive(stay.startDate, stay.endDate);
+  // Durée affichée = nuits (fin − début), convention Kerbrise.
+  const days = daysBetween(stay.startDate, stay.endDate);
 
   const description = [
     `☀️ Séjour de la famille ${stay.familyName} à Kerbrise.`,

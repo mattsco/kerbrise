@@ -21,6 +21,7 @@ type Props = {
   monthIndex: number; // 0-11
   view: CalendarView;
   eventsByDate: Map<string, CalendarEvent[]>;
+  endDates: Set<string>;
   placeholdersByDate: Map<string, Placeholder>;
   holidaysByDate: Map<string, string>;
   todayStr: string;
@@ -46,6 +47,7 @@ export default function MonthColumn({
   monthIndex,
   view,
   eventsByDate,
+  endDates,
   placeholdersByDate,
   holidaysByDate,
   todayStr,
@@ -103,6 +105,7 @@ export default function MonthColumn({
             holidayName={holidaysByDate.get(dateStr)}
             isSelected={isInSelection(dateStr)}
             dayEvents={dayEvents}
+            endDates={endDates}
             placeholder={placeholder}
             filterFamily={filterFamily}
             view={view}

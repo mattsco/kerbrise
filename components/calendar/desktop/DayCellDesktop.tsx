@@ -6,7 +6,7 @@ import type { Placeholder } from "@/lib/summer-placeholders";
 import type { CalendarEvent } from "../CalendarDayCell";
 import type { CalendarView } from "../calendar-utils";
 
-import { daysInRangeInclusive } from "@/lib/dates";
+import { daysBetween, addDays } from "@/lib/dates";
 import { formatRange } from "@/lib/dashboard-banner";
 import { tideLevel, type TideDay } from "@/lib/tides";
 
@@ -39,6 +39,8 @@ type Props = {
   holidayName?: string;
   isSelected: boolean;
   dayEvents: CalendarEvent[];
+  /** Toutes les dates de fin de séjour (détection des jours pivot). */
+  endDates: Set<string>;
   placeholder?: Placeholder;
   /** Famille sélectionnée dans la légende ; les autres sont estompées. */
   filterFamily: string | null;
@@ -65,6 +67,7 @@ function DayCellDesktop({
   holidayName,
   isSelected,
   dayEvents,
+  endDates,
   placeholder,
   filterFamily,
   view,
@@ -133,6 +136,18 @@ function DayCellDesktop({
   const isFirstOfEvent = !!mainEvent && mainEvent.start_date === dateStr;
   const isLastOfEvent = !!mainEvent && mainEvent.end_date === dateStr;
 
+  // Jour où poser l'étiquette "Nom (Nj)" : le 1er jour PLEIN du séjour.
+  // Si le séjour démarre un jour pivot (cellule partagée avec la fin d'un
+  // autre séjour) ET dure ≥ 2 nuits, on décale l'étiquette au lendemain
+  // (1er jour complet). Sinon on la laisse sur le jour de début.
+  function labelDateFor(e: CalendarEvent) {
+    const startIsPivot =
+      e.start_date !== e.end_date && endDates.has(e.start_date);
+    const nights = daysBetween(e.start_date, e.end_date);
+    return startIsPivot && nights >= 2 ? addDays(e.start_date, 1) : e.start_date;
+  }
+  const showMainLabel = !!mainEvent && labelDateFor(mainEvent) === dateStr;
+
   const isFirstOfPlaceholder = placeholder?.startDate === dateStr;
   const isLastOfPlaceholder = placeholder?.endDate === dateStr;
 
@@ -158,13 +173,15 @@ function DayCellDesktop({
     return e.status === "pending" ? 0.75 : 1;
   }
 
+  // Durée = NUITS (fin − début), convention Kerbrise : le jour de départ
+  // (pivot) n'est pas compté. Ex : 28 juin → 19 juil = 21 nuits.
   function eventLabel(e: CalendarEvent) {
-    const n = daysInRangeInclusive(e.start_date, e.end_date);
+    const n = daysBetween(e.start_date, e.end_date);
     return `${e.family_name} (${n}j)${e.status === "pending" ? " ⏳" : ""}`;
   }
 
   function eventTooltip(e: CalendarEvent) {
-    const n = daysInRangeInclusive(e.start_date, e.end_date);
+    const n = daysBetween(e.start_date, e.end_date);
     return `${e.family_name} · ${formatRange(e.start_date, e.end_date)} · ${n}j${
       e.status === "pending" ? " · en attente" : ""
     }`;
@@ -233,15 +250,17 @@ function DayCellDesktop({
               }}
               title={eventTooltip(startingEvent)}
             />
-            <span
-              className="absolute inset-0 flex items-center px-1 text-[10px] font-medium text-white pointer-events-none"
-              style={{
-                textShadow: "0 0 3px rgba(0,0,0,0.45)",
-                opacity: isDimmed(startingEvent) ? 0.12 : 1,
-              }}
-            >
-              <span className="truncate">{eventLabel(startingEvent)}</span>
-            </span>
+            {labelDateFor(startingEvent) === dateStr && (
+              <span
+                className="absolute inset-0 flex items-center px-1 text-[10px] font-medium text-white pointer-events-none"
+                style={{
+                  textShadow: "0 0 3px rgba(0,0,0,0.45)",
+                  opacity: isDimmed(startingEvent) ? 0.12 : 1,
+                }}
+              >
+                <span className="truncate">{eventLabel(startingEvent)}</span>
+              </span>
+            )}
           </>
         ) : mainEvent ? (
           <div
@@ -262,7 +281,7 @@ function DayCellDesktop({
             }}
             title={eventTooltip(mainEvent)}
           >
-            {isFirstOfEvent && (
+            {showMainLabel && (
               <span className="truncate">{eventLabel(mainEvent)}</span>
             )}
           </div>

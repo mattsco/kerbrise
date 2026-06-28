@@ -7,7 +7,7 @@ import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 import { getBookingDetail } from "@/lib/data/bookings";
 import type { BookingDetail } from "@/lib/data/types";
 import { STATUS_BADGES, formatLong, formatShort } from "@/lib/ui/booking-display";
-import { daysInRangeInclusive } from "@/lib/dates";
+import { daysBetween } from "@/lib/dates";
 import {
   buildStayCalendarEvent,
   googleCalendarUrl,
@@ -97,7 +97,8 @@ export default function BookingDetailModal({
     (booking.status === "approved" || booking.status === "pending");
 
   const statusBadge = STATUS_BADGES[booking.status];
-  const nbDays = daysInRangeInclusive(booking.start_date, booking.end_date);
+  // Durée = nuits (fin − début), convention Kerbrise (jour de départ non compté).
+  const nbDays = daysBetween(booking.start_date, booking.end_date);
 
   // Événement agenda (dates inclusives → fin exclusive gérée dans le helper)
   const calEvent = buildStayCalendarEvent({

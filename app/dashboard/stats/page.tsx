@@ -6,7 +6,8 @@ import { getApprovedBookingsOverlappingRange } from "@/lib/data/bookings";
 import {
   dateToISO,
   daysInRangeInclusive,
-  daysInRangeClipped,
+  daysBetween,
+  nightsInRangeClipped,
 } from "@/lib/dates";
 import { FAMILY_NAMES, FAMILY_COLORS } from "@/lib/families";
 import {
@@ -101,24 +102,19 @@ export default async function StatsPage({
   );
 
   const allBookings: BookingRow[] = bookings.map((b) => {
-    const effectiveStart =
-      b.start_date < startOfYear ? startOfYear : b.start_date;
-
-    const effectiveEnd =
-      b.end_date > endOfYear ? endOfYear : b.end_date;
-
     return {
       id: b.id,
       start_date: b.start_date,
       end_date: b.end_date,
       family_name: b.family_name,
-      days_in_year: daysInRangeClipped(
-        effectiveStart,
-        effectiveEnd,
+      // Nuits du séjour tombant dans l'année (convention Kerbrise).
+      days_in_year: nightsInRangeClipped(
+        b.start_date,
+        b.end_date,
         startOfYear,
         endOfYear
       ),
-      duration: daysInRangeInclusive(b.start_date, b.end_date),
+      duration: daysBetween(b.start_date, b.end_date),
     };
   });
 
@@ -163,7 +159,7 @@ export default async function StatsPage({
   const springDaysReserved = allBookings.reduce((sum, b) => {
     return (
       sum +
-      daysInRangeClipped(b.start_date, b.end_date, springStart, springEnd)
+      nightsInRangeClipped(b.start_date, b.end_date, springStart, springEnd)
     );
   }, 0);
 
@@ -183,7 +179,7 @@ export default async function StatsPage({
     const monthEnd = dateToISO(new Date(year, m + 1, 0));
 
     for (const b of allBookings) {
-      const days = daysInRangeClipped(
+      const days = nightsInRangeClipped(
         b.start_date,
         b.end_date,
         monthStart,

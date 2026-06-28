@@ -84,6 +84,22 @@ export function daysInRangeClipped(
 }
 
 /**
+ * Nombre de NUITS d'un séjour qui tombent dans une fenêtre.
+ * Convention Kerbrise : la durée = nuits (fin − début), pas de double-comptage
+ * du jour pivot. Une nuit est rattachée à son jour de coucher (start … end-1),
+ * qu'on clippe à la fenêtre. Ex : séjour 28 juin → 19 juil = 21 nuits.
+ */
+export function nightsInRangeClipped(
+  startISO: string,
+  endISO: string,
+  rangeStartISO: string,
+  rangeEndISO: string
+): number {
+  if (endISO <= startISO) return 0; // 0 nuit (séjour d'un jour)
+  return daysInRangeClipped(startISO, addDays(endISO, -1), rangeStartISO, rangeEndISO);
+}
+
+/**
  * Renvoie true si le séjour est actif, à venir, ou terminé depuis moins de N jours.
  * Par défaut : 2 jours après end_date.
  */

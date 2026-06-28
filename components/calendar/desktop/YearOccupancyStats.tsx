@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import { FAMILIES } from "@/lib/families";
-import { daysInRangeClipped, daysInRangeInclusive } from "@/lib/dates";
+import { nightsInRangeClipped, daysInRangeInclusive } from "@/lib/dates";
 
 import type { CalendarEvent } from "../CalendarDayCell";
 
@@ -30,9 +30,10 @@ type FamilyStat = {
  *
  * Conventions — identiques à la page Stats (cohérence inter-pages) :
  *   - séjours APPROUVÉS uniquement
- *   - comptage inclusif (arrivée + départ comptés), clippé à l'année
- *     affichée pour les séjours à cheval sur deux années
- *   - conséquence assumée : un jour pivot compte pour les 2 familles
+ *   - comptage en NUITS (fin − début), clippé à l'année affichée pour les
+ *     séjours à cheval sur deux années
+ *   - le jour pivot n'est donc PAS compté deux fois (≠ ancien comptage
+ *     inclusif) : le total d'occupation ne peut plus dépasser l'année
  *   - le % par famille = part du total occupé (comme l'Excel) ;
  *     la ligne Total affiche le % de l'année (plus utile que le
  *     "100 %" du tableur)
@@ -50,7 +51,7 @@ export default function YearOccupancyStats({ events, year }: Props) {
 
     for (const e of events) {
       if (e.status !== "approved") continue;
-      const days = daysInRangeClipped(
+      const days = nightsInRangeClipped(
         e.start_date,
         e.end_date,
         yearStart,
