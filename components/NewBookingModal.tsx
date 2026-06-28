@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import NewBookingForm from "./NewBookingForm";
+import AdminBookingForm from "./AdminBookingForm";
 
 type Props = {
   familyId: string;
   userId: string;
   initialStart?: string;
   initialEnd?: string;
+  isCalendarAdmin?: boolean;
   onClose: () => void;
 };
 
@@ -16,6 +18,7 @@ export default function NewBookingModal({
   userId,
   initialStart,
   initialEnd,
+  isCalendarAdmin = false,
   onClose,
 }: Props) {
   const router = useRouter();
@@ -30,7 +33,7 @@ export default function NewBookingModal({
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-5 pt-5 pb-3 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">
-            Nouvelle demande
+            {isCalendarAdmin ? "🛡️ Nouveau séjour (admin)" : "Nouvelle demande"}
           </h2>
           <button
             onClick={onClose}
@@ -41,13 +44,21 @@ export default function NewBookingModal({
           </button>
         </div>
         <div className="p-5">
-          <NewBookingForm
-            familyId={familyId}
-            userId={userId}
-            initialStart={initialStart}
-            initialEnd={initialEnd}
-            onSuccess={handleSuccess}
-          />
+          {isCalendarAdmin ? (
+            <AdminBookingForm
+              initialStart={initialStart}
+              initialEnd={initialEnd}
+              onSuccess={handleSuccess}
+            />
+          ) : (
+            <NewBookingForm
+              familyId={familyId}
+              userId={userId}
+              initialStart={initialStart}
+              initialEnd={initialEnd}
+              onSuccess={handleSuccess}
+            />
+          )}
         </div>
       </div>
     </div>

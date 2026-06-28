@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { adminCreateBooking } from "@/app/dashboard/admin/actions";
 
 type Family = {
@@ -15,19 +16,50 @@ type User = {
   family_id: string;
 };
 
+type Props = {
+  /** Fournis par la page admin/data. Absents → chargés côté client (calendrier). */
+  families?: Family[];
+  users?: User[];
+  initialStart?: string;
+  initialEnd?: string;
+  /** Si fourni (ex: modal calendrier), appelé au succès au lieu d'afficher le feedback. */
+  onSuccess?: () => void;
+};
+
 export default function AdminBookingForm({
-  families,
-  users,
-}: {
-  families: Family[];
-  users: User[];
-}) {
-  const [familyId, setFamilyId] = useState(families[0]?.id ?? "");
+  families: familiesProp,
+  users: usersProp,
+  initialStart = "",
+  initialEnd = "",
+  onSuccess,
+}: Props) {
+  const [families, setFamilies] = useState<Family[]>(familiesProp ?? []);
+  const [users, setUsers] = useState<User[]>(usersProp ?? []);
+  const [familyId, setFamilyId] = useState(familiesProp?.[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Auto-chargement si les listes ne sont pas fournies (ouverture depuis le
+  // calendrier en mode admin, où on n'a pas de page serveur pour les passer).
+  useEffect(() => {
+    if (familiesProp && usersProp) return;
+    const supabase = createClient();
+    supabase
+      .from("families")
+      .select("id, name, color")
+      .then(({ data }) => {
+        const list = data ?? [];
+        setFamilies(list);
+        setFamilyId((cur) => cur || list[0]?.id || "");
+      });
+    supabase
+      .from("users")
+      .select("id, display_name, family_id")
+      .then(({ data }) => setUsers(data ?? []));
+  }, [familiesProp, usersProp]);
 
   const filteredUsers = users.filter((u) => u.family_id === familyId);
 
@@ -43,6 +75,10 @@ export default function AdminBookingForm({
     setSubmitting(false);
 
     if (result?.success) {
+      if (onSuccess) {
+        onSuccess();
+        return;
+      }
       setFeedback({
         type: "success",
         message: result.message || "✅ Réservation créée avec succès",
@@ -69,6 +105,7 @@ export default function AdminBookingForm({
             type="date"
             name="start_date"
             required
+            defaultValue={initialStart}
             disabled={submitting}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
           />
@@ -81,6 +118,7 @@ export default function AdminBookingForm({
             type="date"
             name="end_date"
             required
+            defaultValue={initialEnd}
             disabled={submitting}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
           />

@@ -221,6 +221,7 @@ export default function Calendar({
           userId={currentUserId}
           initialStart={newBooking.start}
           initialEnd={newBooking.end}
+          isCalendarAdmin={isCalendarAdmin}
           onClose={() => setNewBooking(null)}
         />
       )}
