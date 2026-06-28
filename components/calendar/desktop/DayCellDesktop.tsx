@@ -6,7 +6,7 @@ import type { Placeholder } from "@/lib/summer-placeholders";
 import type { CalendarEvent } from "../CalendarDayCell";
 import type { CalendarView } from "../calendar-utils";
 
-import { daysBetween, addDays } from "@/lib/dates";
+import { daysBetween } from "@/lib/dates";
 import { formatRange } from "@/lib/dashboard-banner";
 import { tideLevel, type TideDay } from "@/lib/tides";
 
@@ -39,8 +39,6 @@ type Props = {
   holidayName?: string;
   isSelected: boolean;
   dayEvents: CalendarEvent[];
-  /** Toutes les dates de fin de séjour (détection des jours pivot). */
-  endDates: Set<string>;
   placeholder?: Placeholder;
   /** Famille sélectionnée dans la légende ; les autres sont estompées. */
   filterFamily: string | null;
@@ -67,7 +65,6 @@ function DayCellDesktop({
   holidayName,
   isSelected,
   dayEvents,
-  endDates,
   placeholder,
   filterFamily,
   view,
@@ -124,39 +121,21 @@ function DayCellDesktop({
   }
 
   // ─── Vue Séjours (défaut, #31) ───────────────────────────────────────
-  const endingEvent = dayEvents.find((e) => e.end_date === dateStr);
+  // Le séjour qui DÉMARRE ce jour-là gagne la cellule, dessiné par-dessus la
+  // fin du séjour précédent (comme les périodes d'été) : pas de demi-cellule
+  // pivot, nom posé sur le 1er jour. Le séjour qui se termine est donc masqué
+  // sur son jour de départ — il est rendu jusqu'à la veille.
   const startingEvent = dayEvents.find((e) => e.start_date === dateStr);
+  const mainEvent = startingEvent ?? dayEvents[0];
 
-  const isPivot =
-    !!endingEvent &&
-    !!startingEvent &&
-    endingEvent.bookingId !== startingEvent.bookingId;
-
-  const mainEvent = dayEvents[0];
   const isFirstOfEvent = !!mainEvent && mainEvent.start_date === dateStr;
   const isLastOfEvent = !!mainEvent && mainEvent.end_date === dateStr;
-
-  // Jour où poser l'étiquette "Nom (Nj)" : le 1er jour PLEIN du séjour.
-  // Si le séjour démarre un jour pivot (cellule partagée avec la fin d'un
-  // autre séjour) ET dure ≥ 2 nuits, on décale l'étiquette au lendemain
-  // (1er jour complet). Sinon on la laisse sur le jour de début.
-  function labelDateFor(e: CalendarEvent) {
-    const startIsPivot =
-      e.start_date !== e.end_date && endDates.has(e.start_date);
-    const nights = daysBetween(e.start_date, e.end_date);
-    return startIsPivot && nights >= 2 ? addDays(e.start_date, 1) : e.start_date;
-  }
-  const showMainLabel = !!mainEvent && labelDateFor(mainEvent) === dateStr;
 
   const isFirstOfPlaceholder = placeholder?.startDate === dateStr;
   const isLastOfPlaceholder = placeholder?.endDate === dateStr;
 
   // Même priorité de clic que la vue mobile (CalendarDayCell)
   function handleClick() {
-    if (isPivot && startingEvent) {
-      onDayClick(dateStr, true, startingEvent.bookingId);
-      return;
-    }
     if (mainEvent) {
       onDayClick(dateStr, true, mainEvent.bookingId);
       return;
@@ -231,38 +210,7 @@ function DayCellDesktop({
 
       {/* Zone séjour / placeholder / férié */}
       <div className="relative flex-1 min-w-0">
-        {isPivot && endingEvent && startingEvent ? (
-          <>
-            {/* Jour pivot : fin d'un séjour (haut) + début d'un autre (bas) */}
-            <div
-              className="absolute inset-x-0 top-0 h-1/2 rounded-b-[5px]"
-              style={{
-                backgroundColor: endingEvent.color,
-                opacity: zoneOpacity(endingEvent),
-              }}
-              title={eventTooltip(endingEvent)}
-            />
-            <div
-              className="absolute inset-x-0 bottom-0 h-1/2 rounded-t-[5px]"
-              style={{
-                backgroundColor: startingEvent.color,
-                opacity: zoneOpacity(startingEvent),
-              }}
-              title={eventTooltip(startingEvent)}
-            />
-            {labelDateFor(startingEvent) === dateStr && (
-              <span
-                className="absolute inset-0 flex items-center px-1 text-[10px] font-medium text-white pointer-events-none"
-                style={{
-                  textShadow: "0 0 3px rgba(0,0,0,0.45)",
-                  opacity: isDimmed(startingEvent) ? 0.12 : 1,
-                }}
-              >
-                <span className="truncate">{eventLabel(startingEvent)}</span>
-              </span>
-            )}
-          </>
-        ) : mainEvent ? (
+        {mainEvent ? (
           <div
             className={`absolute inset-0 flex items-center px-1 text-[10px] font-medium text-white ${
               mainEvent.status === "pending"
@@ -281,7 +229,7 @@ function DayCellDesktop({
             }}
             title={eventTooltip(mainEvent)}
           >
-            {showMainLabel && (
+            {isFirstOfEvent && (
               <span className="truncate">{eventLabel(mainEvent)}</span>
             )}
           </div>

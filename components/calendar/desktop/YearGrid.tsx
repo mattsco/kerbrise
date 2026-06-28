@@ -11,7 +11,6 @@ type Props = {
   year: number;
   view: CalendarView;
   eventsByDate: Map<string, CalendarEvent[]>;
-  endDates: Set<string>;
   placeholdersByDate: Map<string, Placeholder>;
   holidaysByDate: Map<string, string>;
   todayStr: string;
@@ -36,7 +35,6 @@ export default function YearGrid({
   year,
   view,
   eventsByDate,
-  endDates,
   placeholdersByDate,
   holidaysByDate,
   todayStr,
@@ -54,7 +52,6 @@ export default function YearGrid({
           monthIndex={monthIndex}
           view={view}
           eventsByDate={eventsByDate}
-          endDates={endDates}
           placeholdersByDate={placeholdersByDate}
           holidaysByDate={holidaysByDate}
           todayStr={todayStr}
