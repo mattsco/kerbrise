@@ -6,10 +6,6 @@ One house, three family branches (~14 people), and a recurring summer scramble o
 
 Built and maintained solo. Live at **[kerbrise.fr](https://kerbrise.fr)** (private — family auth required), launched May 2026.
 
-<p align="center">
-  <img src="./public/house.jpg" alt="The house in Saint-Malo" width="640">
-</p>
-
 ## Stack
 
 - **Next.js 16 / React 19** — App Router, Server Components, Server Actions
