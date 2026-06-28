@@ -300,6 +300,8 @@ export default function BookingDetailModal({
               startDate={booking.start_date}
               endDate={booking.end_date}
               status={booking.status as "pending" | "approved" | "rejected"}
+              familyId={booking.family_id}
+              createdBy={booking.created_by}
               onActionComplete={onClose}
               isAdminMode
             />
@@ -312,6 +314,8 @@ export default function BookingDetailModal({
               startDate={booking.start_date}
               endDate={booking.end_date}
               status={booking.status as "pending" | "approved" | "rejected"}
+              familyId={booking.family_id}
+              createdBy={booking.created_by}
               onActionComplete={onClose}
             />
           )}

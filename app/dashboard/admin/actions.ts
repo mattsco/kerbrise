@@ -137,7 +137,18 @@ export async function simulateApprovals(familyName: "François" | "Vincent") {
   }
 }
 
-// Création admin d'une réservation (sans email)
+// ⚙️ Toutes les écritures admin passent désormais par des RPC Postgres
+// (admin_create/update/cancel/delete_booking, migration 0012). Pourquoi :
+//   - le bypass des triggers est un SIGNAL DE TRANSACTION (set_config local
+//     dans la même tx que l'écriture), pas un drapeau persistant sur la ligne.
+//     Plus de "is_admin_created collant" : une édition membre ultérieure
+//     reprend un comportement normal.
+//   - le RPC choisit d'envoyer les emails ou non (p_notify) et journalise
+//     l'action dans admin_audit (qui/quand/quoi/avant-après).
+// is_admin_created reste posé à la création comme marqueur de PROVENANCE pur
+// (analytics), mais n'est plus lu par aucun trigger.
+
+// Création admin d'une réservation
 export async function adminCreateBooking(formData: FormData) {
   try {
     await requireCalendarAdmin();
@@ -149,23 +160,23 @@ export async function adminCreateBooking(formData: FormData) {
     const createdBy = formData.get("author_id") as string;
     const statusInput = formData.get("status") as string;
     const status = statusInput === "approved" ? "approved" : "pending";
+    const notify = formData.get("notify") === "on";
+    const note = (formData.get("note") as string)?.trim() || null;
 
     if (!startDate || !endDate || !familyId || !createdBy) {
       return { success: false, error: "Tous les champs sont requis" };
     }
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert({
-        family_id: familyId,
-        created_by: createdBy,
-        start_date: startDate,
-        end_date: endDate,
-        status: status,
-        is_admin_created: true,
-      })
-      .select()
-      .single();
+    const { error } = await supabase.rpc("admin_create_booking", {
+      p_start: startDate,
+      p_end: endDate,
+      p_family_id: familyId,
+      p_created_by: createdBy,
+      p_status: status,
+      p_note: note,
+      p_reason: null,
+      p_notify: notify,
+    });
 
     if (error) {
       // Création d'un séjour "approved" chevauchant un autre approved → 23P01.
@@ -180,7 +191,9 @@ export async function adminCreateBooking(formData: FormData) {
 
     return {
       success: true,
-      message: `✅ Réservation créée du ${startDate} au ${endDate}`,
+      message: `✅ Réservation créée du ${startDate} au ${endDate}${
+        notify ? " (email envoyé)" : ""
+      }`,
     };
   } catch (e: any) {
     if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
@@ -188,11 +201,20 @@ export async function adminCreateBooking(formData: FormData) {
   }
 }
 
-// Modification admin d'une réservation (sans email)
+type AdminUpdateOptions = {
+  status?: string | null;
+  familyId?: string | null;
+  createdBy?: string | null;
+  reason?: string | null;
+  notify?: boolean;
+};
+
+// Modification admin d'une réservation (dates, statut, famille, créateur)
 export async function adminUpdateBooking(
   bookingId: string,
   newStart: string,
-  newEnd: string
+  newEnd: string,
+  opts: AdminUpdateOptions = {}
 ) {
   try {
     await requireCalendarAdmin();
@@ -209,14 +231,16 @@ export async function adminUpdateBooking(
       };
     }
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({
-        start_date: newStart,
-        end_date: newEnd,
-        is_admin_created: true, // bypass triggers/emails
-      })
-      .eq("id", bookingId);
+    const { error } = await supabase.rpc("admin_update_booking", {
+      p_id: bookingId,
+      p_start: newStart,
+      p_end: newEnd,
+      p_status: opts.status ?? null,
+      p_family_id: opts.familyId ?? null,
+      p_created_by: opts.createdBy ?? null,
+      p_reason: opts.reason?.trim() || null,
+      p_notify: opts.notify ?? false,
+    });
 
     if (error) {
       // Déplacement de dates d'un séjour approved sur un créneau déjà pris → 23P01.
@@ -234,8 +258,12 @@ export async function adminUpdateBooking(
   }
 }
 
-// Annulation admin (soft cancel, sans email) — symétrique de update/delete
-export async function adminCancelBooking(bookingId: string, comment: string) {
+// Annulation admin (soft cancel)
+export async function adminCancelBooking(
+  bookingId: string,
+  comment: string,
+  notify = false
+) {
   try {
     await requireCalendarAdmin();
     const supabase = await createClient();
@@ -244,18 +272,14 @@ export async function adminCancelBooking(bookingId: string, comment: string) {
       return { success: false, error: "Paramètres manquants" };
     }
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({
-        status: "cancelled",
-        last_action_type: "cancelled",
-        last_action_comment: comment.trim() || null,
-        is_admin_created: true, // bypass triggers/emails
-      })
-      .eq("id", bookingId);
+    const { error } = await supabase.rpc("admin_cancel_booking", {
+      p_id: bookingId,
+      p_reason: comment?.trim() || null,
+      p_notify: notify,
+    });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: friendlyDbError(error, "booking") };
     }
 
     revalidatePath("/dashboard");
@@ -269,27 +293,19 @@ export async function adminCancelBooking(bookingId: string, comment: string) {
   }
 }
 
-// Suppression admin (hard delete)
-export async function adminDeleteBooking(bookingId: string) {
+// Suppression admin (hard delete) — jamais d'email, toujours audité
+export async function adminDeleteBooking(bookingId: string, reason?: string) {
   try {
     await requireCalendarAdmin();
     const supabase = await createClient();
 
-    // Marquer comme admin_created pour bypass les triggers AVANT delete
-    await supabase
-      .from("bookings")
-      .update({ is_admin_created: true })
-      .eq("id", bookingId);
-
-    // Supprime d'abord les approvals (FK)
-    await supabase.from("approvals").delete().eq("booking_id", bookingId);
-
-    // Puis le booking
-    const { error } = await supabase
-      .from("bookings")
-      .delete()
-      .eq("id", bookingId);
-    if (error) throw error;
+    const { error } = await supabase.rpc("admin_delete_booking", {
+      p_id: bookingId,
+      p_reason: reason?.trim() || null,
+    });
+    if (error) {
+      return { success: false, error: friendlyDbError(error, "booking") };
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/calendrier");

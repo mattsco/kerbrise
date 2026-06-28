@@ -147,9 +147,25 @@ export default function AdminBookingForm({
         </select>
       </div>
 
-      <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 text-xs text-purple-900">
-        🛡️ Création admin : aucun email ne sera envoyé.
+      {/* Note (optionnel) */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          Note (optionnel)
+        </label>
+        <input
+          type="text"
+          name="note"
+          disabled={submitting}
+          placeholder="Ex: séjour ajouté pour corriger un oubli"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+        />
       </div>
+
+      {/* Email */}
+      <label className="flex items-center gap-2 text-sm text-purple-900 bg-purple-50 border border-purple-100 rounded-lg p-3 cursor-pointer">
+        <input type="checkbox" name="notify" disabled={submitting} className="rounded border-slate-300" />
+        🛡️ Envoyer un email aux familles (décoché = création silencieuse)
+      </label>
 
       {/* Feedback */}
       {feedback && (

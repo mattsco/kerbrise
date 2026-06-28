@@ -13,6 +13,8 @@ type Props = {
   startDate: string;
   endDate: string;
   status: "pending" | "approved" | "rejected";
+  familyId: string;
+  createdBy: string;
   onActionComplete?: () => void;
   isAdminMode?: boolean;
 };
@@ -22,6 +24,8 @@ export default function BookingActions({
   startDate,
   endDate,
   status,
+  familyId,
+  createdBy,
   onActionComplete,
   isAdminMode = false,
 }: Props) {
@@ -42,6 +46,9 @@ export default function BookingActions({
         bookingId={bookingId}
         startDate={startDate}
         endDate={endDate}
+        status={status}
+        familyId={familyId}
+        createdBy={createdBy}
         isAdminMode={isAdminMode}
         onComplete={handleComplete}
         onBack={handleBack}

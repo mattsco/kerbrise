@@ -21,14 +21,16 @@ export default function BookingActionsCancel({
   onBack,
 }: Props) {
   const [comment, setComment] = useState("");
+  const [notify, setNotify] = useState(false);
   const { submitting, error, run } = useBookingMutation();
 
   async function handleCancel() {
     await run(async () => {
       if (isAdminMode) {
-        // Mode admin : passe par la server action (cohérent avec edit/delete),
-        // qui set is_admin_created + bypass les triggers/emails.
-        const result = await adminCancelBooking(bookingId, comment);
+        // Mode admin : passe par la server action (RPC admin_cancel_booking),
+        // qui bypasse les triggers via signal de transaction + audite l'action.
+        // Email envoyé uniquement si l'admin l'a coché.
+        const result = await adminCancelBooking(bookingId, comment, notify);
         return result.success
           ? { ok: true }
           : { ok: false, error: result.error ?? "inconnue" };
@@ -71,9 +73,16 @@ export default function BookingActionsCancel({
           </p>
         )}
         {isAdminMode && (
-          <p className="mt-1 text-xs text-purple-700">
-            🛡️ Mode admin : aucun email ne sera envoyé.
-          </p>
+          <label className="mt-2 flex items-center gap-2 text-xs text-purple-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notify}
+              onChange={(e) => setNotify(e.target.checked)}
+              disabled={submitting}
+              className="rounded border-slate-300"
+            />
+            🛡️ Mode admin — envoyer un email aux familles (décoché = silencieux)
+          </label>
         )}
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
