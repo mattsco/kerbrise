@@ -85,12 +85,12 @@ export default function LoginPage() {
                 className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 placeholder="••••••••"
               />
-              <p className="mt-1.5 text-xs text-slate-500">
-                🔑 Première connexion ? Mot de passe :{" "}
-                <strong>kerbrise2026</strong>
-                <br />
-                (à changer ensuite dans ton profil)
-              </p>
+              <Link
+                href="/forgot-password"
+                className="mt-1.5 inline-block text-xs text-slate-500 hover:text-slate-900 transition"
+              >
+                Mot de passe oublié ?
+              </Link>
             </div>
 
             {error && (
