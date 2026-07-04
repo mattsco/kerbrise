@@ -37,6 +37,8 @@ trmnl-plugin/
 
 Règle d'or : **`settings.yml` = source de vérité versionnée**. Éviter d'éditer dans l'UI TRMNL ET dans le repo en parallèle (ils se marchent dessus). Choisir le repo + `trmnlp push`.
 
+⚠️ **`settings.yml` vit DANS `src/`**, pas à la racine du projet (l'arbre ci-dessus est exact — mais l'erreur est vite faite). À la racine, `trmnlp push` échoue avec `422 The ZIP file does not contain settings.yml` *(vécu sur sco-life, 2026-07-04)*.
+
 ---
 
 ## 3. Setup de l'environnement de dev local
@@ -84,6 +86,8 @@ trmnlp push           # upload settings.yml + *.liquid
 ```
 
 ⚠️ **`settings.yml` doit contenir un `id:`** sinon `push` **crée un nouveau plugin à chaque fois** (doublons). Après le tout premier push : `trmnlp pull` (ou `trmnlp list` → copier l'id → l'ajouter à `settings.yml`). Ensuite les push mettent à jour le même plugin.
+
+⚠️ Avec un `id:`, `trmnlp push` demande **une confirmation interactive** (`Plugin settings on the server will be overwritten. Are you sure? (y/n)`) — dans un script ou un agent, ça **bloque silencieusement** (timeout). Utiliser `echo "y" | trmnlp push` *(vécu sur sco-life : 2 min de timeout avant de comprendre)*.
 
 ---
 
@@ -177,8 +181,10 @@ variables:
 - **Pas d'illustrations maison.** (On a essayé un SVG de la maison → moche. Le N&B 1-bit pardonne mal le dessin amateur.) Jouer la hiérarchie typographique.
 - **Classes utiles** : `view view--full`, `layout`, `columns`/`column`, `item`, `value` (+ `value--xxlarge|xlarge|large|tnums`), `label` (+ `label--small`, `label--gray-2/3`), `title`, `description`, `title_bar`, bordures `b-h-*`, gris `bg-gray-1..7`.
 - **Piège** : un `<div class="meta"></div>` **vide** rend des **barres pointillées** disgracieuses. Ne pas laisser de `meta` vide.
-- **Police Inter** : l'inclure pour matcher le rendu de l'éditeur (`fonts.googleapis.com/css2?family=Inter…`).
-- **`title_bar`** en bas. On peut omettre l'`instance`/l'horodatage (la vue ne se rafraîchit pas à la minute de toute façon).
+- **Police Inter** : l'inclure pour matcher le rendu de l'éditeur (`fonts.googleapis.com/css2?family=Inter…`). **Et l'appliquer en `font-family` inline sur CHAQUE élément de texte** : sans ça, la police par défaut du renderer (un serif) prend le dessus sur les `<p>`/`<span>` nus et rend **crunchy en 1-bit** *(vécu sur sco-life : tout le message en serif bitmap)*.
+- ⚠️ **Le `.layout` du framework CENTRE ses enfants** (align-items/justify-content) : un header en `display:flex;justify-content:space-between` se fait **shrink-wrapper et recentrer** — titre et date collés au milieu de l'écran. Correctif : `align-items:stretch` sur le conteneur **et/ou `width:100%` sur chaque section**. Symptôme reconnaissable : une bordure `border-bottom` qui ne fait pas toute la largeur.
+- ⚠️ **Pas de `text-transform: capitalize` sur les dates françaises** : il capitalise CHAQUE mot (« Samedi 4 Juillet »). Formater côté API, afficher tel quel.
+- **`title_bar`** en bas. On peut omettre l'`instance`/l'horodatage (la vue ne se rafraîchit pas à la minute de toute façon). Elle rend comme une **pilule grise centrée** — pour un footer pleine largeur maîtrisé (gauche/droite), faire un simple `div` avec `border-top` plutôt que la classe `title_bar`.
 - **Hero typographique** : un gros chiffre (`value--xxlarge`) marche très bien pour l'info à lire d'un coup d'œil — mais attention au **sens** (un compte à rebours « 12 jours restants » peut être anxiogène ; à arbitrer selon la vue).
 
 ---
@@ -303,6 +309,11 @@ Options Max refresh rate (plugin) : `1×/j` · `2×/j` · `3×/j` · `4×/j` · 
 | Plugin invisible sur le device | pas dans un Playlist | ajouter au Playlist (§10) |
 | « Réglé sur hourly mais l'écran ne bouge pas » | confusion Refresh Rate (device) vs Max refresh rate (plugin) ; pas de cron serveur, tout est on-demand au check-in device | baisser le **Refresh Rate device** ; fraîcheur ≈ max(device, plafond plugin) (§11) |
 | Nouveau markup poussé mais invisible | `trmnlp push` ≠ re-render ; le device retire l'ancienne image en cache | **Force Refresh** (page plugin) pour régénérer (§11.2) |
+| `422 The ZIP file does not contain settings.yml` | `settings.yml` à la racine du projet | Le mettre **dans `src/`** (§2) |
+| `trmnlp push` qui bloque sans fin (script/agent) | confirmation interactive `(y/n)` quand `id:` présent | `echo "y" \| trmnlp push` (§3.3) |
+| Header centré, titre/date collés, bordure raccourcie | le `.layout` du framework centre ses enfants (shrink-wrap) | `width:100%` sur chaque section + `align-items:stretch` (§7) |
+| Texte en serif bitmap crunchy | police par défaut du renderer sur les éléments sans `font-family` | Inter chargée **et** appliquée inline sur chaque élément (§7) |
+| « Samedi 4 Juillet » (majuscules partout) | `text-transform: capitalize` sur une date française | formater côté API, pas de transform (§7) |
 
 ---
 
