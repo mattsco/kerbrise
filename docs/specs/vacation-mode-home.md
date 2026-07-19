@@ -22,7 +22,7 @@ Lignes ajoutées quand quelqu'un est sur place :
 - coef marée → statique `lib/tides.ts`
 - météo / sunset / tendance 7j → Open-Meteo Forecast (caché 2h) — dans `lib/conditions.ts`. **Seule source réseau restante au runtime**, non bloquée sur IP datacenter.
 
-**Code** : `lib/conditions.ts` (orchestration, lit l'offline en synchrone), `app/dashboard/BannerConditions.tsx` (rendu, sous `<Suspense>`), branché dans `ContextualBanner`. Aussi consommé par `GET /api/term` (payload TRMNL). `app/api/tides/route.ts` est un endpoint orphelin (sans consommateur) qui scrape encore `maree.info` en live — à supprimer ou rebrancher sur l'offline.
+**Code** : `lib/conditions.ts` (orchestration, lit l'offline en synchrone), `app/dashboard/BannerConditions.tsx` (rendu, sous `<Suspense>`), branché dans `ContextualBanner`. Aussi consommé par `GET /api/term` (payload TRMNL). *(L'ancien endpoint orphelin `app/api/tides/route.ts` + son scraper `lib/maree-info.ts` ont été supprimés — cf. #35 dans `CHANGELOG.md`.)*
 
 **Tranché / abandonné** :
 - Pas de fallback Open-Meteo Marine pour la temp. eau (lisait ~19° vs ~13-15° réels).

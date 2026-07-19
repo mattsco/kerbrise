@@ -3,7 +3,7 @@
 > **Type** : guide pratique (playbook), à rouvrir à chaque nouvelle vue TRMNL.
 > **Créé** : 16/06/2026 · **Portée** : workflow dev local, auth, design, payload, debug, déploiement.
 > **Complète** : `docs/specs/trmnl-sejour-display.md` (faits device, contrat de données, décisions produit).
-> **Code de référence** : `trmnl-plugin/` (projet trmnlp), `app/api/term/route.ts` (payload), `lib/conditions.ts` + `lib/maree-info.ts` + `lib/tides.ts` (sources), `lib/supabase/service.ts`.
+> **Code de référence** : `trmnl-plugin/` (projet trmnlp), `app/api/term/route.ts` (payload), `lib/conditions.ts` + `lib/tides.ts` + `lib/tides-times.ts` (sources), `lib/supabase/service.ts`.
 >
 > **Pourquoi ce guide existe** : la 1ʳᵉ vue (« Séjour ») nous a fait perdre des heures sur des pièges non-évidents (syntaxe d'interpolation, Ruby, fuseaux horaires, blocage datacenter…). Tout est consigné ici pour que la prochaine vue prenne 1h, pas une journée. **Le §13 est le TL;DR** — si tu es pressé, lis-le en premier.
 
@@ -286,9 +286,9 @@ Options Max refresh rate (plugin) : `1×/j` · `2×/j` · `3×/j` · `4×/j` · 
 
 > Vécu sur les **horaires de marée** : OK en local, **vides en prod**.
 
-- **Les scrapers de sites qui bloquent les IP datacenter** (Cloudflare, etc.) marchent depuis ta machine (**IP résidentielle**) mais échouent en prod (**Vercel / Supabase edge = IP datacenter**). Cf. `lib/maree-info.ts` (scrape `maree.info`) et la note sea-temp dans `lib/conditions.ts`.
+- **Les scrapers de sites qui bloquent les IP datacenter** (Cloudflare, etc.) marchent depuis ta machine (**IP résidentielle**) mais échouent en prod (**Vercel / Supabase edge = IP datacenter**). C'est ce qui a condamné l'ex-scraper `maree.info` (`lib/maree-info.ts`, depuis supprimé — cf. #35) ; même leçon dans la note sea-temp de `lib/conditions.ts`.
 - **Un cron serveur ne sauve pas** si la source bloque les datacenters : le cron (Vercel ou edge function) tape dans le même mur.
-- **Donnée déterministe → la committer offline.** Les **coefs** sont committés dans `lib/tides.ts` (« le + sûr ») ; les **horaires** suivent désormais le **même pattern** : `lib/data/tides-times-2026.ts` (généré, clé = date ISO, PM/BM + hauteur) + loader `lib/tides-times.ts`. `lib/conditions.ts` lit l'offline (`getOfflineTides`), plus de scrape `maree.info`. ✅ **Décision tranchée (option 2)** — source : office de tourisme Saint-Malo, récupéré 1×/an. Validation : les 682 coefs PM 2026 == `RAW_BY_YEAR[2026]` de `tides.ts` (séquence chronologique identique). Pour 2027 : `python3 scripts/tides/generate.py 2027` puis ajouter `TIDE_TIMES_2027` au registre. Année **2026 complète** (365 j, toutes hauteurs renseignées). _Reste : `app/api/tides/route.ts` (orphelin, sans consommateur) scrape encore en live — à supprimer ou rebrancher._
+- **Donnée déterministe → la committer offline.** Les **coefs** sont committés dans `lib/tides.ts` (« le + sûr ») ; les **horaires** suivent désormais le **même pattern** : `lib/data/tides-times-2026.ts` (généré, clé = date ISO, PM/BM + hauteur) + loader `lib/tides-times.ts`. `lib/conditions.ts` lit l'offline (`getOfflineTides`), plus de scrape `maree.info`. ✅ **Décision tranchée (option 2)** — source : office de tourisme Saint-Malo, récupéré 1×/an. Validation : les 682 coefs PM 2026 == `RAW_BY_YEAR[2026]` de `tides.ts` (séquence chronologique identique). Pour 2027 : `python3 scripts/tides/generate.py 2027` puis ajouter `TIDE_TIMES_2027` au registre. Année **2026 complète** (365 j, toutes hauteurs renseignées). _(L'ex-endpoint orphelin `app/api/tides/route.ts` a été supprimé — cf. #35.)_
 - Conséquence design : toujours prévoir le **repli `null`/`[]`** côté template pour ces sources fragiles.
 
 ---
@@ -321,7 +321,7 @@ Options Max refresh rate (plugin) : `1×/j` · `2×/j` · `3×/j` · `4×/j` · 
 
 - Spec produit & device : `docs/specs/trmnl-sejour-display.md`
 - Projet de la 1ʳᵉ vue : `trmnl-plugin/`
-- Payload : `app/api/term/route.ts` · sources : `lib/conditions.ts`, `lib/maree-info.ts`, `lib/tides.ts`
+- Payload : `app/api/term/route.ts` · sources : `lib/conditions.ts`, `lib/tides.ts`, `lib/tides-times.ts`
 - Framework & exemples : <https://trmnl.com/framework> · <https://trmnl.com/framework/examples>
 - Doc plugins privés : <https://help.trmnl.com/en/articles/9510536-private-plugins>
 - Form builder (custom fields) : <https://help.trmnl.com/en/articles/10513740-custom-plugin-form-builder>

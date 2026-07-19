@@ -3,13 +3,9 @@ node_modules
 .env*.local
 .vercel
 *.log
-.DS_Storedocs/audit/
-docs/audit.zip
+.DS_Store
 *.zip
 docs/audit/
-docs/audit.zip
-.DS_Store
-.DS_Store
 supabase/.temp/
 supabase/functions/_dev/preview-output/
 tsconfig.tsbuildinfo
