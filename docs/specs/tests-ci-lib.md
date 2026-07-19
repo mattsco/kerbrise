@@ -1,10 +1,10 @@
 # Spec — Tests sur `lib/` + CI minimale (#34)
 
-> **Statut** : 📋 Spec validée
+> **Statut** : ✅ Implémentée (20 juillet 2026) — 108 tests sur `lib/`, CI en place
 > **Type** : Qualité / outillage
 > **Cible** : septembre–octobre 2026, **avant la saison de planification 2027**
 > **Estimation** : ~une demi-journée (setup + premiers tests) ; enrichissement au fil de l'eau
-> **Dernière MAJ** : 19 juillet 2026
+> **Dernière MAJ** : 20 juillet 2026
 
 ## Problème
 
@@ -82,8 +82,14 @@ Pas de build Next dans la CI (Vercel le fait déjà à chaque push), pas de secr
 
 ## Critères de fait
 
-- [ ] `npm test` vert en local, < 10 s.
-- [ ] Table de vérité rotation 2024–2030 + bornes P1/P2/P3 pour 2026 **et** 2027 (pivot) verrouillées.
-- [ ] Le test timezone `parseLocalDate` existe et échoue si on le remplace par `new Date(iso)`.
-- [ ] Les garde-fous dev de `tides.ts` / `tides-times.ts` existent aussi en tests.
-- [ ] CI verte sur `master`, badge optionnel dans le README.
+- [x] `npm test` vert en local, < 10 s (108 tests, ~0,5 s).
+- [x] Table de vérité rotation 2024–2030 + bornes P1/P2/P3 pour 2026 **et** 2027 (pivot) verrouillées.
+- [x] Le test timezone `parseLocalDate` existe et échoue si on le remplace par `new Date(iso)` (les tests tournent sous `TZ=Europe/Paris`, imposé par le script npm).
+- [x] Les garde-fous dev de `tides.ts` / `tides-times.ts` existent aussi en tests.
+- [x] CI verte sur `master` (à vérifier au premier push), badge ajouté au README.
+
+## Notes d'implémentation (20 juillet 2026)
+
+- **Lint réparé au passage** : `next lint` a été retiré de Next 16 (le script échouait avec « Invalid project directory », cf. note du #35). Remplacé par ESLint 9 en flat config (`eslint.config.mjs`, presets officiels `eslint-config-next/core-web-vitals` + `/typescript`), script `lint: "eslint ."`. `react/no-unescaped-entities` coupée (app en français), et les règles pointant du code préexistant (`no-explicit-any`, `ban-ts-comment`, react-hooks v7) passées en **warning** — baseline visible sans bloquer la CI, à resserrer au fil des nettoyages.
+- **Bug réel trouvé par les tests** : la table `shortenName` de `lib/holidays.ts` ne matchait pas les noms réellement renvoyés par `date-holidays` sur 5 fériés sur 11 (« Fête Nationale de la France », « Armistice 1918 », etc.) → l'UI affichait les noms longs. Corrigée, et le mapping complet des 11 fériés est verrouillé par test.
+- **Hors périmètre constaté** : la « phrase de tendance semaine » de `lib/conditions.ts` mentionnée en P2 n'existe pas (encore) dans le module — les seuls helpers purs y sont privés. À tester le jour où cette logique est écrite/exportée.

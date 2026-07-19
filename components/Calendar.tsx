@@ -91,7 +91,7 @@ export default function Calendar({
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
     for (const event of events) {
-      let current = new Date(event.start_date);
+      const current = new Date(event.start_date);
       const end = new Date(event.end_date);
       while (current <= end) {
         const key = dateToISO(current);

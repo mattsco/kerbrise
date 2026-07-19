@@ -9,6 +9,15 @@
 
 > Livré depuis la v1.3.0, pas encore taggé en version famille.
 
+### 🧪 Qualité & outillage
+
+- **#34 — Tests sur `lib/` + CI minimale** (spec `docs/specs/tests-ci-lib.md`) :
+  - **Vitest** en devDep unique, tests colocalisés `lib/*.test.ts` — **108 tests, ~0,5 s**, scripts `npm test` / `npm run test:watch` (forcés en `TZ=Europe/Paris`, le fuseau de l'app). P0 : rotation été ancrée 2024 (table de vérité 2024–2030), bornes exactes P1/P2/P3 en **legacy 2026 ET pivot 2027+** (chevauchement au jour pivot, années non votées qui lèvent), `overlapsSummerPeriod`, bascule `getRelevantSummerYear` au 1ᵉʳ octobre figée par test, placeholders été (tour de rôle par priorité). P1 : verrou du **bug timezone historique** (`parseLocalDate` minuit local — le test échoue si on le remplace par `new Date(iso)`), helpers de dates clippées, longueurs de mois **exactes** des coefs de marée (bissextiles comprises — garde-fous dev promus en assertions), paliers `tideLevel`, intégrité des 365 jours d'horaires 2026 (croissance des heures, coef sur chaque PM, `getOfflineTides` au 31 décembre). P2 : `db-errors`, `validation/booking`, `families` (ordre de rotation verrouillé), `holidays`, `garbage-collection`.
+  - **CI GitHub Actions** (`.github/workflows/ci.yml`) : `tsc --noEmit` + lint + tests à chaque push/PR, Node 22, pas de secrets, pas de build Next (Vercel s'en charge).
+  - **`npm run lint` réparé** (cassé depuis Next 16, cf. note #35) : ESLint 9 flat config avec les presets officiels Next (`eslint.config.mjs`), `react/no-unescaped-entities` coupée (app en français), règles sur code préexistant (`no-explicit-any`, `ban-ts-comment`, react-hooks v7) en **warning** — 0 erreur, baseline à resserrer. Au passage : `prefer-const` auto-fixés, `require()` → import dans `tailwind.config.ts`, directives `eslint-disable` obsolètes retirées.
+  - 🐛 **Bug réel débusqué par les tests** : `lib/holidays.ts` raccourcissait les noms de fériés via une table qui ne matchait pas les noms réellement renvoyés par `date-holidays` (5 fériés sur 11 : « Fête Nationale de la France », « Armistice 1918 », « Nouvel An »…) → l'UI affichait les noms longs au lieu de « 14 Juillet », « 11 Novembre »… Table corrigée, mapping des 11 fériés verrouillé par test.
+  - Badge CI ajouté au README.
+
 ### 🔐 Auth, sécurité & perf
 
 - **#35 — Hygiène dépendances + suppression de la route morte `/api/tides`** :

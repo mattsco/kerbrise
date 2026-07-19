@@ -1,5 +1,7 @@
 # Kerbrise
 
+[![CI](https://github.com/mattsco/kerbrise/actions/workflows/ci.yml/badge.svg)](https://github.com/mattsco/kerbrise/actions/workflows/ci.yml)
+
 **A booking and coordination app for a shared family vacation home in Saint-Malo, France.**
 
 One house, three family branches (~14 people), and a recurring summer scramble over who gets which week. Kerbrise replaces the spreadsheet-and-email ritual with a small, fast, boring-on-purpose web app: request a stay, get it approved, see the calendar, glance at the tides. Success is measured by invisibility, not engagement — if the family forgets the app exists and the house just works, it's doing its job.

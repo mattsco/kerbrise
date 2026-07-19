@@ -50,17 +50,19 @@ export function getHolidayForDate(iso: string): Holiday | null {
  * Raccourcit les noms longs pour affichage compact.
  */
 function shortenName(name: string): string {
+  // ⚠️ Clés = noms EXACTS renvoyés par date-holidays pour "FR" (vérifiés par
+  // lib/holidays.test.ts — avant ça, 5 clés sur 11 ne matchaient jamais).
   const map: Record<string, string> = {
-    "Jour de l'an": "Jour de l'an",
+    "Nouvel An": "Jour de l'an",
     "Lundi de Pâques": "Pâques",
-    "Fête du Travail": "1er Mai",
-    "Fête de la Victoire": "8 Mai",
+    "Fête du travail": "1er Mai",
+    "Fête de la Victoire 1945": "8 Mai",
     "Ascension": "Ascension",
     "Lundi de Pentecôte": "Pentecôte",
-    "Fête Nationale": "14 Juillet",
+    "Fête Nationale de la France": "14 Juillet",
     "Assomption": "Assomption",
     "Toussaint": "Toussaint",
-    "Armistice": "11 Novembre",
+    "Armistice 1918": "11 Novembre",
     "Noël": "Noël",
   };
   return map[name] ?? name;

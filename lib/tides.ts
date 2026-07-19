@@ -138,7 +138,6 @@ if (process.env.NODE_ENV !== "production") {
     months.forEach((m, i) => {
       const expected = new Date(year, i + 1, 0).getDate();
       if (m.length !== expected) {
-        // eslint-disable-next-line no-console
         console.error(
           `[tides] ${year} mois ${i + 1} : ${m.length} jours, attendu ${expected} — indexation décalée !`
         );

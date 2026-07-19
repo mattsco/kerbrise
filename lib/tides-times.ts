@@ -99,7 +99,6 @@ if (process.env.NODE_ENV !== "production") {
       );
       const sorted = [...mins].sort((a, b) => a - b);
       if (mins.some((v, i) => v !== sorted[i])) {
-        // eslint-disable-next-line no-console
         console.error(`[tides-times] ${date} (${y}) : horaires non croissants`, evs);
       }
     }

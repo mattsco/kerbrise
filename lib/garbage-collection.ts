@@ -60,7 +60,7 @@ function getNextRecyclables(from: Date): Collection | null {
 
   if (from > end) return null;
 
-  let candidate = from < start ? new Date(start) : new Date(from);
+  const candidate = from < start ? new Date(start) : new Date(from);
   candidate.setHours(0, 0, 0, 0);
 
   // Avancer jusqu'au prochain mercredi (3 = mercredi)

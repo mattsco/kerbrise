@@ -93,7 +93,7 @@ export default function CalendarMobileView({
     const map = new Map<string, Placeholder>();
     for (const p of placeholders) {
       if (p.status !== "free") continue;
-      let current = new Date(p.startDate);
+      const current = new Date(p.startDate);
       const end = new Date(p.endDate);
       while (current <= end) {
         map.set(dateToISO(current), p);
