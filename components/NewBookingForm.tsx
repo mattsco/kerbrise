@@ -22,6 +22,7 @@ import { getSummerAdjacentSnapshot } from "@/lib/summer-adjacent-state";
 import { getRelatedBookings, createBookingRequest } from "@/lib/data/bookings";
 import type { RelatedBooking } from "@/lib/data/types";
 import { validateBookingDates } from "@/lib/validation/booking";
+import { IDEES_SEJOUR, pickIdeeSejour } from "@/lib/idees-sejour";
 import { formatShort } from "@/lib/ui/booking-display";
 import { PontAdvisoryForm } from "./PontAdvisory";
 import { SummerAdjacentAdvisoryForm } from "./SummerAdjacentAdvisory";
@@ -54,6 +55,14 @@ export default function NewBookingForm({
   const [pontState, setPontState] = useState<PontState[] | null>(null);
   const [adjacentState, setAdjacentState] =
     useState<SummerAdjacentState | null>(null);
+  // Easter egg : idée d'activité du coin en placeholder de la note. Tirée APRÈS
+  // le montage — un tirage pendant le rendu casserait l'hydratation (valeur
+  // serveur ≠ valeur client).
+  const [ideeNote, setIdeeNote] = useState<string>(IDEES_SEJOUR[0]);
+
+  useEffect(() => {
+    setIdeeNote(pickIdeeSejour());
+  }, []);
 
   // Fetch séjours autour des dates (adjacents ET en conflit) via data layer
   useEffect(() => {
@@ -238,7 +247,7 @@ export default function NewBookingForm({
           onChange={(e) => setNote(e.target.value)}
           disabled={submitting}
           rows={2}
-          placeholder="Ex: Vacances de Noël en famille"
+          placeholder={`Ex : ${ideeNote}`}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
       </div>
