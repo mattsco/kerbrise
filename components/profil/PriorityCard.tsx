@@ -6,6 +6,7 @@ import {
   getFamilyPriority,
   getRelevantSummerYear,
 } from "@/lib/summer-priorities";
+import { getPontPriorityFamily } from "@/lib/ponts";
 import { getSummerSnapshot } from "@/lib/summer-state";
 import { FAMILY_NAMES, getFamilyColor, type FamilyName } from "@/lib/families";
 
@@ -41,7 +42,7 @@ export default async function PriorityCard({
   if (!priority) return null;
 
   const priorities = getYearPriorities(year);
-  const pontFamily = priorities[3]; // P3 de l'été Y → priorité sur le pont de mai Y
+  const pontFamily = getPontPriorityFamily(year); // règle unique (#38), = P3 de l'été Y
   const familyColor = getFamilyColor(familyName);
 
   // --- Bloc été ---------------------------------------------------------

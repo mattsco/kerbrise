@@ -329,6 +329,27 @@ export async function getSummerBookings(
 }
 
 /**
+ * Pending + approved bookings that overlap the May "ponts" bridge window of a
+ * given year (~20 avril → 20 juin, superset généreux couvrant tous les ponts de
+ * mai possibles, Ascension/Pentecôte de début juin comprises). Le tri fin par
+ * nuit est fait côté pur (lib/ponts.buildPontsState). Alimente le snapshot #38.
+ */
+export async function getMayBridgeBookings(
+  supabase: SupabaseLike,
+  year: number
+): Promise<BookingSummary[]> {
+  const { data } = await supabase
+    .from("bookings")
+    .select(SUMMARY_SELECT)
+    .in("status", ACTIVE_STATUSES as unknown as string[])
+    .lte("start_date", `${year}-06-20`)
+    .gte("end_date", `${year}-04-20`)
+    .order("start_date");
+
+  return (data ?? []).map(mapSummaryBooking);
+}
+
+/**
  * Pending bookings from OTHER families (family_id != myFamilyId), each with
  * the list of families that already voted. Lets the dashboard count, and the
  * admin "simulate approvals" tool act on, the bookings still awaiting a given

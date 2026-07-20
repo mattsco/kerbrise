@@ -5,13 +5,22 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { daysBetween } from "@/lib/dates";
 import { overlapsSummerPeriod } from "@/lib/summer-priorities";
+import {
+  getPontsForRange,
+  computeDemanderPontAdvisory,
+  type PontState,
+  type DemanderPontAdvisory,
+} from "@/lib/ponts";
+import { getMayPontsSnapshot } from "@/lib/ponts-state";
 import { getRelatedBookings, createBookingRequest } from "@/lib/data/bookings";
 import type { RelatedBooking } from "@/lib/data/types";
 import { validateBookingDates } from "@/lib/validation/booking";
 import { formatShort } from "@/lib/ui/booking-display";
+import { PontAdvisoryForm } from "./PontAdvisory";
 
 type Props = {
   familyId: string;
+  familyName: string;
   userId: string;
   initialStart?: string;
   initialEnd?: string;
@@ -20,6 +29,7 @@ type Props = {
 
 export default function NewBookingForm({
   familyId,
+  familyName,
   userId,
   initialStart = "",
   initialEnd = "",
@@ -33,6 +43,7 @@ export default function NewBookingForm({
   const [error, setError] = useState("");
   const [adjacent, setAdjacent] = useState<RelatedBooking[]>([]);
   const [overlapping, setOverlapping] = useState<RelatedBooking[]>([]);
+  const [pontState, setPontState] = useState<PontState[] | null>(null);
 
   // Fetch séjours autour des dates (adjacents ET en conflit) via data layer
   useEffect(() => {
@@ -57,6 +68,32 @@ export default function NewBookingForm({
       ignore = true;
     };
   }, [start, end]);
+
+  // Snapshot ponts de mai — seulement si les dates prennent effectivement un
+  // pont (calcul pur d'abord, une requête ensuite). Purement advisory.
+  useEffect(() => {
+    let ignore = false;
+
+    const overlapped = start && end ? getPontsForRange(start, end) : [];
+    if (overlapped.length === 0) {
+      setPontState(null);
+      return;
+    }
+
+    const supabase = createClient();
+    getMayPontsSnapshot(supabase, overlapped[0].year).then((state) => {
+      if (!ignore) setPontState(state);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [start, end]);
+
+  const pontAdvisory: DemanderPontAdvisory | null =
+    start && end && pontState
+      ? computeDemanderPontAdvisory(start, end, familyName, pontState)
+      : null;
 
   // Conflit avec une période d'été fixe (juillet/août)
   const summerConflict =
@@ -175,6 +212,9 @@ export default function NewBookingForm({
           ⏳ <strong>{summerConflict.label}</strong> ({summerConflict.description}) est une période d&apos;été réservée par rotation. Tu ne peux pas la réserver via une demande classique — passe par le calendrier d&apos;été.
         </div>
       )}
+
+      {/* Warning « pont de mai » — non bloquant (cas A/B/C) */}
+      <PontAdvisoryForm advisory={pontAdvisory} />
 
       {/* Conflit booking existant */}
       {overlapping.length > 0 && (

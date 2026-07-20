@@ -9,6 +9,15 @@
 
 > Livré depuis la v1.3.0, pas encore taggé en version famille.
 
+### 🌸 Fonctionnalités
+
+- **#38 — Warnings « ponts de mai »** (spec `docs/specs/ponts-printemps-warnings.md`) : rend visible, sans jamais bloquer, la règle « la famille en priorité 3 l'été est prioritaire sur les ponts de mai de la même année » (compensation de l'été subi).
+  - **`lib/ponts.ts`** — logique pure et testée (**27 tests**, esprit #34), zéro I/O. Modélise les ponts de mai (1er/8 Mai, Ascension, Pentecôte ; Pâques exclu) : fenêtre calculée selon le jour de semaine du férié (jeu→dim, ven→dim, sam→lun, sam→mar ; mer/we = pas de pont), fusion des fenêtres qui se chevauchent, « prendre un pont » = couvrir au moins une **nuit** (jours pivots autorisés). `getPontPriorityFamily(year)` est la règle à un seul endroit, désormais aussi consommée par `PriorityCard`.
+  - **Warnings demandeur** (`NewBookingForm`, encart ambre non bloquant) : cas A (pas prioritaire, la prioritaire n'a pas encore choisi — s'éteint dès qu'elle a un pont **approved**, une demande *pending* est mentionnée), cas B (2ᵉ pont alors qu'une famille n'en a aucun), cas C (info positive si tu es prioritaire). Cumulables.
+  - **Contexte validateur** (`BookingDetailModal`) : sur une demande *pending* couvrant un pont, encart factuel (famille prioritaire, ponts déjà pris) — aucune reco d'accepter/refuser.
+  - Règlement (`a-propos/regles`) reformulé : « pont de la **même année** » au lieu de l'ambigu « printemps suivant ».
+  - Snapshot DB (`lib/ponts-state.ts` + 1 requête dans `lib/data/bookings.ts`) : seul un séjour **approved** compte comme « pont pris » ; *pending* affiché à titre informatif. Aucun email (v1).
+
 ### 🧪 Qualité & outillage
 
 - **#34 — Tests sur `lib/` + CI minimale** (spec `docs/specs/tests-ci-lib.md`) :

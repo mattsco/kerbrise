@@ -1,6 +1,6 @@
 # Spec — Warnings « ponts du printemps » (#38)
 
-> **Statut** : ✅ Spécifiée, tous points tranchés — prête à implémenter (20 juillet 2026)
+> **Statut** : ✅ Implémentée (20 juillet 2026) — 27 tests lib/ponts, build + typecheck + lint OK
 > **Type** : Feature moyenne, purement advisory (aucun blocage)
 > **Cible** : avant la saison des choix de ponts 2027 (janvier–février 2027)
 > **Estimation** : ~2-3h + tests lib
@@ -200,6 +200,24 @@ components/profil/PriorityCard.tsx ← refactor : consomme getPontPriorityFamily
   déclenche le contexte des ponts 2028 (prioritaire = P3 de l'été 2028).
   `lib/ponts.ts` étant pur et sans config d'année, ça ne coûte rien.
 - ~~Pending = pont pris ?~~ → **Non, seul approved compte** (cf. Décisions).
+
+## Notes d'implémentation (20 juillet 2026)
+
+Conforme à la spec. Fichiers :
+
+- **`lib/ponts.ts`** (pur, testé — `lib/ponts.test.ts`, 27 tests) : `getMayPonts`, `getPontsForRange`, `stayTakesPont`, `mergeOverlappingPonts`, `getPontPriorityFamily`, `buildPontsState`, `computeDemanderPontAdvisory` (cas A/B/C), `computeValidatorPontAdvisory`.
+- **`lib/ponts-state.ts`** : `getMayPontsSnapshot(supabase, year)` — client Supabase passé en argument (utilisable client ET serveur), délègue à `getMayBridgeBookings` (nouvelle requête dans `lib/data/bookings.ts`, le seul module qui interroge `bookings`) + `buildPontsState`.
+- **`components/PontAdvisory.tsx`** : `PontAdvisoryForm` (demandeur) et `PontAdvisoryValidator` (validateur), encart ambre.
+- **`components/NewBookingForm.tsx`** : snapshot chargé dans un `useEffect` dédié gardé par `getPontsForRange` (aucune requête hors saison des ponts) ; encart non bloquant. `familyName` threadé via `NewBookingModal` ← `Calendar` et via la page `nouvelle-demande`.
+- **`components/BookingDetailModal.tsx`** : encart validateur pour les demandes `pending` chevauchant un pont.
+- **`components/profil/PriorityCard.tsx`** : consomme `getPontPriorityFamily` (règle à un seul endroit).
+- **`app/dashboard/a-propos/regles/page.tsx`** : section 🌸 reformulée (« même année » + liste des 4 fériés).
+
+Vérifs : `tsc --noEmit` OK, `npm run lint` 0 erreur, `npm test` 135 tests verts, `npm run build` OK.
+
+**Note bundle** : `lib/ponts` importe `lib/holidays` (→ `date-holidays`) et est consommé par des composants clients. Aucune régression de poids : les vues calendrier (`CalendarMobileView` / `CalendarDesktopView`, clients) importaient déjà `lib/holidays`, donc `date-holidays` était déjà dans le bundle client — le module est mutualisé. *(Optimisation future possible, hors #38 : alléger `date-holidays` côté client, ex. calcul de Pâques par algorithme.)*
+
+**Écart mineur assumé** : dans `NewBookingForm`, le fetch du snapshot vit dans un `useEffect` séparé (gardé par `getPontsForRange`) plutôt que fusionné avec celui de `getRelatedBookings` — même déclencheur `[start, end]`, comportement identique, mais évite toute requête hors saison des ponts.
 
 ## Liens
 

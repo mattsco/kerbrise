@@ -11,13 +11,16 @@ export default async function NouvelleDemandePage() {
   
   const { data: profile } = await supabase
     .from("users")
-    .select("family_id")
+    .select("family_id, families(name)")
     .eq("id", user.id)
     .single();
 
   if (!profile) {
     redirect("/login");
   }
+
+  // @ts-expect-error nested relation type (cf. regles/page.tsx)
+  const familyName: string = profile.families?.name ?? "";
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -30,6 +33,7 @@ export default async function NouvelleDemandePage() {
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <NewBookingForm
             familyId={profile.family_id}
+            familyName={familyName}
             userId={user.id}
           />
         </div>

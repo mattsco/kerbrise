@@ -33,7 +33,6 @@
 
 - **#22b ON** : activer les rappels « choix été » dans le weekly, pour la famille qui doit choisir et n'a pas encore choisi. C'est le 2ᵉ producteur de la liste de « pendings actionnables » (item sept-oct). Si cette liste existe et est testée d'ici là, l'activation = ajouter le producteur « choix été » + bascule du flag.
 - **Décision #29 Web Push** : GO seulement si, malgré des emails fiables, la latence d'approbation mesurée reste >48h. Sinon on n'en parle plus — valeur concentrée sur 3 chefs, des emails fiables suffisent peut-être.
-- **#38 Warnings « ponts de mai »** : rendre visible la règle « P3 été → prioritaire sur les ponts de mai de la même année » via des warnings **non bloquants** à la demande (NewBookingForm) et à la validation (BookingDetailModal) + helper `lib/ponts.ts` pur/testé. Inclut la reformulation du règlement (« printemps suivant » → « même année », libellé trompeur ; `PriorityCard` implémente déjà la bonne lecture). À livrer avant les choix de ponts 2027 (Ascension 6–9 mai, Pentecôte 15–17 mai ; 1er/8 mai un samedi, sans pont). Spec `docs/specs/ponts-printemps-warnings.md`.
 
 ## 🤷 Un jour peut-être
 

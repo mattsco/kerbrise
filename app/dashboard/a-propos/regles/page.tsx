@@ -212,10 +212,11 @@ const supabase = await createClient();
             🌸 Ponts du printemps
           </h2>
           <p className="text-sm text-slate-700 leading-relaxed">
-            Les week-ends prolongés (Ascension, Pentecôte, etc.) sont partagés
-            équitablement. La famille en <strong>priorité 3 l'été</strong> est
-            en <strong>priorité 1</strong> pour choisir son pont préféré du
-            printemps suivant.
+            Les ponts de mai (1er Mai, 8 Mai, Ascension, Pentecôte) sont partagés
+            équitablement. La famille en <strong>priorité 3 l'été</strong> est en{" "}
+            <strong>priorité 1</strong> pour choisir son pont de mai de la{" "}
+            <strong>même année</strong>, en compensation de sa priorité 3 pour
+            l'été.
           </p>
         </section>
 

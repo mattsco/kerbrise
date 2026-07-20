@@ -9,6 +9,14 @@ import type { BookingDetail } from "@/lib/data/types";
 import { STATUS_BADGES, formatLong, formatShort } from "@/lib/ui/booking-display";
 import { daysBetween } from "@/lib/dates";
 import {
+  getPontsForRange,
+  computeValidatorPontAdvisory,
+  type PontState,
+  type ValidatorPontAdvisory,
+} from "@/lib/ponts";
+import { getMayPontsSnapshot } from "@/lib/ponts-state";
+import { PontAdvisoryValidator } from "./PontAdvisory";
+import {
   buildStayCalendarEvent,
   googleCalendarUrl,
   icsContent,
@@ -33,6 +41,7 @@ export default function BookingDetailModal({
 }: Props) {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pontState, setPontState] = useState<PontState[] | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -48,6 +57,31 @@ export default function BookingDetailModal({
       ignore = true;
     };
   }, [bookingId]);
+
+  // Contexte « ponts de mai » pour les validateurs, uniquement si la demande
+  // est pending ET chevauche un pont (calcul pur d'abord, une requête ensuite).
+  useEffect(() => {
+    let ignore = false;
+
+    if (!booking || booking.status !== "pending") {
+      setPontState(null);
+      return;
+    }
+    const overlapped = getPontsForRange(booking.start_date, booking.end_date);
+    if (overlapped.length === 0) {
+      setPontState(null);
+      return;
+    }
+
+    const supabase = createClient();
+    getMayPontsSnapshot(supabase, overlapped[0].year).then((state) => {
+      if (!ignore) setPontState(state);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [booking]);
 
   if (loading) {
     return (
@@ -95,6 +129,14 @@ export default function BookingDetailModal({
   const canExport =
     isOwnFamily &&
     (booking.status === "approved" || booking.status === "pending");
+
+  const pontAdvisory: ValidatorPontAdvisory | null = pontState
+    ? computeValidatorPontAdvisory(
+        booking.start_date,
+        booking.end_date,
+        pontState
+      )
+    : null;
 
   const statusBadge = STATUS_BADGES[booking.status];
   // Durée = nuits (fin − début), convention Kerbrise (jour de départ non compté).
@@ -197,6 +239,9 @@ export default function BookingDetailModal({
               </p>
             )}
           </div>
+
+          {/* Contexte « ponts de mai » pour les validateurs (demande pending) */}
+          <PontAdvisoryValidator advisory={pontAdvisory} />
 
           {/* Export agenda (ma famille uniquement) */}
           {canExport && (

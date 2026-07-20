@@ -218,6 +218,7 @@ export default function Calendar({
       {newBooking && (
         <NewBookingModal
           familyId={currentFamilyId}
+          familyName={currentFamilyName}
           userId={currentUserId}
           initialStart={newBooking.start}
           initialEnd={newBooking.end}

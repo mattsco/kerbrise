@@ -6,6 +6,7 @@ import AdminBookingForm from "./AdminBookingForm";
 
 type Props = {
   familyId: string;
+  familyName: string;
   userId: string;
   initialStart?: string;
   initialEnd?: string;
@@ -15,6 +16,7 @@ type Props = {
 
 export default function NewBookingModal({
   familyId,
+  familyName,
   userId,
   initialStart,
   initialEnd,
@@ -53,6 +55,7 @@ export default function NewBookingModal({
           ) : (
             <NewBookingForm
               familyId={familyId}
+              familyName={familyName}
               userId={userId}
               initialStart={initialStart}
               initialEnd={initialEnd}
