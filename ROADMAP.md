@@ -33,6 +33,7 @@
 
 - **#22b ON** : activer les rappels « choix été » dans le weekly, pour la famille qui doit choisir et n'a pas encore choisi. C'est le 2ᵉ producteur de la liste de « pendings actionnables » (item sept-oct). Si cette liste existe et est testée d'ici là, l'activation = ajouter le producteur « choix été » + bascule du flag.
 - **Décision #29 Web Push** : GO seulement si, malgré des emails fiables, la latence d'approbation mesurée reste >48h. Sinon on n'en parle plus — valeur concentrée sur 3 chefs, des emails fiables suffisent peut-être.
+- **#39 Warnings « quinzaines de juin / septembre »** : dernière règle du règlement encore purement textuelle. Warning **non bloquant** quand le détenteur de P1 réserve les 14 j précédant sa période (resp. P3 / les 14 j suivant) — l'enchaînement 5 semaines que la règle vise. Fenêtres **ancrées sur les périodes réelles** (le début de P1 est voté depuis le modèle pivot, une quinzaine calendaire figée raterait la cible) et gating **par période attribuée**, pas sur 3/3 — sinon trou pile pendant la fenêtre de résa de janvier. Décalque de #38 (livré), sans nouveau `-state.ts` : `getSummerSnapshot` suffit. ⚠️ Hérite du matching exact de `getSummerSnapshot` — une P1 saisie hors dates canoniques désactive le warning en silence. Spec `docs/specs/juin-septembre-warnings.md`.
 
 ## 🤷 Un jour peut-être
 
