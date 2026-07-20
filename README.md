@@ -61,6 +61,21 @@ npm run dev      # http://localhost:3000
 
 Requires a `.env.local` with Supabase and Resend credentials (not committed). The app expects a provisioned Supabase project with the schema from `db/migrations` applied.
 
+### Skipping login in local dev
+
+There is no local Supabase — the app talks to the hosted project, whose tables are RLS-protected. To browse the app locally without signing in, enable the **dev-only auth bypass** (see [`lib/supabase/dev-bypass.ts`](lib/supabase/dev-bypass.ts)) by adding to `.env.local`:
+
+```bash
+DEV_LOGIN_BYPASS=true
+DEV_USER_ID=<a real public.users id to impersonate>   # else the first auth user
+```
+
+`npm run dev` then renders as that user, no `/login`. It is **double-gated** (`NODE_ENV === "development"` **and** the flag) and completely inert in production — Vercel builds run with `NODE_ENV=production`. In this mode the **server** client switches to the service-role key (RLS bypassed) so Server Components read real data; the service-role key never reaches the browser bundle.
+
+**Limitation:** client-side fetches (browser client, anon key) still hit RLS — interactive calendar data and the booking form's *ponts* snapshot won't populate without a real session.
+
+> ⚠️ `.env.local` is git-ignored, so the flag and keys never leave your machine. A fresh clone (or a new machine) must recreate `.env.local` — the bypass code ships in the repo but does nothing until the flag is set.
+
 ## Documentation
 
 - `CHANGELOG.md` — full developer changelog (the technical reasoning behind each release)

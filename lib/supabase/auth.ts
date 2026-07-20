@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
+import { DEV_AUTH_BYPASS, getDevBypassUser } from "./dev-bypass";
 
 /**
  * Récupère l'utilisateur authentifié.
@@ -16,6 +17,12 @@ import { createClient } from "./server";
  * `cache()` dedupe les appels dans un même render path.
  */
 export const getAuthUser = cache(async () => {
+  // Dev local : incarne un vrai utilisateur sans passer par /login (dev-bypass.ts).
+  if (DEV_AUTH_BYPASS) {
+    const dev = await getDevBypassUser();
+    if (dev) return dev;
+  }
+
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
