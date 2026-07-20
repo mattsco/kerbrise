@@ -7,7 +7,8 @@ import {
   getRelevantSummerYear,
 } from "@/lib/summer-priorities";
 import { getPontPriorityFamily } from "@/lib/ponts";
-import { getSummerSnapshot } from "@/lib/summer-state";
+import { createClient } from "@/lib/supabase/server";
+import { getSummerAdjacentSnapshot } from "@/lib/summer-adjacent-state";
 import { FAMILY_NAMES, getFamilyColor, type FamilyName } from "@/lib/families";
 
 function isKnownFamily(name: string): name is FamilyName {
@@ -64,35 +65,38 @@ export default async function PriorityCard({
   // --- Bloc juin/septembre ---------------------------------------------
   // Restrictions des familles qui occupent P1 et P3 (la P2 n'a aucune
   // contrainte). Chaque ligne n'apparaît que si la période correspondante
-  // est déjà choisie. Avant que les choix d'été ne soient saisis (ex. années
-  // sans réservation de période), aucune ligne ne s'affiche.
-  const snapshot = await getSummerSnapshot(year);
+  // est déjà occupée.
+  //
+  // Détection TOLÉRANTE (buildPeriodHolders, #39) et non par getSummerSnapshot :
+  // en dates exactes, 2 des 3 périodes de l'été 2026 échappaient au matching
+  // (saisies à un jour près) et ces lignes ne s'affichaient jamais. La carte et
+  // les warnings du formulaire lisent désormais la même chose.
+  const supabase = await createClient();
+  const { holders } = await getSummerAdjacentSnapshot(supabase, year);
 
   // Emoji : 🌷 côté juin, 🍂 côté septembre — l'emoji porte la saison (même
   // convention que les warnings #39, cf. components/SummerAdjacentAdvisory.tsx).
   const juinSeptLines: { key: string; emoji: string; text: string }[] = [];
 
-  const p1 = snapshot.periods[1];
-  if (p1.state === "taken") {
+  if (holders[1]) {
     juinSeptLines.push({
       key: "p1",
       emoji: "🌷",
       text:
-        p1.familyName === familyName
+        holders[1] === familyName
           ? "Tu occupes la Période 1 (début juillet) : tu n'as donc pas la priorité sur la 2e quinzaine de juin."
-          : `${p1.familyName} occupe la Période 1 (début juillet) : pas de priorité sur la 2e quinzaine de juin.`,
+          : `${holders[1]} occupe la Période 1 (début juillet) : pas de priorité sur la 2e quinzaine de juin.`,
     });
   }
 
-  const p3 = snapshot.periods[3];
-  if (p3.state === "taken") {
+  if (holders[3]) {
     juinSeptLines.push({
       key: "p3",
       emoji: "🍂",
       text:
-        p3.familyName === familyName
+        holders[3] === familyName
           ? "Tu occupes la Période 3 (fin août) : tu n'as donc pas la priorité sur la 1re quinzaine de septembre."
-          : `${p3.familyName} occupe la Période 3 (fin août) : pas de priorité sur la 1re quinzaine de septembre.`,
+          : `${holders[3]} occupe la Période 3 (fin août) : pas de priorité sur la 1re quinzaine de septembre.`,
     });
   }
 

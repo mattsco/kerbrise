@@ -110,7 +110,88 @@ describe("getAdjacentWindowsForRange", () => {
   });
 });
 
-describe("buildPeriodHolders — matching exact, approved uniquement", () => {
+describe("buildPeriodHolders — matching tolérant sur données réelles", () => {
+  // Été 2026 tel qu'il est RÉELLEMENT en base : 2 périodes sur 3 saisies à un
+  // jour des dates canoniques (P1 29 juin → 19 juil., P3 10 → 31 août).
+  const ete2026: PeriodBooking[] = [
+    {
+      family_name: "Antoine",
+      start_date: "2026-06-15",
+      end_date: "2026-06-28",
+      status: "approved",
+    },
+    {
+      family_name: "Vincent",
+      start_date: "2026-06-28", // canonique : 29 juin
+      end_date: "2026-07-19",
+      status: "approved",
+    },
+    {
+      family_name: "François",
+      start_date: "2026-07-20",
+      end_date: "2026-08-09",
+      status: "approved",
+    },
+    {
+      family_name: "Antoine",
+      start_date: "2026-08-10",
+      end_date: "2026-08-30", // canonique : 31 août
+      status: "approved",
+    },
+    {
+      family_name: "Vincent",
+      start_date: "2026-08-31",
+      end_date: "2026-09-14",
+      status: "approved",
+    },
+  ];
+
+  it("détecte P1 et P3 malgré le décalage d'un jour", () => {
+    expect(buildPeriodHolders(2026, ete2026)).toEqual({
+      1: "Vincent",
+      3: "Antoine",
+    });
+  });
+
+  it("un séjour adjacent hors période ne devient pas détenteur", () => {
+    // Antoine occupe le 15→28 juin (la quinzaine d'avant), pas la Période 1.
+    expect(buildPeriodHolders(2026, ete2026)[1]).not.toBe("Antoine");
+  });
+
+  it("une semaine posée au milieu d'une période ne suffit pas (< 50 %)", () => {
+    expect(
+      buildPeriodHolders(2027, [
+        {
+          family_name: "Vincent",
+          start_date: "2027-07-05",
+          end_date: "2027-07-12",
+          status: "approved",
+        },
+      ])
+    ).toEqual({ 1: null, 3: null });
+  });
+
+  it("en cas de concurrence, le plus gros recouvrement gagne", () => {
+    expect(
+      buildPeriodHolders(2027, [
+        {
+          family_name: "Vincent",
+          start_date: "2027-06-28",
+          end_date: "2027-07-12", // 14 nuits sur 21
+          status: "approved",
+        },
+        {
+          family_name: "Antoine",
+          start_date: "2027-06-27",
+          end_date: "2027-07-19", // 21 nuits sur 21
+          status: "approved",
+        },
+      ])[1]
+    ).toBe("Antoine");
+  });
+});
+
+describe("buildPeriodHolders — dates canoniques, approved uniquement", () => {
   const p1Booking: PeriodBooking = {
     family_name: "Antoine",
     start_date: "2027-06-28",
@@ -144,10 +225,10 @@ describe("buildPeriodHolders — matching exact, approved uniquement", () => {
     ).toEqual({ 1: null, 3: null });
   });
 
-  it("⚠️ dates non canoniques → période NON détectée (piège hérité)", () => {
+  it("un jour de décalage reste détecté (tolérance)", () => {
     expect(
-      buildPeriodHolders(2027, [{ ...p1Booking, end_date: "2027-07-20" }])
-    ).toEqual({ 1: null, 3: null });
+      buildPeriodHolders(2027, [{ ...p1Booking, end_date: "2027-07-20" }])[1]
+    ).toBe("Antoine");
   });
 
   it("année non configurée → aucun détenteur", () => {

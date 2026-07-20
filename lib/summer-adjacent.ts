@@ -153,6 +153,38 @@ export type PeriodBooking = {
 /** Familles détentrices de P1 et P3 (null si la période n'est pas attribuée). */
 export type PeriodHolders = { 1: string | null; 3: string | null };
 
+/**
+ * Part minimale des nuits d'une période qu'un séjour doit couvrir pour que sa
+ * famille en soit considérée détentrice.
+ *
+ * Le matching sur dates EXACTES (celui de getSummerSnapshot) ne tient pas face
+ * aux données réelles : sur l'été 2026, 2 périodes sur 3 sont saisies à un jour
+ * près (P1 le 28 au lieu du 29 juin, P3 jusqu'au 30 au lieu du 31 août). Ce
+ * sont des vacances, personne n'est à un jour près — mais la contrainte
+ * juin/septembre, elle, s'applique quand même.
+ *
+ * 50 % filtre les séjours courts sans rapport (une semaine posée au milieu de
+ * juillet n'est pas « la Période 1 ») tout en absorbant largement les décalages
+ * de bordure.
+ */
+const HOLDER_MIN_OVERLAP_RATIO = 0.5;
+
+/** Nombre de nuits communes à deux plages [start, end) — 0 si disjointes. */
+function sharedNights(
+  aStart: string,
+  aEnd: string,
+  bStart: string,
+  bEnd: string
+): number {
+  const start = aStart > bStart ? aStart : bStart;
+  const end = aEnd < bEnd ? aEnd : bEnd;
+  if (end <= start) return 0;
+  return Math.round(
+    (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) /
+      86_400_000
+  );
+}
+
 export type SummerAdjacentState = {
   year: number;
   holders: PeriodHolders;
@@ -166,10 +198,15 @@ export type SummerAdjacentState = {
  * l'état de P2/P3 n'y change rien. Attendre 3/3 créerait un trou pile pendant
  * la fenêtre de réservation de janvier.
  *
- * ⚠️ Matching sur les dates canoniques EXACTES, comme getSummerSnapshot
- * (lib/summer-state.ts:54) : une P1 saisie 29 juin → 20 juillet au lieu du
- * canonique laisse la période non détectée → aucun warning cette année-là.
- * Piège hérité, documenté dans docs/specs/juin-septembre-warnings.md.
+ * Matching TOLÉRANT (≥ HOLDER_MIN_OVERLAP_RATIO des nuits de la période), et
+ * non sur les dates canoniques exactes comme getSummerSnapshot
+ * (lib/summer-state.ts:54) : voir HOLDER_MIN_OVERLAP_RATIO. En cas d'égalité
+ * plusieurs séjours, on retient celui qui recouvre le plus la période.
+ *
+ * ⚠️ Cette tolérance est délibérément LOCALE aux règles advisory. La
+ * réservation d'une période (lib/summer-state.ts, #22a) garde le matching
+ * exact : pour *réserver* un placeholder on veut les dates canoniques, pour
+ * *reconnaître* qui occupe une période on veut la réalité du terrain.
  *
  * Seul un séjour `approved` compte (décision #39, cohérente avec #38).
  */
@@ -185,10 +222,25 @@ export function buildPeriodHolders(
   for (const periodId of [1, 3] as const) {
     const period = SUMMER_PERIODS.find((p) => p.id === periodId)!;
     const { start, end } = getPeriodDates(year, period);
-    const match = approved.find(
-      (b) => b.start_date === start && b.end_date === end
-    );
-    if (match) holders[periodId] = match.family_name;
+
+    const periodNights = sharedNights(start, end, start, end);
+    if (periodNights === 0) continue;
+    const minNights = periodNights * HOLDER_MIN_OVERLAP_RATIO;
+
+    let best: { familyName: string; nights: number } | null = null;
+    for (const booking of approved) {
+      const nights = sharedNights(
+        booking.start_date,
+        booking.end_date,
+        start,
+        end
+      );
+      if (nights >= minNights && (!best || nights > best.nights)) {
+        best = { familyName: booking.family_name, nights };
+      }
+    }
+
+    if (best) holders[periodId] = best.familyName;
   }
 
   return holders;

@@ -183,14 +183,9 @@ la famille du séjour détient la période adjacente.
 
 ## Cas limites
 
-- **⚠️ Piège hérité du matching exact** : `getSummerSnapshot` ne reconnaît une
-  période comme prise que si un booking colle **pile** aux dates canoniques
-  (`summer-state.ts:54`, documenté dans `priority-card-profil.md`). Une
-  réservation P1 saisie 29 juin → 20 juillet au lieu du canonique laisse la
-  période « free » → **aucun warning ne se déclenchera jamais** cette
-  année-là. Silencieux et invisible. À vérifier au moins une fois par saison,
-  ou à traiter par une vraie tolérance « ≈ Période X » dans `getSummerSnapshot`
-  (choix structurant, hors périmètre ici).
+- **Décalage de dates** : absorbé par la détection tolérante (cf. section
+  dédiée). Un séjour couvrant moins de la moitié d'une période n'en fait pas sa
+  famille détentrice — c'est voulu.
 - **Chevauchement direct de la période d'été** : déjà **durement bloqué** en
   amont par `overlapsSummerPeriod` dans `NewBookingForm`. Un séjour
   15 juin → 5 juillet ne verra donc jamais ce warning — il est refusé avant.
@@ -213,25 +208,37 @@ la famille du séjour détient la période adjacente.
 - ~~Étendre au symétrique manquant ?~~ → **Non.** La règle ne dit rien de la
   1re quinzaine de juin ni de la 2e de septembre : on n'y touche pas.
 
-## ⚠️ Le piège du matching exact est ACTIF en production (constaté 20 juil. 2026)
+## Détection tolérante des périodes (tranché 20 juil. 2026)
 
 Vérification sur les données réelles de l'été 2026 : **2 périodes sur 3 ne
 matchent pas leurs dates canoniques**, à un jour près.
 
-| Période 2026 | Dates canoniques | Réservation réelle | Détectée |
-|---|---|---|---|
-| P1 | 29 juin → 19 juil. | Vincent, **28** juin → 19 juil. | ❌ |
-| P2 | 20 juil. → 9 août | François, 20 juil. → 9 août | ✅ |
-| P3 | 10 août → **31** août | Antoine, 10 août → **30** août | ❌ |
+| Période 2026 | Dates canoniques | Réservation réelle | Exact | Tolérant |
+|---|---|---|---|---|
+| P1 | 29 juin → 19 juil. | Vincent, **28** juin → 19 juil. | ❌ | ✅ |
+| P2 | 20 juil. → 9 août | François, 20 juil. → 9 août | ✅ | ✅ |
+| P3 | 10 août → **31** août | Antoine, 10 août → **30** août | ❌ | ✅ |
 
-Conséquence immédiate : pour 2026, ni les warnings #39 ni les lignes
-juin/septembre de `PriorityCard` ne peuvent se déclencher — silencieusement.
-Ce n'est pas un défaut de #39 (le comportement est correct : sans période
-attribuée, aucune contrainte n'est déterminée), mais la **tolérance
-« ≈ Période X » dans `getSummerSnapshot` / `buildPeriodHolders` devient le vrai
-prochain chantier** si la famille veut que ces règles vivent. Choix
-structurant : il touche aussi la logique placeholder et l'auto-assignment
-(#22a), donc à trancher séparément.
+Avec un matching exact, ni les warnings #39 ni les lignes juin/septembre de
+`PriorityCard` ne pouvaient se déclencher pour 2026 — silencieusement, depuis
+#22d. Or ce sont des vacances : personne n'est à un jour près, et la contrainte
+s'applique quand même.
+
+**`buildPeriodHolders` matche donc à ≥ 50 % des nuits de la période**
+(`HOLDER_MIN_OVERLAP_RATIO`), en retenant le séjour au plus gros recouvrement.
+Le seuil absorbe largement les décalages de bordure tout en écartant les
+séjours courts sans rapport (une semaine posée au milieu de juillet n'est pas
+« la Période 1 »).
+
+⚠️ **La tolérance est locale aux règles advisory.** La *réservation* d'une
+période (`getSummerSnapshot`, #22a) garde le matching exact : pour réserver un
+placeholder on veut les dates canoniques ; pour reconnaître qui occupe une
+période on veut la réalité du terrain. Passer la réservation en tolérant
+casserait l'attribution automatique de la 3ᵉ famille. Consigné dans
+`docs/guides/pieges-connus.md`.
+
+`PriorityCard` a été basculée sur la même détection : la carte du profil et les
+warnings du formulaire lisent désormais la même chose.
 
 ## Notes d'implémentation
 
@@ -243,6 +250,15 @@ structurant : il touche aussi la logique placeholder et l'auto-assignment
   (28 juin → 19 juillet) »), variante septembre 🍂, extinction sur jour pivot
   (arrivée pile le 28 juin → aucun encart), bouton d'envoi resté actif, aucune
   erreur console. Encart #38 (ponts) toujours OK après l'extraction du shell.
+  Détection tolérante validée **end-to-end sur les vraies données** via
+  `PriorityCard` (composant serveur) : les deux lignes juin/septembre 2026
+  s'affichent enfin (« Vincent occupe la Période 1 », « Tu occupes la
+  Période 3 »).
+- **⚠️ Limite du dev local** : avec `DEV_LOGIN_BYPASS`, le navigateur n'a
+  aucune session Supabase → **toutes les requêtes client reviennent vides**.
+  Les encarts (#38/#39) étant alimentés côté client, ils ne peuvent pas être
+  vérifiés sur données réelles en local — d'où le forçage temporaire de l'état
+  pour le contrôle visuel. Cf. `docs/guides/pieges-connus.md`.
 - **Requête paresseuse** : les fenêtres sont du calcul pur, la requête snapshot
   ne part que si les dates mordent effectivement une fenêtre → zéro requête
   ajoutée dans le cas courant.

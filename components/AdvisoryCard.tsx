@@ -7,6 +7,11 @@
 // Seul le style est partagé : chaque règle garde son composant, sa copie et ses
 // props (les fusionner reviendrait à mélanger deux règles distinctes, qui
 // peuvent d'ailleurs s'afficher en même temps).
+//
+// ⚠️ En écrivant la copie : une expression JSX suivie d'un espace puis de texte
+// sur la même ligne PERD son espace au rendu (« qui suiventta période »).
+// Utiliser {" "} à chaque jonction expression→texte.
+// Détails et autres pièges : docs/guides/pieges-connus.md
 
 import type { ReactNode } from "react";
 

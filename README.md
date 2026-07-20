@@ -82,6 +82,7 @@ DEV_USER_ID=<a real public.users id to impersonate>   # else the first auth user
 - `docs/changelog.md` — family-facing release notes
 - `ROADMAP.md` — what's next
 - `docs/architecture/KERBRISE_REVIEW.md` — a candid senior-engineering self-review of the codebase
+- `docs/guides/pieges-connus.md` — known traps that don't show up in the code (read before debugging a weird one)
 
 ## Status
 
