@@ -68,12 +68,15 @@ export default async function PriorityCard({
   // sans réservation de période), aucune ligne ne s'affiche.
   const snapshot = await getSummerSnapshot(year);
 
-  const juinSeptLines: { key: string; text: string }[] = [];
+  // Emoji : 🌷 côté juin, 🍂 côté septembre — l'emoji porte la saison (même
+  // convention que les warnings #39, cf. components/SummerAdjacentAdvisory.tsx).
+  const juinSeptLines: { key: string; emoji: string; text: string }[] = [];
 
   const p1 = snapshot.periods[1];
   if (p1.state === "taken") {
     juinSeptLines.push({
       key: "p1",
+      emoji: "🌷",
       text:
         p1.familyName === familyName
           ? "Tu occupes la Période 1 (début juillet) : tu n'as donc pas la priorité sur la 2e quinzaine de juin."
@@ -85,6 +88,7 @@ export default async function PriorityCard({
   if (p3.state === "taken") {
     juinSeptLines.push({
       key: "p3",
+      emoji: "🍂",
       text:
         p3.familyName === familyName
           ? "Tu occupes la Période 3 (fin août) : tu n'as donc pas la priorité sur la 1re quinzaine de septembre."
@@ -117,9 +121,9 @@ export default async function PriorityCard({
       </p>
 
       {/* Bloc juin/septembre (conditionnel, une ligne par période choisie) */}
-      {juinSeptLines.map(({ key, text }) => (
+      {juinSeptLines.map(({ key, emoji, text }) => (
         <p key={key} className="text-sm text-slate-700 leading-relaxed">
-          🌷 {text}
+          {emoji} {text}
         </p>
       ))}
 

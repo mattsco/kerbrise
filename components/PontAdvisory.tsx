@@ -8,6 +8,7 @@ import type {
   DemanderPontAdvisory,
   ValidatorPontAdvisory,
 } from "@/lib/ponts";
+import { AdvisoryCard } from "./AdvisoryCard";
 
 /** Joint des libellés à la française : "a", "a et b", "a, b et c". */
 function joinFr(items: string[]): string {
@@ -18,9 +19,6 @@ function joinFr(items: string[]): string {
 function pontNames(ponts: { label: string }[]): string {
   return joinFr(ponts.map((p) => p.label));
 }
-
-const cardClass =
-  "bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1.5 text-xs text-amber-900";
 
 /** Vue demandeur — cas A (priorité), B (équité), C (positif) cumulables. */
 export function PontAdvisoryForm({
@@ -36,7 +34,7 @@ export function PontAdvisoryForm({
   const couvre = `Ces dates couvrent le ${pontNames(ponts)}`;
 
   return (
-    <div className={cardClass}>
+    <AdvisoryCard>
       {caseA && (
         <p className="leading-relaxed">
           🌸 {couvre}. Cette année c&apos;est <strong>{priorityFamily}</strong> qui
@@ -77,7 +75,7 @@ export function PontAdvisoryForm({
           {caseB.deprived.length > 1 ? "n'en ont" : "n'en a"} encore aucun.
         </p>
       )}
-    </div>
+    </AdvisoryCard>
   );
 }
 
@@ -92,7 +90,7 @@ export function PontAdvisoryValidator({
     advisory;
 
   return (
-    <div className={cardClass}>
+    <AdvisoryCard>
       <p className="leading-relaxed">
         🌸 Ce séjour couvre le <strong>{pontNames(ponts)}</strong>. Prioritaire
         ce printemps : <strong>{priorityFamily}</strong>{" "}
@@ -111,6 +109,6 @@ export function PontAdvisoryValidator({
           {joinFr(takenPonts.map((t) => `${t.label} → ${t.family}`))}.
         </p>
       )}
-    </div>
+    </AdvisoryCard>
   );
 }

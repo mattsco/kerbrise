@@ -12,11 +12,19 @@ import {
   type DemanderPontAdvisory,
 } from "@/lib/ponts";
 import { getMayPontsSnapshot } from "@/lib/ponts-state";
+import {
+  getAdjacentWindowsForRange,
+  computeAdjacentAdvisory,
+  type SummerAdjacentState,
+  type AdjacentAdvisory,
+} from "@/lib/summer-adjacent";
+import { getSummerAdjacentSnapshot } from "@/lib/summer-adjacent-state";
 import { getRelatedBookings, createBookingRequest } from "@/lib/data/bookings";
 import type { RelatedBooking } from "@/lib/data/types";
 import { validateBookingDates } from "@/lib/validation/booking";
 import { formatShort } from "@/lib/ui/booking-display";
 import { PontAdvisoryForm } from "./PontAdvisory";
+import { SummerAdjacentAdvisoryForm } from "./SummerAdjacentAdvisory";
 
 type Props = {
   familyId: string;
@@ -44,6 +52,8 @@ export default function NewBookingForm({
   const [adjacent, setAdjacent] = useState<RelatedBooking[]>([]);
   const [overlapping, setOverlapping] = useState<RelatedBooking[]>([]);
   const [pontState, setPontState] = useState<PontState[] | null>(null);
+  const [adjacentState, setAdjacentState] =
+    useState<SummerAdjacentState | null>(null);
 
   // Fetch séjours autour des dates (adjacents ET en conflit) via data layer
   useEffect(() => {
@@ -93,6 +103,33 @@ export default function NewBookingForm({
   const pontAdvisory: DemanderPontAdvisory | null =
     start && end && pontState
       ? computeDemanderPontAdvisory(start, end, familyName, pontState)
+      : null;
+
+  // Détenteurs de P1/P3 — seulement si les dates mordent une quinzaine
+  // adjacente à l'été (calcul pur d'abord, une requête ensuite). Cas courant :
+  // zéro requête ajoutée. Purement advisory.
+  useEffect(() => {
+    let ignore = false;
+
+    const windows = start && end ? getAdjacentWindowsForRange(start, end) : [];
+    if (windows.length === 0) {
+      setAdjacentState(null);
+      return;
+    }
+
+    const supabase = createClient();
+    getSummerAdjacentSnapshot(supabase, windows[0].year).then((state) => {
+      if (!ignore) setAdjacentState(state);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [start, end]);
+
+  const adjacentAdvisory: AdjacentAdvisory | null =
+    start && end && adjacentState
+      ? computeAdjacentAdvisory(start, end, familyName, adjacentState)
       : null;
 
   // Conflit avec une période d'été fixe (juillet/août)
@@ -215,6 +252,8 @@ export default function NewBookingForm({
 
       {/* Warning « pont de mai » — non bloquant (cas A/B/C) */}
       <PontAdvisoryForm advisory={pontAdvisory} />
+
+      <SummerAdjacentAdvisoryForm advisory={adjacentAdvisory} />
 
       {/* Conflit booking existant */}
       {overlapping.length > 0 && (

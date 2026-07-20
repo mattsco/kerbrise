@@ -17,6 +17,14 @@ import {
 import { getMayPontsSnapshot } from "@/lib/ponts-state";
 import { PontAdvisoryValidator } from "./PontAdvisory";
 import {
+  getAdjacentWindowsForRange,
+  computeAdjacentAdvisory,
+  type SummerAdjacentState,
+  type AdjacentAdvisory,
+} from "@/lib/summer-adjacent";
+import { getSummerAdjacentSnapshot } from "@/lib/summer-adjacent-state";
+import { SummerAdjacentAdvisoryValidator } from "./SummerAdjacentAdvisory";
+import {
   buildStayCalendarEvent,
   googleCalendarUrl,
   icsContent,
@@ -42,6 +50,8 @@ export default function BookingDetailModal({
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [pontState, setPontState] = useState<PontState[] | null>(null);
+  const [adjacentState, setAdjacentState] =
+    useState<SummerAdjacentState | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -76,6 +86,34 @@ export default function BookingDetailModal({
     const supabase = createClient();
     getMayPontsSnapshot(supabase, overlapped[0].year).then((state) => {
       if (!ignore) setPontState(state);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [booking]);
+
+  // Contexte « quinzaines juin/septembre » pour les validateurs, mêmes
+  // conditions : demande pending ET dates mordant une fenêtre adjacente.
+  useEffect(() => {
+    let ignore = false;
+
+    if (!booking || booking.status !== "pending") {
+      setAdjacentState(null);
+      return;
+    }
+    const windows = getAdjacentWindowsForRange(
+      booking.start_date,
+      booking.end_date
+    );
+    if (windows.length === 0) {
+      setAdjacentState(null);
+      return;
+    }
+
+    const supabase = createClient();
+    getSummerAdjacentSnapshot(supabase, windows[0].year).then((state) => {
+      if (!ignore) setAdjacentState(state);
     });
 
     return () => {
@@ -135,6 +173,15 @@ export default function BookingDetailModal({
         booking.start_date,
         booking.end_date,
         pontState
+      )
+    : null;
+
+  const adjacentAdvisory: AdjacentAdvisory | null = adjacentState
+    ? computeAdjacentAdvisory(
+        booking.start_date,
+        booking.end_date,
+        booking.family_name,
+        adjacentState
       )
     : null;
 
@@ -242,6 +289,8 @@ export default function BookingDetailModal({
 
           {/* Contexte « ponts de mai » pour les validateurs (demande pending) */}
           <PontAdvisoryValidator advisory={pontAdvisory} />
+
+          <SummerAdjacentAdvisoryValidator advisory={adjacentAdvisory} />
 
           {/* Export agenda (ma famille uniquement) */}
           {canExport && (

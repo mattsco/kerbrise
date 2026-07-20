@@ -1,6 +1,6 @@
 # Spec — Warnings « quinzaines de juin / septembre » (#39)
 
-> **Statut** : 📋 Proposée — 20 juillet 2026
+> **Statut** : ✅ Implémentée — 20 juillet 2026
 > **Type** : Feature petite/moyenne, advisory (aucun blocage)
 > **S'appuie sur** : #38, **livré** (commit `2f8c51e`) — même patron, mêmes surfaces
 > **Estimation** : ~1h30-2h (moins que #38 : pas de calcul de fériés)
@@ -131,18 +131,23 @@ Décalque exact du patron posé par #38 (`lib/ponts.ts` + `lib/ponts-state.ts` +
 l'advisory renvoyant un objet typé, composant d'affichage bête de l'autre.
 
 ```
-lib/summer-adjacent.ts            ← NOUVEAU, 100 % pur + testé
+lib/summer-adjacent.ts            ← 100 % pur + testé (32 tests)
   getPreSummerWindow(year)        // 14 j avant le début de P1
   getPostSummerWindow(year)       // 14 j après la fin de P3
   stayTakesWindow(start, end, w)  // ≥ 1 nuit, jours pivots autorisés
-  computeDemanderAdjacentAdvisory(start, end, familyName, snapshot)
-  computeValidatorAdjacentAdvisory(start, end, snapshot)
+  buildPeriodHolders(year, bookings)      // détenteurs P1/P3, approved only
+  computeAdjacentAdvisory(start, end, familyName, state)
 
-components/AdvisoryCard.tsx       ← extraction du shell ambre partagé
-                                    (aujourd'hui `cardClass` en dur dans
-                                    PontAdvisory.tsx:22)
+lib/summer-adjacent-state.ts      ← snapshot DB (cf. correction ci-dessous)
+components/AdvisoryCard.tsx       ← shell ambre partagé, extrait de
+                                    PontAdvisory (ex-`cardClass` en dur)
 components/SummerAdjacentAdvisory.tsx  ← ...Form / ...Validator, comme #38
 ```
+
+**Un seul `computeAdjacentAdvisory` pour les deux surfaces** (au lieu des deux
+fonctions initialement prévues) : la donnée est identique — fenêtre touchée +
+famille détentrice — seule la copie diffère. Le warning ne se déclenche que si
+la famille du séjour détient la période adjacente.
 
 - **Ne pas fusionner avec `PontAdvisory`** : ses props et sa copie sont
   spécifiques aux ponts (cas A/B/C, famille prioritaire). Le seul vrai
@@ -150,9 +155,12 @@ components/SummerAdjacentAdvisory.tsx  ← ...Form / ...Validator, comme #38
   composants voisins. Les deux encarts peuvent d'ailleurs s'afficher en même
   temps (Pentecôte tardive ≈ fenêtre juin : théoriquement possible, cf. cas
   limites).
-- **Aucun `-state.ts` à écrire** : `getSummerSnapshot(year)` donne déjà les
-  détenteurs de P1 et P3. Un round-trip dans `NewBookingForm`, zéro dans
-  `BookingDetailModal` si le snapshot y est déjà chargé.
+- **Correction à l'implémentation** : `getSummerSnapshot` s'est révélé
+  **inutilisable ici** — il importe le client Supabase *serveur*
+  (`@/lib/supabase/server`) alors que les warnings vivent dans des Client
+  Components. D'où `lib/summer-adjacent-state.ts`, qui repasse par
+  `getSummerBookings` (client en argument) + le calcul pur `buildPeriodHolders`.
+  Même requête, même matching de dates canoniques.
 - **Même optimisation lazy qu'en #38** (`NewBookingForm.tsx:72-73`) : les
   fenêtres sont du calcul **100 % pur** (`getPeriodDates` + `addDays`, aucune
   DB) → on ne déclenche la requête snapshot que si les dates saisies mordent
@@ -198,14 +206,46 @@ components/SummerAdjacentAdvisory.tsx  ← ...Form / ...Validator, comme #38
 - **Famille détenant P1 et P3** : impossible (une période par famille).
 - **Années non configurées** (≥2027 sans date votée) : aucun warning.
 
-## Points ouverts
+## Points ouverts — tous tranchés (20 juillet 2026)
 
-1. **14 jours ou « jusqu'au 15 du mois » ?** La spec propose 14 jours ancrés
-   sur la période. Si la famille tient au découpage calendaire strict
-   (1-15 / 16-30), c'est un one-liner à changer — mais l'ancrage relatif tient
-   mieux la route avec le modèle pivot.
-2. **Étendre au symétrique manquant ?** La règle ne dit rien de la 1re
-   quinzaine de juin ni de la 2e de septembre. Volontaire, on n'y touche pas.
+- ~~14 jours ou « jusqu'au 15 du mois » ?~~ → **14 jours** ancrés sur les dates
+  réelles des périodes (`ADJACENT_WINDOW_DAYS`).
+- ~~Étendre au symétrique manquant ?~~ → **Non.** La règle ne dit rien de la
+  1re quinzaine de juin ni de la 2e de septembre : on n'y touche pas.
+
+## ⚠️ Le piège du matching exact est ACTIF en production (constaté 20 juil. 2026)
+
+Vérification sur les données réelles de l'été 2026 : **2 périodes sur 3 ne
+matchent pas leurs dates canoniques**, à un jour près.
+
+| Période 2026 | Dates canoniques | Réservation réelle | Détectée |
+|---|---|---|---|
+| P1 | 29 juin → 19 juil. | Vincent, **28** juin → 19 juil. | ❌ |
+| P2 | 20 juil. → 9 août | François, 20 juil. → 9 août | ✅ |
+| P3 | 10 août → **31** août | Antoine, 10 août → **30** août | ❌ |
+
+Conséquence immédiate : pour 2026, ni les warnings #39 ni les lignes
+juin/septembre de `PriorityCard` ne peuvent se déclencher — silencieusement.
+Ce n'est pas un défaut de #39 (le comportement est correct : sans période
+attribuée, aucune contrainte n'est déterminée), mais la **tolérance
+« ≈ Période X » dans `getSummerSnapshot` / `buildPeriodHolders` devient le vrai
+prochain chantier** si la famille veut que ces règles vivent. Choix
+structurant : il touche aussi la logique placeholder et l'auto-assignment
+(#22a), donc à trancher séparément.
+
+## Notes d'implémentation
+
+- **Piège JSX rencontré** : une expression (`{variable}`) suivie d'un espace
+  puis de texte sur la même ligne **perd son espace** au rendu (constaté :
+  « qui suiventta période »). Les jonctions expression→texte des deux encarts
+  utilisent donc un `{" "}` explicite. À reproduire pour tout futur encart.
+- **Vérifié en local** : variante juin 🌷 (dates pivot 2027 : « Période 1
+  (28 juin → 19 juillet) »), variante septembre 🍂, extinction sur jour pivot
+  (arrivée pile le 28 juin → aucun encart), bouton d'envoi resté actif, aucune
+  erreur console. Encart #38 (ponts) toujours OK après l'extraction du shell.
+- **Requête paresseuse** : les fenêtres sont du calcul pur, la requête snapshot
+  ne part que si les dates mordent effectivement une fenêtre → zéro requête
+  ajoutée dans le cas courant.
 
 ## Liens
 
