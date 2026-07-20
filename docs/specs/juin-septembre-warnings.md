@@ -90,6 +90,12 @@ Non bloquant, encart ambre, bouton « Envoyer la demande » actif — identique 
 #38. Déclenché quand la famille de l'utilisateur détient P1 (resp. P3) et que
 les dates saisies mordent la fenêtre correspondante.
 
+**Emojis (tranché 20 juil. 2026)** : 🌷 pour la fenêtre **juin**, 🍂 pour la
+fenêtre **septembre** — l'emoji porte la saison, donc on identifie le message
+d'un coup d'œil. Convention à appliquer aux deux surfaces (demandeur et
+validateur) **et** aux deux lignes juin/septembre de `PriorityCard.tsx:120-124`,
+qui utilisent aujourd'hui 🌷 pour les deux → à aligner dans ce chantier.
+
 **Cas juin** (famille Antoine, détentrice de P1 2027) :
 
 > 🌷 Ta famille occupe la **Période 1** (28 juin → 19 juillet). Ces dates
@@ -99,7 +105,7 @@ les dates saisies mordent la fenêtre correspondante.
 
 **Cas septembre** (famille détentrice de P3) :
 
-> 🌷 Ta famille occupe la **Période 3** (jusqu'au 30 août). Ces dates couvrent
+> 🍂 Ta famille occupe la **Période 3** (jusqu'au 30 août). Ces dates couvrent
 > les **2 semaines qui suivent** ta période : tu n'es pas prioritaire dessus.
 > Ta demande reste possible — elle sera soumise à validation comme d'habitude.
 
@@ -107,10 +113,14 @@ Aucune mention d'une famille prioritaire (cf. asymétrie ci-dessus).
 
 ## Côté validateurs
 
-Même principe qu'en #38, dans `BookingDetailModal`, pour une demande pending :
+Même principe qu'en #38, dans `BookingDetailModal`, pour une demande pending
+(🌷 côté juin, 🍂 côté septembre) :
 
 > 🌷 Ce séjour couvre les 2 semaines précédant la **Période 1**, occupée par
 > **Antoine** — qui n'est pas prioritaire sur cette quinzaine.
+
+> 🍂 Ce séjour couvre les 2 semaines suivant la **Période 3**, occupée par
+> **François** — qui n'est pas prioritaire sur cette quinzaine.
 
 Factuel, sans recommandation. C'est là que la règle a réellement des dents.
 
