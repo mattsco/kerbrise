@@ -1,4 +1,5 @@
 import { WifiOff, ArrowLeft } from "lucide-react";
+import OfflineAutoExit from "./OfflineAutoExit";
 
 /**
  * Décor commun aux pages hors ligne (#37) : header, bandeau, retour.
@@ -69,6 +70,10 @@ export default function OfflineShell({
 
         {children}
       </div>
+
+      {/* Ramène dans l'app dès que le réseau revient : sans ça, actualiser
+          /hors-ligne resert la page hors ligne, sans issue visible. */}
+      <OfflineAutoExit />
     </main>
   );
 }
@@ -123,13 +128,13 @@ export function OfflineActionCard({
     </>
   );
 
+  // Pas d'étiquette « hors ligne » sur chaque carte : le fond atténué, le
+  // pointillé et l'absence de chevron le disent déjà, et le bandeau en tête
+  // l'a expliqué une fois. Répété sept fois, le mot devenait du bruit.
   if (!href) {
     return (
       <div className="flex items-center gap-4 bg-white/60 rounded-2xl border border-slate-100 border-dashed p-4">
         {inner}
-        <span className="text-[10px] font-medium text-slate-400 shrink-0 uppercase tracking-wide">
-          Hors ligne
-        </span>
       </div>
     );
   }

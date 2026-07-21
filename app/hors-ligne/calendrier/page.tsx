@@ -16,7 +16,6 @@ export default async function HorsLigneCalendrierPage() {
   return (
     <OfflineShell
       title="Calendrier"
-      subtitle="Dernière copie connue des séjours."
       backHref="/hors-ligne"
     >
       <OfflineCalendar />

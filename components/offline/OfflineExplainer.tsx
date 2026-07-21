@@ -20,10 +20,8 @@ export default function OfflineExplainer() {
             Pas de réseau pour le moment
           </p>
           <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-            Kerbrise affiche ce qu&apos;il a gardé sur ton téléphone : marées,
-            poubelles, règles de la maison, wifi, et la dernière copie connue du
-            calendrier. Les sections grisées ont besoin d&apos;Internet — elles
-            reviendront toutes seules dès que la connexion sera de retour.
+            Les sections grisées ont besoin d&apos;Internet, elles reviendront
+            toutes seules dès que la connexion sera de retour.
           </p>
         </div>
       </div>

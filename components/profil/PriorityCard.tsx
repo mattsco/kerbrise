@@ -9,11 +9,7 @@ import {
 import { getPontPriorityFamily } from "@/lib/ponts";
 import { createClient } from "@/lib/supabase/server";
 import { getSummerAdjacentSnapshot } from "@/lib/summer-adjacent-state";
-import { FAMILY_NAMES, getFamilyColor, type FamilyName } from "@/lib/families";
-
-function isKnownFamily(name: string): name is FamilyName {
-  return (FAMILY_NAMES as readonly string[]).includes(name);
-}
+import { getFamilyColor, isKnownFamily } from "@/lib/families";
 
 /**
  * Carte explicative de la priorité de l'année dans le Profil.

@@ -44,10 +44,11 @@ export default async function HorsLigneAProposPage() {
       <LinksContactsSection />
 
       <OfflineActionCard
+        href="/hors-ligne/a-propos/tele"
         icon={<span className="text-lg">📺</span>}
         iconBg="bg-sky-50"
         title="La nouvelle télé"
-        desc="Nécessite le réseau"
+        desc="Mode d'emploi et pièges à connaître"
       />
     </OfflineShell>
   );

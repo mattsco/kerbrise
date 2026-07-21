@@ -111,18 +111,16 @@ Confirmé : la majorité de la famille est sur iPhone avec la PWA installée —
 
 Les ~50-100 Ko de tables marées passent — ordre de grandeur admis pour la valeur rendue. Ajout : **`public/house.jpg` (141 Ko) entre dans le précache**, pour que la page hors-ligne garde l'identité visuelle du dashboard plutôt que d'être un pense-bête gris.
 
-**Budget mesuré à l'étape 2** (build de production, 21 juillet 2026) :
+**Budget mesuré** (build de production). Le « < 500 Ko » initial ne précisait pas lequel des deux il visait : tranché, **le seuil porte sur le transféré** — c'est ce que l'installation coûte à un téléphone en 4G.
 
-| | Transféré (gzip) | Sur disque |
+| | Transféré | Sur disque |
 |---|---|---|
-| HTML | 4 Ko | 13 Ko |
-| JS + CSS | 218 Ko | 773 Ko |
-| Photo | 138 Ko | 138 Ko |
-| **Total** | **360 Ko** | **925 Ko** |
+| 1 page (étape 2) | 360 Ko | 925 Ko |
+| **6 pages (final)** | **810 Ko** | **2 820 Ko** |
 
-Le « < 500 Ko » initial ne précisait pas lequel des deux il visait. Tranché : **le seuil porte sur le transféré** — c'est ce que l'installation coûte à un téléphone en 4G — et il est tenu à 360 Ko. L'empreinte disque de ~1 Mo est acceptée : c'est du stockage d'appareil, pas un téléchargement, et on reste loin des quotas où Safari commence à évincer.
+⚠️ **Le seuil de 500 Ko n'est pas tenu, et il était irréaliste.** Il a été posé quand la surface hors ligne comptait *une* page sans calendrier. Le dépassement vient d'un choix produit assumé, pas d'un laisser-aller : le calendrier hors ligne réutilise la vraie vue de l'app, qui embarque `date-holidays` et la machinerie de grille (~300 Ko à elle seule). Le remplacer par une grille simplifiée économiserait ~300 Ko au prix d'une divergence visuelle garantie — mauvais échange.
 
-Contrairement à ce qu'on supposait, **le gros morceau n'est pas la photo mais les chunks JS** (218 Ko gzip). Réduire la photo ne récupérerait que 15 % du total : si un jour il faut couper, c'est le JS qu'il faut regarder, pas l'image.
+Contrairement à ce qu'on supposait, **le gros morceau n'a jamais été la photo** (138 Ko) mais le JS. Coût propre de chaque page ajoutée, mesuré : calendrier 7 Ko, profil 5 Ko, télé 474 Ko *avant* optimisation des images (cf. décision 16), 136 Ko après. Les pages partagent leurs chunks : en ajouter une ne coûte presque rien, **sauf si elle apporte ses propres images ou une grosse dépendance**.
 
 ### 11. Dépendance annuelle des données de marée
 
@@ -143,7 +141,9 @@ La surface offline devient donc un **miroir de l'architecture en ligne** :
 | `/hors-ligne` — conditions du jour visibles sans clic, puis cartes de section | `/dashboard` |
 | `/hors-ligne/a-propos` | `/dashboard/a-propos` |
 | `/hors-ligne/a-propos/regles` | `/dashboard/a-propos/regles` |
-| `/hors-ligne/calendrier` (étape 3) | `/dashboard/calendrier` |
+| `/hors-ligne/calendrier` | `/dashboard/calendrier` |
+| `/hors-ligne/profil` — famille + priorité, calcul pur | `/dashboard/profil` |
+| `/hors-ligne/a-propos/tele` — guide partagé | `/dashboard/a-propos/tele` |
 
 Ça ne rouvre pas la décision 5 : ce sont des pages *hors ligne*, la surface reste autosuffisante et ne pointe jamais vers les vraies pages de l'app.
 
@@ -173,6 +173,26 @@ Deux corrections issues de la vérification de l'étape 3 :
 
 1. **Précache séquentiel.** La version parallèle (`Promise.all` sur les 4 pages) **bloquait l'installation indéfiniment** en gardant quatre corps de réponse ouverts pendant le clonage. Symptôme trompeur : cache créé mais vide, worker figé en `installing` — ni installé, ni en échec, donc jamais réessayé.
 2. **Toutes les requêtes du SW passent par `fetchWithTimeout` (10 s).** Un `fetch` qui pend laisse le worker bloqué pour toujours. C'est le scénario du réseau mobile à moitié mort — précisément celui où cette fonctionnalité est censée servir.
+
+### 15. Sortir du mode hors ligne (21 juillet 2026)
+
+Défaut relevé au test : **on ne savait pas comment sortir**. `/hors-ligne` existe aussi côté serveur, donc actualiser la page une fois reconnecté la resert à l'identique — il fallait retaper l'URL du dashboard à la main.
+
+`OfflineAutoExit`, monté dans le shell, ramène dans l'app dès que le réseau revient, **vers la page équivalente** (`/hors-ligne/a-propos` → `/dashboard/a-propos`) et non vers le dashboard : on reprend là où on était.
+
+Deux détails qui comptent :
+
+- **On ne se fie pas à `navigator.onLine`** : il est `true` dès qu'une interface réseau est active, y compris sur un wifi sans internet — exactement la panne de box qu'on cherche à couvrir. On sonde donc `/sw.js` (servi en `no-store`, donc impossible à satisfaire depuis un cache) avant de basculer.
+- **Sonde périodique toutes les 15 s** en plus de l'événement `online`, qui ne se déclenche pas quand le wifi reste connecté mais que la box reprend.
+- `location.replace` et non `assign` : la page hors ligne ne doit pas rester dans l'historique, sinon « retour » y ramène.
+
+### 16. Densité du texte et poids des images (21 juillet 2026)
+
+Deux retours après le premier essai en preview :
+
+**« On lit Hors ligne huit fois rien que sur le dashboard. »** Supprimés : l'étiquette « HORS LIGNE » sur chaque carte désactivée, les descriptions « Nécessite le réseau », et la première phrase du bandeau. Les cartes indisponibles reprennent **le sous-texte exact de la version en ligne** : le fond atténué, le pointillé et l'absence de chevron disent déjà qu'elles sont inactives, et le bandeau l'a expliqué une fois. Le mot répété sept fois devenait du bruit.
+
+**Images de la page télé.** Servies `unoptimized` (seule forme précachable), les originales coûtaient 471 Ko — plus que tout le reste de l'offline réuni. `public/tele/offline/` contient des copies réduites à ≤ 760 px, soit **136 Ko pour un rendu identique** à la taille où on les regarde sur un téléphone. En ligne, rien ne change : Next optimise les originales à la volée. La vidéo de démonstration (4,1 Mo) n'est **jamais** précachée — remplacée hors ligne par une note explicite.
 
 ## Signal de déclenchement (inchangé)
 

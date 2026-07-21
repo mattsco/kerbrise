@@ -34,3 +34,13 @@ export function getFamilyColor(name: string | null | undefined): string {
   if (!name) return "#888";
   return FAMILY_COLORS[name as FamilyName] ?? "#888";
 }
+/**
+ * Garde de type : le nom correspond-il à une des trois familles ?
+ *
+ * Remontée ici depuis `PriorityCard` pour #37 : la version hors ligne du
+ * profil a besoin de la même garde, et une copie aurait divergé le jour où
+ * la composition des familles change.
+ */
+export function isKnownFamily(name: string): name is FamilyName {
+  return (FAMILY_NAMES as readonly string[]).includes(name);
+}

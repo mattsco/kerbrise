@@ -68,44 +68,45 @@ export default async function HorsLignePage() {
           icon={<Calendar className="w-5 h-5" />}
           iconBg="bg-blue-50 text-blue-600"
           title="Calendrier"
-          desc="Dernière copie connue des séjours"
+          desc="Vue des réservations sur 3 mois"
         />
         <OfflineActionCard
           icon={<Inbox className="w-5 h-5" />}
           iconBg="bg-amber-50 text-amber-600"
           title="Demandes"
-          desc="Nécessite le réseau"
+          desc="Mes demandes et celles à valider"
         />
         <OfflineActionCard
           icon={<Plus className="w-5 h-5" />}
           iconBg="bg-emerald-50 text-emerald-600"
           title="Nouvelle demande"
-          desc="Nécessite le réseau"
+          desc="Demander un séjour à Kerbrise"
         />
         <OfflineActionCard
           icon={<TrendingUp className="w-5 h-5" />}
           iconBg="bg-purple-50 text-purple-600"
           title="Stats"
-          desc="Nécessite le réseau"
+          desc="Quelques graphiques"
         />
         <OfflineActionCard
           icon={<Video className="w-5 h-5" />}
           iconBg="bg-cyan-50 text-cyan-600"
           title="Webcam live"
-          desc="Nécessite le réseau"
+          desc="Voir le Val en direct"
         />
         <OfflineActionCard
           href="/hors-ligne/a-propos"
           icon={<Home className="w-5 h-5" />}
           iconBg="bg-orange-50 text-orange-600"
           title="À propos de la maison"
-          desc="Wifi, poubelles, contacts et règles"
+          desc="Liens, contacts et infos pratiques"
         />
         <OfflineActionCard
+          href="/hors-ligne/profil"
           icon={<User className="w-5 h-5" />}
           iconBg="bg-slate-100 text-slate-600"
           title="Mon profil"
-          desc="Nécessite le réseau"
+          desc="Mes infos, stats et mot de passe"
         />
       </div>
     </OfflineShell>

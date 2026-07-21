@@ -33,8 +33,10 @@ const OFFLINE_URL = "/hors-ligne";
 const OFFLINE_PAGES = [
   OFFLINE_URL,
   "/hors-ligne/calendrier",
+  "/hors-ligne/profil",
   "/hors-ligne/a-propos",
   "/hors-ligne/a-propos/regles",
+  "/hors-ligne/a-propos/tele",
 ];
 
 /**
