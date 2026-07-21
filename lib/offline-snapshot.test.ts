@@ -5,7 +5,6 @@ import {
   formatSavedAt,
   parseSnapshot,
   snapshotFreshness,
-  snapshotWindow,
   type OfflineSnapshot,
 } from "./offline-snapshot";
 
@@ -13,35 +12,10 @@ function makeSnapshot(savedAt: string): OfflineSnapshot {
   return {
     version: SNAPSHOT_VERSION,
     savedAt,
-    from: "2026-04-01",
-    to: "2027-07-31",
     bookings: [],
     familyName: "Antoine",
   };
 }
-
-describe("snapshotWindow", () => {
-  it("couvre M−3 → M+12, bornes de mois", () => {
-    // 21 juillet 2026 → du 1er avril 2026 au 31 juillet 2027.
-    const { from, to } = snapshotWindow(new Date(2026, 6, 21));
-    expect(from).toBe("2026-04-01");
-    expect(to).toBe("2027-07-31");
-  });
-
-  it("passe les frontières d'année sans décalage", () => {
-    // 15 janvier 2027 → octobre 2026 → janvier 2028.
-    const { from, to } = snapshotWindow(new Date(2027, 0, 15));
-    expect(from).toBe("2026-10-01");
-    expect(to).toBe("2028-01-31");
-  });
-
-  it("gère un mois de fin plus court que le mois de départ", () => {
-    // 31 mars → la borne haute tombe en mars de l'année suivante (31 jours),
-    // mais le calcul ne doit jamais produire un 31 avril.
-    const { to } = snapshotWindow(new Date(2026, 10, 30)); // 30 novembre 2026
-    expect(to).toBe("2027-11-30");
-  });
-});
 
 describe("snapshotFreshness", () => {
   const now = new Date(2026, 6, 21, 12, 0, 0);

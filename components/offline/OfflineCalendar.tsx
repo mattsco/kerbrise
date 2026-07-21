@@ -187,9 +187,9 @@ function NoSnapshot() {
         Pas encore de synchro
       </p>
       <p className="text-xs text-slate-500">
-        Le calendrier se copie sur ton téléphone à chaque ouverture de Kerbrise
-        avec du réseau. Rouvre l&apos;app une fois connecté et il sera
-        disponible hors ligne.
+        Le calendrier se copie sur ton téléphone quand tu l&apos;ouvres avec du
+        réseau. Ouvre-le une fois connecté, et il restera disponible ici
+        sans réseau.
       </p>
     </div>
   );

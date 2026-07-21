@@ -215,6 +215,20 @@ Deux correctifs appliqués :
 
 **Ce qui n'est PAS garanti** : le précache télécharge ~800 Ko en arrière-plan à chaque nouveau déploiement. C'est après le `load` et en temps mort, donc invisible sur une connexion correcte — mais sur un réseau très lent, cette bande passante est prise à quelque chose.
 
+### 18. Le snapshot s'écrit depuis le calendrier, et garde tout (21 juillet 2026)
+
+Révision de la décision 4 et de l'étape 3, sur proposition de l'utilisateur. Trois changements liés, tous des simplifications.
+
+**Où.** Le snapshot s'écrivait à chaque chargement du dashboard, via **deux requêtes Supabase dédiées**. Il s'écrit désormais depuis `/dashboard/calendrier`, à partir des séjours que la page **a déjà chargés côté serveur** (`getCalendarBookings`). Coût : **zéro requête, zéro octet de réseau**. C'est la donnée qui est déjà à l'écran, recopiée en local.
+
+**Quand.** Après `load` puis un temps mort du navigateur (`lib/idle.ts`), donc jamais pendant l'affichage de la grille.
+
+**Quoi.** Fin de la fenêtre glissante M−3 → M+12 : on garde **tous** les séjours actifs. Mesuré sur la vraie base : **166 séjours de 2015 à 2027, ~45 Ko de JSON**. Découper une fenêtre dans si peu de données ajoutait un cas limite (séjour à cheval sur une borne) pour une économie nulle. `getCalendarBookings` n'ayant de toute façon aucun filtre de date, la fenêtre était un filtrage *supplémentaire* de données déjà chargées.
+
+**Conséquence assumée** : qui n'ouvre jamais le calendrier n'a pas de calendrier hors ligne — ni de profil hors ligne, qui dépend du même snapshot. Les deux surfaces le disent explicitement (« ouvre le calendrier une fois connecté »). En échange, le dashboard ne paie plus rien : c'est la page la plus ouverte de l'app, et elle n'avait aucune raison de porter le coût.
+
+Format passé en **v2** : un snapshot v1 est ignoré, pas migré — il se réécrit à la première visite du calendrier.
+
 ## Signal de déclenchement (inchangé)
 
 Ne pas construire sur hypothèse. Déclencheurs légitimes :

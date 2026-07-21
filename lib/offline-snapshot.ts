@@ -14,8 +14,16 @@ import type { CalendarBooking } from "./data/types";
 /** Clé unique — partagée avec la purge au logout (ServiceWorkerRegistrar). */
 export const SNAPSHOT_KEY = "kerbrise-offline-snapshot";
 
-/** Version du format. Un snapshot d'une autre version est ignoré, pas migré. */
-export const SNAPSHOT_VERSION = 1;
+/**
+ * Version du format. Un snapshot d'une autre version est ignoré, pas migré —
+ * il se réécrira à la prochaine visite du calendrier.
+ *
+ * v2 : abandon de la fenêtre glissante M−3 → M+12 au profit de la totalité
+ * des séjours. Mesuré sur la vraie base : 166 séjours actifs de 2015 à 2027,
+ * soit ~45 Ko de JSON. Découper une fenêtre dans si peu de données ajoutait
+ * des cas limites (séjour à cheval sur une borne) sans rien économiser.
+ */
+export const SNAPSHOT_VERSION = 2;
 
 /**
  * Au-delà, le bandeau passe en avertissement (décision 8).
@@ -30,9 +38,7 @@ export type OfflineSnapshot = {
   version: number;
   /** ISO 8601 de l'écriture. */
   savedAt: string;
-  /** Fenêtre couverte, pour ne pas laisser croire qu'on a tout. */
-  from: string;
-  to: string;
+  /** Tous les séjours actifs, tels qu'affichés par le calendrier en ligne. */
   bookings: CalendarBooking[];
   /** Nom de la famille de l'utilisateur — le seul bout personnalisé. */
   familyName: string | null;
@@ -42,23 +48,6 @@ export type SnapshotFreshness =
   | { state: "absent" }
   | { state: "fresh"; savedAt: Date; ageDays: number }
   | { state: "stale"; savedAt: Date; ageDays: number };
-
-/**
- * Fenêtre glissante M−3 → M+12 (décision 4) : 3 mois en arrière pour le
- * contexte récent, 12 mois en avant pour couvrir la saison de planification.
- */
-export function snapshotWindow(today: Date): { from: string; to: string } {
-  const from = new Date(today.getFullYear(), today.getMonth() - 3, 1);
-  // Jour 0 du mois suivant = dernier jour du mois visé.
-  const to = new Date(today.getFullYear(), today.getMonth() + 13, 0);
-  return { from: toISO(from), to: toISO(to) };
-}
-
-function toISO(d: Date): string {
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
 
 /**
  * Classe la fraîcheur d'un snapshot. `null` (absent, illisible, version

@@ -2,122 +2,57 @@
 
 import { useEffect } from "react";
 import { runWhenIdle } from "@/lib/idle";
-import { createClient } from "@/lib/supabase/client";
-import { ACTIVE_STATUSES, UNKNOWN_FAMILY_COLOR, UNKNOWN_FAMILY_NAME } from "@/lib/data/types";
 import type { CalendarBooking } from "@/lib/data/types";
 import {
   SNAPSHOT_KEY,
   SNAPSHOT_VERSION,
-  snapshotWindow,
   type OfflineSnapshot,
 } from "@/lib/offline-snapshot";
 
 /**
- * Écrit le snapshot calendrier à chaque ouverture EN LIGNE du dashboard
- * (spec #37, étape 3). Monté dans le layout dashboard, donc post-login.
+ * Persiste le calendrier pour le mode hors ligne (spec #37, décision 18).
  *
- * Pourquoi une requête client plutôt que des données passées par le serveur :
- * le dashboard ne charge pas le calendrier, et l'y ajouter alourdirait chaque
- * rendu de la home pour une donnée qui ne sert qu'hors ligne. Ici, la requête
- * part en arrière-plan après le rendu et ne bloque rien.
+ * Ne fait **aucune requête** : il reçoit les séjours que la page calendrier a
+ * déjà chargés côté serveur et les recopie en local. Le coût est donc nul —
+ * ni requête Supabase, ni octet de réseau supplémentaire.
  *
- * ⚠️ En dev local avec DEV_LOGIN_BYPASS, cette requête revient VIDE : le
- * navigateur n'a pas de session Supabase (cf. docs/guides/pieges-connus.md
- * n°3). Le snapshot ne s'écrit donc pas en local — c'est attendu, pas un bug.
+ * Monté sur `/dashboard/calendrier` et nulle part ailleurs : c'est le seul
+ * endroit de l'app où cette donnée existe déjà. Conséquence assumée — qui
+ * n'ouvre jamais le calendrier n'a pas de calendrier hors ligne, et les
+ * surfaces concernées le disent explicitement.
+ *
+ * L'écriture attend `load` puis un temps mort du navigateur : sérialiser
+ * ~45 Ko ne doit pas retarder l'affichage de la grille.
  */
-/**
- * Forme brute renvoyée par la jointure Supabase. Déclarée ici plutôt que
- * castée en `any` : c'est le seul endroit où l'on relit ces colonnes hors du
- * data layer.
- */
-type BookingRow = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  status: "pending" | "approved";
-  family_id: string;
-  families: { name: string; color: string } | null;
-};
-
-export default function SnapshotWriter() {
+export default function SnapshotWriter({
+  bookings,
+  familyName,
+}: {
+  bookings: CalendarBooking[];
+  familyName: string | null;
+}) {
   useEffect(() => {
-    let cancelled = false;
+    // Une page calendrier vide viendrait d'une requête en échec plutôt que
+    // d'une vraie absence de séjours : écraser un snapshot valide ferait
+    // croire hors ligne que la maison est libre toute l'année.
+    if (bookings.length === 0) return;
 
-    async function write() {
+    return runWhenIdle(() => {
+      const snapshot: OfflineSnapshot = {
+        version: SNAPSHOT_VERSION,
+        savedAt: new Date().toISOString(),
+        bookings,
+        familyName,
+      };
+
       try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user || cancelled) return;
-
-        const { from, to } = snapshotWindow(new Date());
-
-        // Une seule requête, filtrée sur la fenêtre : quelques Ko.
-        // `end_date >= from` et `start_date <= to` — un séjour à cheval sur
-        // une borne doit être visible, sinon il disparaîtrait du calendrier
-        // hors ligne alors qu'il est en cours.
-        const [bookingsRes, profileRes] = await Promise.all([
-          supabase
-            .from("bookings")
-            .select("id, start_date, end_date, status, family_id, families(name, color)")
-            .in("status", ACTIVE_STATUSES as unknown as string[])
-            .gte("end_date", from)
-            .lte("start_date", to)
-            .order("start_date"),
-          supabase
-            .from("users")
-            .select("families(name)")
-            .eq("id", user.id)
-            .single(),
-        ]);
-
-        if (cancelled || bookingsRes.error || !bookingsRes.data) return;
-
-        const bookings: CalendarBooking[] = (
-          bookingsRes.data as unknown as BookingRow[]
-        ).map((b) => ({
-          id: b.id,
-          bookingId: b.id,
-          start_date: b.start_date,
-          end_date: b.end_date,
-          family_id: b.family_id,
-          family_name: b.families?.name ?? UNKNOWN_FAMILY_NAME,
-          color: b.families?.color ?? UNKNOWN_FAMILY_COLOR,
-          status: b.status,
-        }));
-
-        // Requête vide = probablement le bypass de dev (piège n°3), ou une
-        // session expirée. Écraser un snapshot valide par du vide ferait
-        // croire hors ligne que le calendrier est libre : on s'abstient.
-        if (bookings.length === 0) return;
-
-        const snapshot: OfflineSnapshot = {
-          version: SNAPSHOT_VERSION,
-          savedAt: new Date().toISOString(),
-          from,
-          to,
-          bookings,
-          familyName:
-            (profileRes.data as { families?: { name: string } | null } | null)
-              ?.families?.name ?? null,
-        };
-
         localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
       } catch {
-        // Hors ligne, quota dépassé, session expirée : on garde le snapshot
-        // précédent. Ne jamais déranger l'utilisateur pour ça.
+        // Quota dépassé, Safari en navigation privée : on garde le snapshot
+        // précédent et on ne dérange pas l'utilisateur.
       }
-    }
-
-    // Après le `load` et une fois le navigateur inactif : deux requêtes
-    // Supabase de plus ne doivent jamais retarder l'affichage du dashboard.
-    const cancel = runWhenIdle(write);
-    return () => {
-      cancelled = true;
-      cancel();
-    };
-  }, []);
+    });
+  }, [bookings, familyName]);
 
   return null;
 }

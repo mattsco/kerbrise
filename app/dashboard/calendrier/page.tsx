@@ -3,6 +3,7 @@ import { requireAuthUser } from "@/lib/supabase/auth";
 import { getCalendarBookings } from "@/lib/data/bookings";
 import Calendar from "@/components/Calendar";
 import BackButton from "@/components/BackButton";
+import SnapshotWriter from "@/components/offline/SnapshotWriter";
 
 export default async function CalendrierPage() {
   const user = await requireAuthUser();
@@ -80,6 +81,10 @@ export default async function CalendrierPage() {
             isCalendarAdmin={profile.is_calendar_admin ?? false}
           />
         </div>
+
+        {/* Recopie le calendrier pour le mode hors ligne (#37). Aucune
+            requête : il réutilise `events`, déjà chargé ci-dessus. */}
+        <SnapshotWriter bookings={events} familyName={familyName} />
       </div>
     </div>
   );

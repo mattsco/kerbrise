@@ -40,8 +40,8 @@ export default function OfflineProfil() {
           Profil indisponible
         </p>
         <p className="text-xs text-slate-500">
-          Ouvre Kerbrise une fois avec du réseau : ta famille sera alors connue
-          hors ligne.
+          Ouvre le calendrier une fois avec du réseau : ta famille sera alors
+          connue hors ligne.
         </p>
       </div>
     );
