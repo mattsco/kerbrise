@@ -124,6 +124,17 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Navigation preload : le navigateur lance la requête réseau EN
+      // PARALLÈLE du réveil du service worker, au lieu d'attendre qu'il ait
+      // démarré pour la déclencher. Sans ça, chaque navigation faite après une
+      // période d'inactivité paie le démarrage du worker — mesuré à ~13 ms sur
+      // un Mac, plutôt 50-150 ms sur un téléphone d'entrée de gamme. C'est la
+      // seule façon de garantir que le mode hors ligne ne coûte rien à la
+      // navigation en ligne.
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+
       const keys = await caches.keys();
       await Promise.all(
         keys
@@ -143,6 +154,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         try {
+          // Réponse déjà en vol, lancée par le navigateur pendant que le
+          // worker démarrait (cf. navigationPreload dans activate).
+          const preloaded = await event.preloadResponse;
+          if (preloaded) return preloaded;
+
           return await fetch(request);
         } catch {
           // La page DEMANDÉE si on l'a — c'est ce qui fait marcher la

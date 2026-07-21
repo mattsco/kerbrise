@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { runWhenIdle } from "@/lib/idle";
 
 /**
  * Enregistre le service worker — uniquement depuis le dashboard, donc
@@ -14,17 +15,17 @@ export default function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    // Après le premier rendu : l'enregistrement du SW ne doit pas entrer en
-    // concurrence avec le chargement de la page.
-    const timer = setTimeout(() => {
+    // Après le `load` ET une fois le navigateur inactif : le précache (~800 Ko)
+    // ne doit jamais concurrencer l'affichage des pages en ligne, qui restent
+    // prioritaires. Un simple setTimeout se serait déclenché en plein
+    // chargement sur une connexion lente.
+    return runWhenIdle(() => {
       navigator.serviceWorker.register("/sw.js").catch((err) => {
         // Échec non bloquant : sans SW, l'app fonctionne exactement comme
         // avant #37. On ne dérange pas l'utilisateur avec ça.
         console.error("[sw] enregistrement échoué:", err);
       });
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    });
   }, []);
 
   return null;

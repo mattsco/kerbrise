@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { runWhenIdle } from "@/lib/idle";
 import { createClient } from "@/lib/supabase/client";
 import { ACTIVE_STATUSES, UNKNOWN_FAMILY_COLOR, UNKNOWN_FAMILY_NAME } from "@/lib/data/types";
 import type { CalendarBooking } from "@/lib/data/types";
@@ -109,11 +110,12 @@ export default function SnapshotWriter() {
       }
     }
 
-    // Après le rendu : le snapshot ne doit pas concurrencer l'affichage.
-    const timer = setTimeout(write, 2500);
+    // Après le `load` et une fois le navigateur inactif : deux requêtes
+    // Supabase de plus ne doivent jamais retarder l'affichage du dashboard.
+    const cancel = runWhenIdle(write);
     return () => {
       cancelled = true;
-      clearTimeout(timer);
+      cancel();
     };
   }, []);
 

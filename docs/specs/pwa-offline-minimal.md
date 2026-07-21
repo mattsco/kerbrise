@@ -194,6 +194,27 @@ Deux retours après le premier essai en preview :
 
 **Images de la page télé.** Servies `unoptimized` (seule forme précachable), les originales coûtaient 471 Ko — plus que tout le reste de l'offline réuni. `public/tele/offline/` contient des copies réduites à ≤ 760 px, soit **136 Ko pour un rendu identique** à la taille où on les regarde sur un téléphone. En ligne, rien ne change : Next optimise les originales à la volée. La vidéo de démonstration (4,1 Mo) n'est **jamais** précachée — remplacée hors ligne par une note explicite.
 
+### 17. Impact sur l'expérience EN LIGNE — mesuré (21 juillet 2026)
+
+Question posée avant le merge : est-ce que l'offline ralentit l'app en ligne ? Mesuré en build de production, 10 à 20 échantillons par cas. Les logs serveur ne contenaient rien d'exploitable (uniquement les lignes de démarrage) — la mesure est donc côté navigateur.
+
+| | Sans SW | Avec SW | Après correctifs |
+|---|---|---|---|
+| Navigation (médiane) | 3,8 ms | 6,3 ms | **4,8 ms** |
+| Asset `/_next/static` | 1,7 ms | 2,5 ms | 2,5 ms |
+| 1ʳᵉ requête après inactivité | — | 17,4 ms | **6-10 ms** |
+
+**Le coût est réel et permanent** : une fois le SW actif, *chaque* navigation et *chaque* asset `/_next/static` passe par lui — 15 à 25 requêtes proxifiées par page. Ce n'est pas nul, et on ne peut pas le supprimer sans renoncer à l'offline.
+
+Deux correctifs appliqués :
+
+1. **`navigationPreload`** — le navigateur lance la requête réseau *en parallèle* du réveil du worker, au lieu d'attendre qu'il ait démarré. C'est ce qui divise par deux le cas « première navigation après inactivité », de loin le pire. Sans lui, chaque retour dans l'app après quelques minutes payait le démarrage du worker.
+2. **`lib/idle.ts`** — l'enregistrement du SW et l'écriture du snapshot attendent l'événement `load` **puis** `requestIdleCallback`. Avant, un `setTimeout` de 2 s pouvait se déclencher en plein chargement sur une connexion lente, soit exactement le moment à éviter. Les pages en ligne sont prioritaires par construction, pas par espérance.
+
+⚠️ **Ces chiffres viennent d'un Mac sur localhost**, où le réseau est quasi nul : ils isolent le surcoût du service worker, ils ne prédisent pas l'expérience réelle. Sur un iPhone d'entrée de gamme, le démarrage d'un worker se compte plutôt en 50-150 ms — d'où l'importance du `navigationPreload`. À revérifier lors du test iPhone (décision 9), qui reste le seul juge.
+
+**Ce qui n'est PAS garanti** : le précache télécharge ~800 Ko en arrière-plan à chaque nouveau déploiement. C'est après le `load` et en temps mort, donc invisible sur une connexion correcte — mais sur un réseau très lent, cette bande passante est prise à quelque chose.
+
 ## Signal de déclenchement (inchangé)
 
 Ne pas construire sur hypothèse. Déclencheurs légitimes :
