@@ -14,10 +14,10 @@ import { APP_VERSION } from "@/lib/config";
  * racine, nécessaire pour intercepter toutes les navigations.
  *
  * Périmètre volontairement minuscule (spec #37) : ce SW ne met JAMAIS en cache
- * une page vivante de l'app. Il ne connaît que /hors-ligne. Toute navigation
- * part sur le réseau ; le cache n'est touché que si le réseau échoue. C'est ce
- * qui rend le scénario « la famille voit un vieux dashboard » impossible, et
- * c'est pour ça qu'on peut se passer d'un prompt de mise à jour.
+ * une page vivante de l'app. Il ne connaît que les pages /hors-ligne/*. Toute
+ * navigation part sur le réseau ; le cache n'est touché que si le réseau
+ * échoue. C'est ce qui rend le scénario « la famille voit un vieux dashboard »
+ * impossible, et c'est pour ça qu'on peut se passer d'un prompt de mise à jour.
  */
 
 // VERCEL_GIT_COMMIT_SHA n'existe qu'en déploiement. En local, la version du
@@ -32,9 +32,25 @@ const OFFLINE_URL = "/hors-ligne";
 // tête : c'est le hub, et le secours quand l'URL demandée n'est pas en cache.
 const OFFLINE_PAGES = [
   OFFLINE_URL,
+  "/hors-ligne/calendrier",
   "/hors-ligne/a-propos",
   "/hors-ligne/a-propos/regles",
 ];
+
+/**
+ * Une requête qui pend indéfiniment laisserait le service worker bloqué en
+ * « installing » pour toujours : ni installé, ni en échec, donc jamais
+ * réessayé. C'est le scénario du réseau mobile à moitié mort — exactement
+ * celui où cette fonctionnalité est censée servir.
+ */
+function fetchWithTimeout(url, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, {
+    credentials: "same-origin",
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timer));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -46,33 +62,35 @@ self.addEventListener("install", (event) => {
       // entre le login et l'install. On vérifierait alors "hors ligne" en
       // affichant un écran de connexion. On contrôle la réponse à la main.
       //
+      // Séquentiel et non Promise.all : on met en cache chaque page dès qu'on
+      // l'a, au lieu de garder 4 corps de réponse ouverts en parallèle en
+      // attendant le plus lent. Quatre requêtes locales coûtent quelques ms.
+      //
       // Le hub est obligatoire (son échec fait échouer l'install) ; les autres
       // pages sont best effort, pour qu'une section cassée ne prive pas
       // l'appareil de tout l'offline.
-      const pages = await Promise.all(
-        OFFLINE_PAGES.map(async (url) => {
-          const res = await fetch(url, { credentials: "same-origin" });
-          if (!res.ok || res.redirected) {
-            if (url === OFFLINE_URL) {
-              throw new Error("précache refusé : réponse " + res.status);
-            }
-            return null;
-          }
-          return { url, res };
-        })
-      );
-
-      // Le HTML seul ne suffit pas : sans le CSS, la page hors ligne s'affiche
-      // en Times New Roman brut. Les noms de fichiers sont hachés par build et
-      // inconnus d'ici — on les lit donc dans le HTML qu'on vient de récupérer,
-      // ce qui reste juste à chaque déploiement sans liste à maintenir.
       //
-      // Les pages partagent l'essentiel de leurs chunks : le Set dédoublonne,
-      // donc ajouter une section ne coûte que son HTML.
+      // Le HTML seul ne suffit pas : sans le CSS, la page s'affiche en Times
+      // New Roman brut. Les noms de fichiers sont hachés par build et inconnus
+      // d'ici — on les lit donc dans le HTML qu'on vient de récupérer, ce qui
+      // reste juste à chaque déploiement sans liste à maintenir. Les pages
+      // partagent l'essentiel de leurs chunks : le Set dédoublonne, donc
+      // ajouter une section ne coûte que son HTML.
       let html = "";
-      for (const page of pages) {
-        if (!page) continue;
-        html += await page.res.clone().text();
+      for (const url of OFFLINE_PAGES) {
+        try {
+          const res = await fetchWithTimeout(url);
+          if (!res.ok || res.redirected) {
+            throw new Error("réponse " + res.status);
+          }
+          html += await res.clone().text();
+          await cache.put(url, res);
+        } catch (err) {
+          if (url === OFFLINE_URL) {
+            throw new Error("précache du hub refusé : " + err);
+          }
+          // Section indisponible : on continue, le hub suffit à l'essentiel.
+        }
       }
       // Liste des caractères AUTORISÉS plutôt que des délimiteurs interdits :
       // le HTML contient ces URLs aussi dans des chaînes JSON échappées, et
@@ -85,15 +103,11 @@ self.addEventListener("install", (event) => {
         // teste le mode hors ligne.
         .filter((url) => !url.includes("hmr-client") && !url.includes("devtools"));
 
-      for (const page of pages) {
-        if (page) await cache.put(page.url, page.res);
-      }
-
       // Best effort : un asset manquant ne doit pas faire échouer l'install
       // entière et laisser l'appareil sans offline du tout.
       await Promise.allSettled(
         assets.map(async (url) => {
-          const res = await fetch(url, { credentials: "same-origin" });
+          const res = await fetchWithTimeout(url);
           if (res.ok) await cache.put(url, res);
         })
       );

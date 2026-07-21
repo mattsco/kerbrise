@@ -68,3 +68,20 @@ export const SUMMER_PERIOD_1_START: Record<number, string> = {
 
 
 
+
+// ---------------------------------------------------------------------------
+// Maison
+// ---------------------------------------------------------------------------
+
+/**
+ * Mot de passe du wifi de Kerbrise.
+ *
+ * Déplacé ici depuis `app/dashboard/a-propos/MaisonStatus.tsx` pour #37 : la
+ * page hors ligne l'affiche aussi, et une constante dupliquée dans deux
+ * composants finit toujours par diverger lors d'un changement de box.
+ *
+ * ⚠️ En clair dans le bundle client, donc dans le cache du navigateur — choix
+ * de sécurité explicite et documenté (spec #37, décision 1) : appareils
+ * familiaux, et le mot de passe est de toute façon écrit sur la box.
+ */
+export const WIFI_PASSWORD = "kerbrise";

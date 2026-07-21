@@ -103,3 +103,31 @@ hors ligne fonctionne — vérifié le 21 juillet 2026.
 ⚠️ `/hors-ligne` est derrière `requireAuthUser()` et `DEV_LOGIN_BYPASS` ne
 fonctionne pas en production (cf. piège n°3) : pour un test local, commenter
 l'appel le temps de la vérification, ou tester sur un déploiement de preview.
+
+---
+
+## 5. Le service worker ne se met à jour qu'au rechargement
+
+Réenregistrer le service worker depuis la console (`navigator.serviceWorker
+.register`) sur une page déjà contrôlée **ne remplace pas** le worker actif :
+le navigateur réutilise celui en place. On croit tester la nouvelle version,
+on teste l'ancienne — et un cache vide ou périmé ressemble alors à un bug de
+précache.
+
+Pour tester une modification du SW en local :
+
+1. changer `VERCEL_GIT_COMMIT_SHA` au lancement du serveur de prod
+   (`VERCEL_GIT_COMMIT_SHA=test2 npm run start -- -p 3001`) — le nom du cache
+   change, donc on voit tout de suite si la nouvelle version s'installe ;
+2. **recharger la page**, puis `await reg.update()` si besoin ;
+3. vérifier que l'ancien cache a disparu (`caches.keys()`).
+
+En production ce piège n'existe pas : le navigateur revalide `/sw.js` à chaque
+navigation (`Cache-Control: no-cache`) et installe la nouvelle version tout
+seul. C'est purement un piège de test manuel.
+
+⚠️ Corollaire découvert à l'étape 3 de #37 : un `fetch` qui **pend** dans
+l'`install` laisse le worker bloqué en `installing` pour toujours — ni
+installé, ni en échec, donc jamais réessayé. Toutes les requêtes du SW passent
+donc par `fetchWithTimeout`. Si un jour le précache « ne fait rien » sans
+erreur, c'est la première piste.

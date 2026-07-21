@@ -1,4 +1,5 @@
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import SnapshotWriter from "@/components/offline/SnapshotWriter";
 
 /**
  * Layout du dashboard.
@@ -17,6 +18,7 @@ export default function DashboardLayout({
     <>
       {children}
       <ServiceWorkerRegistrar />
+      <SnapshotWriter />
     </>
   );
 }

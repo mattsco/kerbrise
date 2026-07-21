@@ -1,6 +1,6 @@
 # Spec — Offline PWA minimal (#37)
 
-> **Statut** : 📋 Périmètre **et** implémentation tranchés (21 juillet 2026) — **attend son déclencheur** (cf. plus bas)
+> **Statut** : ✅ **Implémentée** (21 juillet 2026) — étapes 1 à 5 livrées, en attente de validation sur preview + iPhone
 > **Type** : Feature / résilience
 > **Cible** : un jour peut-être — à ne faire que si le déclencheur sonne
 > **Estimation** : ~2 j (service worker + page offline + snapshot calendrier)
@@ -57,9 +57,9 @@ Un **service worker** léger précache `/hors-ligne` (+ assets), servie en fallb
 2. ✅ **Cartes pures** (fait le 21 juillet 2026). Marées du jour + coef, poubelles (composant `NextCollections` réutilisé tel quel), rotation été — importés de `lib/` (pur, testé par #34). Photo `house.jpg` précachée. Budget mesuré, cf. décision 10.
 
    **Tout est calculé après le montage, jamais au rendu serveur.** Le HTML est figé dans le cache le jour du précache : rendre les marées côté serveur reviendrait à afficher celles de ce jour-là comme celles d'aujourd'hui — une donnée fausse et parfaitement crédible, exactement ce que la décision 8 combat sur le calendrier. Sans JS, la page montre des tirets et une explication : on préfère ne rien dire que mentir sur une heure de marée.
-3. **Snapshot applicatif** → atterrit dans `/hors-ligne/calendrier` (décision 12). Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
-4. **Contenu statique complet** → dans `/hors-ligne/a-propos` (décision 12). Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
-5. **Durcissement + réel.** Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
+3. ✅ **Snapshot applicatif** (fait le 21 juillet 2026) → `/hors-ligne/calendrier` (décision 12). Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
+4. ✅ **Contenu statique complet** (fait le 21 juillet 2026) → `/hors-ligne/a-propos` (décision 12). Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
+5. ✅ **Durcissement + docs** (fait le 21 juillet 2026) — **sauf le test iPhone, qui reste à faire et reste bloquant**. Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
 
 **Constat qui dé-risque la décision n°1 (mdp wifi)** : le mot de passe est DÉJÀ une constante en dur dans un composant client (`app/dashboard/a-propos/MaisonStatus.tsx`) — il est donc déjà présent en clair dans le bundle JS téléchargé par tout navigateur authentifié. L'inclure dans la page offline ne dégrade pas la posture de sécurité existante.
 
@@ -128,7 +128,9 @@ Contrairement à ce qu'on supposait, **le gros morceau n'est pas la photo mais l
 
 `lib/data/tides-times-2026.ts` ne couvre que **2026**. En janvier 2027, la carte marées affichera « horaires non disponibles » tant qu'une table 2027 n'est pas committée.
 
-La dégradation est propre (`getOfflineTides` renvoie `null`, la carte l'explique), mais c'est une **tâche récurrente de fin d'année**, au même titre que le calendrier des collectes — dont `NextCollections` affiche déjà « Calendrier 2027 à venir ». À porter dans la routine annuelle, pas à découvrir un 2 janvier en panne de wifi.
+La dégradation est propre (`getOfflineTides` renvoie `null`, la carte l'explique), mais elle ajoute une surface au problème que **#33 traite déjà** (« Couverture des données offline », échéance dure au 31/12/2026, spec `docs/specs/data-coverage-health.md`) : au 1ᵉʳ janvier 2027, bannière vacances, TRMNL, Garmin **et désormais la page hors ligne** passent en mode dégradé silencieux.
+
+Rien de nouveau à décider ici — mais le health check de #33 doit compter la page hors ligne parmi ses consommateurs, et l'argument gagne en force : c'est maintenant aussi ce qu'on voit pendant une panne de réseau.
 
 ### 12. Plusieurs pages hors ligne, calquées sur l'architecture en ligne (21 juillet 2026)
 
@@ -151,6 +153,26 @@ Deux conséquences techniques :
 2. **Le SW sert la page demandée si elle est en cache**, et le hub seulement en dernier recours — c'est ce qui fait marcher la navigation entre sections. Les pages partagent leurs chunks : ajouter une section ne coûte que son HTML (~13 Ko). Mesuré après découpage : 990 Ko sur disque contre 925 pour la page unique.
 
 **Les marées reprennent la grammaire exacte de la bannière en ligne** (`BannerConditions`) : ligne compacte, flèches PM/BM, coef en pastille, et surtout **les 2 prochaines marées** plutôt que les quatre du jour. La sélection (`upcomingTides`) a été **déplacée de `conditions.ts` vers `lib/tides-times.ts`** pour être partagée au lieu d'être recopiée — `conditions.ts` fait du réseau (météo) et ne peut pas être importé côté client. Les deux affichages ne peuvent donc pas diverger, et les helpers sont désormais testés (7 tests ajoutés).
+
+### 13. Fidélité à l'app en ligne (21 juillet 2026)
+
+Demande explicite en fin d'implémentation : la surface hors ligne doit ressembler **le plus possible** à l'app en ligne, avec un simple bandeau expliquant pourquoi certaines sections sont inaccessibles.
+
+Ce que ça a changé par rapport à la décision 5 (« lignes grisées ») :
+
+- Le hub reprend le **chrome complet du dashboard** — header collant, hero photo, mêmes `ActionCard` dans le même ordre.
+- Les sections indisponibles ne sont plus une liste à part : elles restent **à leur place dans la grille**, grisées, en pointillés, avec la mention « hors ligne ». L'app paraît complète mais en veille, pas amputée.
+- Le calendrier hors ligne réutilise **la vraie vue calendrier** (`CalendarMobileView`) avec des callbacks neutres, plutôt qu'une grille « ressemblante » qui aurait divergé à la première évolution.
+- `NextCollections` et `LinksContactsSection` sont réutilisés **tels quels** : déjà purs ou figés, donc fonctionnels sans réseau.
+
+⚠️ **Le hero n'affiche pas le prénom de l'utilisateur**, contrairement au dashboard. Ce HTML est mis en cache une fois et resservi tel quel : personnalisé, il accueillerait toute la famille par le prénom du dernier connecté.
+
+### 14. Robustesse du précache (21 juillet 2026)
+
+Deux corrections issues de la vérification de l'étape 3 :
+
+1. **Précache séquentiel.** La version parallèle (`Promise.all` sur les 4 pages) **bloquait l'installation indéfiniment** en gardant quatre corps de réponse ouverts pendant le clonage. Symptôme trompeur : cache créé mais vide, worker figé en `installing` — ni installé, ni en échec, donc jamais réessayé.
+2. **Toutes les requêtes du SW passent par `fetchWithTimeout` (10 s).** Un `fetch` qui pend laisse le worker bloqué pour toujours. C'est le scénario du réseau mobile à moitié mort — précisément celui où cette fonctionnalité est censée servir.
 
 ## Signal de déclenchement (inchangé)
 

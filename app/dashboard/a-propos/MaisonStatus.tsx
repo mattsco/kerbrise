@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Wifi } from "lucide-react";
-
-const WIFI_PASSWORD = "kerbrise";
+import { WIFI_PASSWORD } from "@/lib/config";
 
 type Status = {
   online: boolean | null;
