@@ -51,8 +51,12 @@ Un **service worker** léger précache `/hors-ligne` (+ assets), servie en fallb
 
 > Découpage acté le 20 juillet 2026. Principe : l'étape risquée (cycle de vie du SW) en PREMIER, isolée sur un contenu trivial — pas à la fin quand tout le contenu en dépend.
 
-1. **Service worker + squelette `/hors-ligne`.** SW à la main (< 100 lignes) avec la **stratégie d'invalidation dès le premier jour** : cache versionné par `BUILD_ID`, `skipWaiting()` + `clients.claim()`, purge des vieux caches à l'`activate` (cf. décision 7). Enregistrement **post-login uniquement**, composant client dans le layout dashboard (décision 6) ; purge caches + snapshot au logout. Page `/hors-ligne` minimale : bandeau « Hors ligne », rien d'autre. Test : DevTools offline → fallback servi ; redéploiement → ancienne version évincée.
-2. **Cartes pures.** Marées du jour + coef, poubelles, règles/rotation été — importés de `lib/` (pur, testé par #34), calculés côté client. Mesurer le poids des tables marées dans le bundle client (~50-100 Ko attendus) et tenir le budget < 500 Ko (décision 10). La page prend la grammaire visuelle du dashboard, **photo `house.jpg` incluse et précachée**.
+> ⚠️ **Le mode hors ligne ne se teste pas en `next dev`.** Turbopack fait dépendre l'amorçage de son runtime client du chunk HMR : sans lui en cache, rien ne s'hydrate ; avec lui, il recharge la page en boucle dès qu'il perd le serveur. Dans les deux cas le dev ment. La vérification se fait sur `npm run build && npm run start`. Cf. `docs/guides/pieges-connus.md`.
+
+1. ✅ **Service worker + squelette `/hors-ligne`** (fait le 21 juillet 2026). SW à la main (< 100 lignes) avec la **stratégie d'invalidation dès le premier jour** : cache versionné par `BUILD_ID`, `skipWaiting()` + `clients.claim()`, purge des vieux caches à l'`activate` (cf. décision 7). Enregistrement **post-login uniquement**, composant client dans le layout dashboard (décision 6) ; purge caches + snapshot au logout. Page `/hors-ligne` minimale : bandeau « Hors ligne », rien d'autre. Test : DevTools offline → fallback servi ; redéploiement → ancienne version évincée.
+2. ✅ **Cartes pures** (fait le 21 juillet 2026). Marées du jour + coef, poubelles (composant `NextCollections` réutilisé tel quel), rotation été — importés de `lib/` (pur, testé par #34). Photo `house.jpg` précachée. Budget mesuré, cf. décision 10.
+
+   **Tout est calculé après le montage, jamais au rendu serveur.** Le HTML est figé dans le cache le jour du précache : rendre les marées côté serveur reviendrait à afficher celles de ce jour-là comme celles d'aujourd'hui — une donnée fausse et parfaitement crédible, exactement ce que la décision 8 combat sur le calendrier. Sans JS, la page montre des tirets et une explication : on préfère ne rien dire que mentir sur une heure de marée.
 3. **Snapshot applicatif.** Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
 4. **Contenu statique complet.** Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
 5. **Durcissement + réel.** Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
@@ -107,7 +111,24 @@ Confirmé : la majorité de la famille est sur iPhone avec la PWA installée —
 
 Les ~50-100 Ko de tables marées passent — ordre de grandeur admis pour la valeur rendue. Ajout : **`public/house.jpg` (141 Ko) entre dans le précache**, pour que la page hors-ligne garde l'identité visuelle du dashboard plutôt que d'être un pense-bête gris.
 
-Budget de précache visé : **< 500 Ko** (photo + icônes + JS/CSS de `/hors-ligne`). Au-delà, on coupe — en commençant par une version réduite de la photo, pas par les données.
+**Budget mesuré à l'étape 2** (build de production, 21 juillet 2026) :
+
+| | Transféré (gzip) | Sur disque |
+|---|---|---|
+| HTML | 4 Ko | 13 Ko |
+| JS + CSS | 218 Ko | 773 Ko |
+| Photo | 138 Ko | 138 Ko |
+| **Total** | **360 Ko** | **925 Ko** |
+
+Le « < 500 Ko » initial ne précisait pas lequel des deux il visait. Tranché : **le seuil porte sur le transféré** — c'est ce que l'installation coûte à un téléphone en 4G — et il est tenu à 360 Ko. L'empreinte disque de ~1 Mo est acceptée : c'est du stockage d'appareil, pas un téléchargement, et on reste loin des quotas où Safari commence à évincer.
+
+Contrairement à ce qu'on supposait, **le gros morceau n'est pas la photo mais les chunks JS** (218 Ko gzip). Réduire la photo ne récupérerait que 15 % du total : si un jour il faut couper, c'est le JS qu'il faut regarder, pas l'image.
+
+### 11. Dépendance annuelle des données de marée
+
+`lib/data/tides-times-2026.ts` ne couvre que **2026**. En janvier 2027, la carte marées affichera « horaires non disponibles » tant qu'une table 2027 n'est pas committée.
+
+La dégradation est propre (`getOfflineTides` renvoie `null`, la carte l'explique), mais c'est une **tâche récurrente de fin d'année**, au même titre que le calendrier des collectes — dont `NextCollections` affiche déjà « Calendrier 2027 à venir ». À porter dans la routine annuelle, pas à découvrir un 2 janvier en panne de wifi.
 
 ## Signal de déclenchement (inchangé)
 

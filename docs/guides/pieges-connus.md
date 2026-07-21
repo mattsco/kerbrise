@@ -68,3 +68,38 @@ même dire « personne n'a encore choisi » à tort. Ce n'est pas un bug applica
 **Pour vérifier une surface client en local** : se connecter normalement via
 `/login` (sans le bypass), ou forcer temporairement l'état en dur dans le
 composant le temps du contrôle visuel.
+
+---
+
+## 4. Le mode hors ligne ne se teste pas en `next dev`
+
+Le service worker (#37) précache `/hors-ligne` et les assets `/_next/static`
+lus dans son HTML. En développement, ce lot contient deux chunks d'outillage
+Turbopack — le client HMR et les devtools — et ils rendent le test impossible
+**dans les deux sens** :
+
+- **Précachés** : le client HMR perd sa websocket dès que le serveur dev
+  s'arrête, et recharge la page en boucle. Impossible d'observer quoi que ce
+  soit.
+- **Exclus du précache** (ce que fait `app/sw.js/route.ts`) : le runtime
+  Turbopack ne s'amorce plus sans son chunk HMR, donc **aucun composant client
+  ne s'hydrate**. La page hors ligne s'affiche mais reste figée sur ses états
+  de chargement — elle a l'air cassée alors qu'elle ne l'est pas.
+
+Le second cas est particulièrement traître : le journal réseau montre tous les
+vrais chunks servis en 200 depuis le cache, et seulement `hmr-client` et
+`next-devtools` en échec. Tout *semble* correct.
+
+**Ces deux chunks n'existent pas dans un build de production.** La seule
+vérification qui vaut :
+
+```
+npm run build && npm run start
+```
+
+puis enregistrer le SW, couper le serveur, recharger. En prod, l'hydratation
+hors ligne fonctionne — vérifié le 21 juillet 2026.
+
+⚠️ `/hors-ligne` est derrière `requireAuthUser()` et `DEV_LOGIN_BYPASS` ne
+fonctionne pas en production (cf. piège n°3) : pour un test local, commenter
+l'appel le temps de la vérification, ou tester sur un déploiement de preview.

@@ -47,7 +47,11 @@ self.addEventListener("install", (event) => {
       // inconnus d'ici — on les lit donc dans le HTML qu'on vient de récupérer,
       // ce qui reste juste à chaque déploiement sans liste à maintenir.
       const html = await response.clone().text();
-      const assets = [...new Set(html.match(/\\/_next\\/static\\/[^"']+/g) ?? [])]
+      // Liste des caractères AUTORISÉS plutôt que des délimiteurs interdits :
+      // le HTML contient ces URLs aussi dans des chaînes JSON échappées, et
+      // une classe négative y ramassait le backslash de fin — d'où une seconde
+      // entrée « …jpg\\ » qui précachait la photo en double.
+      const assets = [...new Set(html.match(/\\/_next\\/static\\/[A-Za-z0-9._~%\\/-]+/g) ?? [])]
         // Outillage de dev uniquement (absent des builds de prod, donc filtre
         // sans effet en ligne). Précaché, le client HMR recharge la page en
         // boucle dès qu'il perd le serveur — c'est-à-dire précisément quand on
