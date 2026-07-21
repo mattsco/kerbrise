@@ -3,6 +3,9 @@ import {
   TIDE_TIMES_YEARS,
   getTideTimesDay,
   getOfflineTides,
+  upcomingTides,
+  allTodayTides,
+  timeToMinutes,
 } from "./tides-times";
 import { TIDE_TIMES_2026 } from "./data/tides-times-2026";
 
@@ -106,5 +109,62 @@ describe("getOfflineTides", () => {
   it("dernier jour de l'année : lendemain absent → un seul jour, pas de crash", () => {
     const tides = getOfflineTides("2026-12-31")!;
     expect(tides.days.map((d) => d.date)).toEqual(["2026-12-31"]);
+  });
+});
+
+describe("upcomingTides", () => {
+  it("écarte les marées déjà passées et garde les 2 suivantes", () => {
+    const data = getOfflineTides("2026-06-15")!;
+    const events = data.days[0].events;
+    const secondMins = toMinutes(events[1].time);
+
+    // On se place juste après la 2e marée du jour.
+    const result = upcomingTides(data, secondMins + 1);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].time).toBe(events[2].time);
+    // Aucune marée retournée ne doit être antérieure à "maintenant"...
+    expect(toMinutes(result[0].time)).toBeGreaterThan(secondMins);
+  });
+
+  it("en fin de journée, déborde sur le lendemain", () => {
+    const data = getOfflineTides("2026-06-15")!;
+    const result = upcomingTides(data, 23 * 60 + 59);
+
+    expect(result.length).toBeGreaterThan(0);
+    // Ces marées viennent forcément de days[1].
+    const tomorrow = data.days[1].events.map((e) => e.time);
+    expect(tomorrow).toContain(result[0].time);
+  });
+
+  it("dernier jour de l'année sans lendemain : ne crashe pas", () => {
+    const data = getOfflineTides("2026-12-31")!;
+    expect(() => upcomingTides(data, 23 * 60 + 59)).not.toThrow();
+    expect(upcomingTides(data, 23 * 60 + 59)).toEqual([]);
+  });
+
+  it("données absentes → liste vide", () => {
+    expect(upcomingTides(null, 600)).toEqual([]);
+  });
+});
+
+describe("allTodayTides", () => {
+  it("rend toutes les marées du jour, passées comprises", () => {
+    const data = getOfflineTides("2026-06-15")!;
+    expect(allTodayTides(data)).toHaveLength(data.days[0].events.length);
+  });
+
+  it("données absentes → liste vide", () => {
+    expect(allTodayTides(null)).toEqual([]);
+  });
+});
+
+describe("timeToMinutes", () => {
+  it("parse le format HHhMM, rejette le reste", () => {
+    expect(timeToMinutes("04h05")).toBe(245);
+    expect(timeToMinutes("00h00")).toBe(0);
+    expect(timeToMinutes("23h59")).toBe(1439);
+    expect(timeToMinutes("4:05")).toBeNull();
+    expect(timeToMinutes("")).toBeNull();
   });
 });

@@ -28,6 +28,14 @@ const SW_SOURCE = `
 const CACHE = "kerbrise-offline-${BUILD_ID}";
 const OFFLINE_URL = "/hors-ligne";
 
+// Les pages hors ligne, calquées sur l'architecture en ligne. OFFLINE_URL en
+// tête : c'est le hub, et le secours quand l'URL demandée n'est pas en cache.
+const OFFLINE_PAGES = [
+  OFFLINE_URL,
+  "/hors-ligne/a-propos",
+  "/hors-ligne/a-propos/regles",
+];
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
@@ -37,16 +45,35 @@ self.addEventListener("install", (event) => {
       // y compris une redirection suivie vers /login si la session a expiré
       // entre le login et l'install. On vérifierait alors "hors ligne" en
       // affichant un écran de connexion. On contrôle la réponse à la main.
-      const response = await fetch(OFFLINE_URL, { credentials: "same-origin" });
-      if (!response.ok || response.redirected) {
-        throw new Error("précache refusé : réponse " + response.status);
-      }
+      //
+      // Le hub est obligatoire (son échec fait échouer l'install) ; les autres
+      // pages sont best effort, pour qu'une section cassée ne prive pas
+      // l'appareil de tout l'offline.
+      const pages = await Promise.all(
+        OFFLINE_PAGES.map(async (url) => {
+          const res = await fetch(url, { credentials: "same-origin" });
+          if (!res.ok || res.redirected) {
+            if (url === OFFLINE_URL) {
+              throw new Error("précache refusé : réponse " + res.status);
+            }
+            return null;
+          }
+          return { url, res };
+        })
+      );
 
       // Le HTML seul ne suffit pas : sans le CSS, la page hors ligne s'affiche
       // en Times New Roman brut. Les noms de fichiers sont hachés par build et
       // inconnus d'ici — on les lit donc dans le HTML qu'on vient de récupérer,
       // ce qui reste juste à chaque déploiement sans liste à maintenir.
-      const html = await response.clone().text();
+      //
+      // Les pages partagent l'essentiel de leurs chunks : le Set dédoublonne,
+      // donc ajouter une section ne coûte que son HTML.
+      let html = "";
+      for (const page of pages) {
+        if (!page) continue;
+        html += await page.res.clone().text();
+      }
       // Liste des caractères AUTORISÉS plutôt que des délimiteurs interdits :
       // le HTML contient ces URLs aussi dans des chaînes JSON échappées, et
       // une classe négative y ramassait le backslash de fin — d'où une seconde
@@ -58,7 +85,9 @@ self.addEventListener("install", (event) => {
         // teste le mode hors ligne.
         .filter((url) => !url.includes("hmr-client") && !url.includes("devtools"));
 
-      await cache.put(OFFLINE_URL, response);
+      for (const page of pages) {
+        if (page) await cache.put(page.url, page.res);
+      }
 
       // Best effort : un asset manquant ne doit pas faire échouer l'install
       // entière et laisser l'appareil sans offline du tout.
@@ -100,11 +129,22 @@ self.addEventListener("fetch", (event) => {
         try {
           return await fetch(request);
         } catch {
-          const cached = await caches.match(OFFLINE_URL, { cacheName: CACHE });
+          // La page DEMANDÉE si on l'a — c'est ce qui fait marcher la
+          // navigation entre sections hors ligne. Sinon le hub : on préfère
+          // montrer le point d'entrée plutôt qu'une erreur, quelle que soit
+          // l'URL sur laquelle la PWA s'est ouverte.
+          const url = new URL(request.url);
+          const exact =
+            url.origin === self.location.origin
+              ? await caches.match(url.pathname, { cacheName: CACHE })
+              : null;
+          if (exact) return exact;
+
+          const hub = await caches.match(OFFLINE_URL, { cacheName: CACHE });
           // Sans entrée en cache (précache échoué, éviction iOS), on laisse le
           // navigateur afficher sa propre erreur réseau : mieux qu'une page
           // blanche servie par nous.
-          return cached ?? Response.error();
+          return hub ?? Response.error();
         }
       })()
     );

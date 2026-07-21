@@ -87,6 +87,83 @@ export function getOfflineTides(todayISO: string): OfflineTides | null {
 }
 
 // ---------------------------------------------------------------------------
+// Sélection des marées à afficher
+//
+// Vit ici et non dans `conditions.ts` : ces fonctions sont PURES, alors que
+// conditions.ts fait du réseau (météo). La page hors ligne (#37) a besoin de la
+// même sélection que la bannière en ligne — la partager évite qu'un jour les
+// deux affichages divergent, et la rend testable comme le reste de lib/.
+// ---------------------------------------------------------------------------
+
+export type TideTime = {
+  type: "PM" | "BM";
+  time: string;
+  height: number | null;
+};
+
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** Minutes écoulées depuis minuit, en heure de Paris. */
+export function parisNowMinutes(now: Date = new Date()): number {
+  const parts = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const h = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const m = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return h * 60 + m;
+}
+
+/** "04h05" → 245 (minutes). null si format inattendu. */
+export function timeToMinutes(time: string): number | null {
+  const m = /^(\d{1,2})h(\d{2})$/.exec(time);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+/**
+ * Les 2 prochaines marées à partir de maintenant. Cherche dans aujourd'hui
+ * (days[0]) puis demain (days[1]) — le bloc offline place aujourd'hui en tête.
+ */
+export function upcomingTides(
+  data: OfflineTides | null,
+  nowMinutes: number = parisNowMinutes()
+): TideTime[] {
+  const list: { sortKey: number; t: TideTime }[] = [];
+
+  for (const offset of [0, 1]) {
+    const day = data?.days?.[offset];
+    if (!day?.events?.length) continue;
+    for (const e of day.events) {
+      const mins = timeToMinutes(e.time);
+      if (mins === null) continue;
+      const key = mins + offset * 1440;
+      if (offset === 0 && mins < nowMinutes) continue; // marée déjà passée
+      list.push({
+        sortKey: key,
+        t: { type: e.type, time: e.time, height: num(e.height) },
+      });
+    }
+  }
+
+  list.sort((a, b) => a.sortKey - b.sortKey);
+  return list.slice(0, 2).map((x) => x.t);
+}
+
+/** Toutes les marées d'aujourd'hui (PM/BM), passées comprises, dans l'ordre. */
+export function allTodayTides(data: OfflineTides | null): TideTime[] {
+  const day = data?.days?.[0];
+  if (!day?.events?.length) return [];
+  return day.events
+    .filter((e) => timeToMinutes(e.time) !== null)
+    .map((e) => ({ type: e.type, time: e.time, height: num(e.height) }));
+}
+
+// ---------------------------------------------------------------------------
 // Garde-fou dev : repère un jour mal formé (horaires non croissants / type
 // dupliqué). Silencieux en prod.
 // ---------------------------------------------------------------------------

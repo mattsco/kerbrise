@@ -20,7 +20,12 @@
 
 import { getTideDay, tideLevel, type TideLevel } from "./tides";
 import { parseLocalDate } from "./dates";
-import { getOfflineTides, type OfflineTides } from "./tides-times";
+import {
+  getOfflineTides,
+  upcomingTides,
+  allTodayTides,
+  type TideTime,
+} from "./tides-times";
 import { getSeasonalWaterTemp } from "./sea-temp";
 
 // Le Val / Rothéneuf
@@ -40,11 +45,8 @@ export type TideNow = {
   level: TideLevel;
 };
 
-export type TideTime = {
-  type: "PM" | "BM";
-  time: string;
-  height: number | null;
-};
+/** Ré-exporté pour ne pas casser les imports existants (api/term, bannière). */
+export type { TideTime } from "./tides-times";
 
 export type WeatherNow = {
   minC: number;
@@ -72,30 +74,6 @@ export type Conditions = {
   todayTides: TideTime[];
   weather: WeatherNow | null;
 };
-
-function num(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
-}
-
-/** Minutes écoulées depuis minuit, en heure de Paris. */
-function parisNowMinutes(): number {
-  const parts = new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Europe/Paris",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date());
-  const h = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
-  const m = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
-  return h * 60 + m;
-}
-
-/** "04h05" → 245 (minutes). null si format inattendu. */
-function timeToMinutes(time: string): number | null {
-  const m = /^(\d{1,2})h(\d{2})$/.exec(time);
-  if (!m) return null;
-  return Number(m[1]) * 60 + Number(m[2]);
-}
 
 async function fetchJson(url: string): Promise<unknown | null> {
   try {
@@ -166,47 +144,16 @@ async function getWeather(todayISO: string): Promise<WeatherNow | null> {
   };
 }
 
+/** Garde un nombre fini, sinon null. Utilisé par le parsing météo. */
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
 function getTide(todayISO: string): TideNow | null {
   const d = parseLocalDate(todayISO);
   const day = getTideDay(d.getFullYear(), d.getMonth(), d.getDate());
   if (!day) return null;
   return { coef: day.coef, raw: day.raw, level: tideLevel(day.coef) };
-}
-
-/**
- * Les 2 prochaines marées à partir de maintenant. Cherche dans aujourd'hui
- * (days[0]) puis demain (days[1]) — le bloc offline place aujourd'hui en tête.
- */
-function upcomingTides(data: OfflineTides | null): TideTime[] {
-  const now = parisNowMinutes();
-  const list: { sortKey: number; t: TideTime }[] = [];
-
-  for (const offset of [0, 1]) {
-    const day = data?.days?.[offset];
-    if (!day?.events?.length) continue;
-    for (const e of day.events) {
-      const mins = timeToMinutes(e.time);
-      if (mins === null) continue;
-      const key = mins + offset * 1440;
-      if (offset === 0 && mins < now) continue; // marée déjà passée
-      list.push({
-        sortKey: key,
-        t: { type: e.type, time: e.time, height: num(e.height) },
-      });
-    }
-  }
-
-  list.sort((a, b) => a.sortKey - b.sortKey);
-  return list.slice(0, 2).map((x) => x.t);
-}
-
-/** Toutes les marées d'aujourd'hui (PM/BM), passées comprises, dans l'ordre. */
-function allTodayTides(data: OfflineTides | null): TideTime[] {
-  const day = data?.days?.[0];
-  if (!day?.events?.length) return [];
-  return day.events
-    .filter((e) => timeToMinutes(e.time) !== null)
-    .map((e) => ({ type: e.type, time: e.time, height: num(e.height) }));
 }
 
 /**

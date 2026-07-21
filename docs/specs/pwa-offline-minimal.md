@@ -57,8 +57,8 @@ Un **service worker** léger précache `/hors-ligne` (+ assets), servie en fallb
 2. ✅ **Cartes pures** (fait le 21 juillet 2026). Marées du jour + coef, poubelles (composant `NextCollections` réutilisé tel quel), rotation été — importés de `lib/` (pur, testé par #34). Photo `house.jpg` précachée. Budget mesuré, cf. décision 10.
 
    **Tout est calculé après le montage, jamais au rendu serveur.** Le HTML est figé dans le cache le jour du précache : rendre les marées côté serveur reviendrait à afficher celles de ce jour-là comme celles d'aujourd'hui — une donnée fausse et parfaitement crédible, exactement ce que la décision 8 combat sur le calendrier. Sans JS, la page montre des tirets et une explication : on préfère ne rien dire que mentir sur une heure de marée.
-3. **Snapshot applicatif.** Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
-4. **Contenu statique complet.** Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
+3. **Snapshot applicatif** → atterrit dans `/hors-ligne/calendrier` (décision 12). Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
+4. **Contenu statique complet** → dans `/hors-ligne/a-propos` (décision 12). Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
 5. **Durcissement + réel.** Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
 
 **Constat qui dé-risque la décision n°1 (mdp wifi)** : le mot de passe est DÉJÀ une constante en dur dans un composant client (`app/dashboard/a-propos/MaisonStatus.tsx`) — il est donc déjà présent en clair dans le bundle JS téléchargé par tout navigateur authentifié. L'inclure dans la page offline ne dégrade pas la posture de sécurité existante.
@@ -129,6 +129,28 @@ Contrairement à ce qu'on supposait, **le gros morceau n'est pas la photo mais l
 `lib/data/tides-times-2026.ts` ne couvre que **2026**. En janvier 2027, la carte marées affichera « horaires non disponibles » tant qu'une table 2027 n'est pas committée.
 
 La dégradation est propre (`getOfflineTides` renvoie `null`, la carte l'explique), mais c'est une **tâche récurrente de fin d'année**, au même titre que le calendrier des collectes — dont `NextCollections` affiche déjà « Calendrier 2027 à venir ». À porter dans la routine annuelle, pas à découvrir un 2 janvier en panne de wifi.
+
+### 12. Plusieurs pages hors ligne, calquées sur l'architecture en ligne (21 juillet 2026)
+
+La décision 5 disait « surface dédiée reprenant la grammaire visuelle du dashboard ». À l'usage, une **page unique** empilant marées, poubelles et rotation été s'est révélée fouillis — et l'étape 2 n'en montrait que trois cartes, avant le calendrier, les infos pratiques et le mot de passe wifi.
+
+La surface offline devient donc un **miroir de l'architecture en ligne** :
+
+| Hors ligne | Miroir de |
+|---|---|
+| `/hors-ligne` — conditions du jour visibles sans clic, puis cartes de section | `/dashboard` |
+| `/hors-ligne/a-propos` | `/dashboard/a-propos` |
+| `/hors-ligne/a-propos/regles` | `/dashboard/a-propos/regles` |
+| `/hors-ligne/calendrier` (étape 3) | `/dashboard/calendrier` |
+
+Ça ne rouvre pas la décision 5 : ce sont des pages *hors ligne*, la surface reste autosuffisante et ne pointe jamais vers les vraies pages de l'app.
+
+Deux conséquences techniques :
+
+1. **Navigation en `<a>`, jamais en `<Link>`.** Le routeur de Next irait chercher une charge RSC sur le réseau, qui échoue précisément quand ces pages servent. Un `<a>` provoque une navigation complète, donc interceptée par le SW.
+2. **Le SW sert la page demandée si elle est en cache**, et le hub seulement en dernier recours — c'est ce qui fait marcher la navigation entre sections. Les pages partagent leurs chunks : ajouter une section ne coûte que son HTML (~13 Ko). Mesuré après découpage : 990 Ko sur disque contre 925 pour la page unique.
+
+**Les marées reprennent la grammaire exacte de la bannière en ligne** (`BannerConditions`) : ligne compacte, flèches PM/BM, coef en pastille, et surtout **les 2 prochaines marées** plutôt que les quatre du jour. La sélection (`upcomingTides`) a été **déplacée de `conditions.ts` vers `lib/tides-times.ts`** pour être partagée au lieu d'être recopiée — `conditions.ts` fait du réseau (météo) et ne peut pas être importé côté client. Les deux affichages ne peuvent donc pas diverger, et les helpers sont désormais testés (7 tests ajoutés).
 
 ## Signal de déclenchement (inchangé)
 
