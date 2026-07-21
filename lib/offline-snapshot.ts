@@ -11,8 +11,15 @@
 
 import type { CalendarBooking } from "./data/types";
 
-/** Clé unique — partagée avec la purge au logout (ServiceWorkerRegistrar). */
+/**
+ * Clés de stockage — toutes purgées à la déconnexion (ServiceWorkerRegistrar).
+ *
+ * Deux clés distinctes et non un objet unique : chaque snapshot est écrit par
+ * la page qui possède déjà la donnée (calendrier / profil). Avec une clé
+ * commune, la dernière page visitée écraserait les champs de l'autre.
+ */
 export const SNAPSHOT_KEY = "kerbrise-offline-snapshot";
+export const PROFIL_KEY = "kerbrise-offline-profil";
 
 /**
  * Version du format. Un snapshot d'une autre version est ignoré, pas migré —
@@ -42,6 +49,25 @@ export type OfflineSnapshot = {
   bookings: CalendarBooking[];
   /** Nom de la famille de l'utilisateur — le seul bout personnalisé. */
   familyName: string | null;
+};
+
+/**
+ * Ce que la page profil sait d'un utilisateur, recopié depuis les données
+ * qu'elle a déjà chargées côté serveur (décision 19).
+ *
+ * Vit dans le localStorage de l'appareil, pas dans le HTML mis en cache : ces
+ * champs sont personnels, et un HTML précaché est partagé par tous ceux qui
+ * ouvrent l'app sur ce téléphone. C'est cette distinction qui les rend
+ * acceptables ici alors qu'ils sont exclus du rendu serveur.
+ */
+export type OfflineProfil = {
+  version: number;
+  savedAt: string;
+  displayName: string;
+  email: string | null;
+  familyName: string | null;
+  roles: string[];
+  sejourCount: number | null;
 };
 
 export type SnapshotFreshness =
@@ -93,6 +119,25 @@ export function parseSnapshot(raw: string | null): OfflineSnapshot | null {
       return null;
     }
     return parsed as OfflineSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+/** Même parsing défensif que le snapshot calendrier : le doute vaut absence. */
+export function parseProfil(raw: string | null): OfflineProfil | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      parsed.version !== SNAPSHOT_VERSION ||
+      typeof parsed.savedAt !== "string" ||
+      typeof parsed.displayName !== "string"
+    ) {
+      return null;
+    }
+    return parsed as OfflineProfil;
   } catch {
     return null;
   }

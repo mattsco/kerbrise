@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { User as UserIcon, Mail, ShieldCheck, CalendarDays } from "lucide-react";
 import { getFamilyColor, isKnownFamily } from "@/lib/families";
 import {
   getFamilyPriority,
@@ -8,19 +9,30 @@ import {
   getYearPriorities,
 } from "@/lib/summer-priorities";
 import { getPontPriorityFamily } from "@/lib/ponts";
-import { SNAPSHOT_KEY, parseSnapshot } from "@/lib/offline-snapshot";
+import {
+  PROFIL_KEY,
+  SNAPSHOT_KEY,
+  parseProfil,
+  parseSnapshot,
+  type OfflineProfil,
+} from "@/lib/offline-snapshot";
 
 /**
  * Profil hors ligne (#37).
  *
- * On ne montre que ce qui est VRAI sans réseau : le nom de famille vient du
- * snapshot, et tout le reste s'en déduit par calcul pur (priorité été,
- * priorité du pont de mai — mêmes fonctions que `PriorityCard` en ligne).
+ * On ne montre que ce qui est VRAI sans réseau. Deux sources, dans cet ordre :
+ *   1. le snapshot écrit par `/dashboard/profil` — nom, e-mail, rôles,
+ *      compteur de séjours ;
+ *   2. à défaut, le nom de famille du snapshot calendrier.
  *
- * Volontairement absents : le nom d'affichage, l'e-mail et les compteurs de
- * séjours. Ils ne sont pas dans le snapshot, et les inventer ou les figer
- * dans le HTML mis en cache afficherait les infos du dernier connecté à toute
- * la famille.
+ * D'où la dégradation en escalier : qui a ouvert le profil voit tout, qui n'a
+ * ouvert que le calendrier voit sa famille et sa priorité, qui n'a rien ouvert
+ * voit l'invitation à se connecter.
+ *
+ * ⚠️ Ces champs personnels vivent dans le localStorage de l'appareil, JAMAIS
+ * dans le HTML précaché : ce dernier est partagé par tous ceux qui ouvrent
+ * l'app sur ce téléphone. C'est cette distinction qui les rend acceptables
+ * ici. Ils sont purgés à la déconnexion.
  */
 export default function OfflineProfil() {
   const state = useProfilState();
@@ -47,7 +59,7 @@ export default function OfflineProfil() {
     );
   }
 
-  const { familyName, year, priority, priorities, pontFamily } = state;
+  const { profil, familyName, year, priority, priorities, pontFamily } = state;
   const color = getFamilyColor(familyName);
 
   const eteSentence =
@@ -64,16 +76,65 @@ export default function OfflineProfil() {
 
   return (
     <div className="space-y-3">
-      <section className="bg-white rounded-2xl border border-slate-100 p-5">
-        <div className="flex items-center gap-2.5">
-          <span
-            className="inline-block w-3 h-3 rounded-full shrink-0"
-            style={{ backgroundColor: color }}
-          />
-          <p className="text-sm text-slate-700">
-            Famille <strong className="text-slate-900">{familyName}</strong>
-          </p>
-        </div>
+      <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4">
+        <h2 className="text-xs uppercase tracking-wide text-slate-400 font-medium">
+          Mon compte
+        </h2>
+
+        {profil?.displayName && (
+          <Row icon={<UserIcon className="w-4 h-4 text-slate-400" />} label="Nom">
+            <span className="text-slate-900 font-medium">
+              {profil.displayName}
+            </span>
+          </Row>
+        )}
+
+        {profil?.email && (
+          <Row icon={<Mail className="w-4 h-4 text-slate-400" />} label="Email">
+            <span className="text-slate-700 truncate">{profil.email}</span>
+          </Row>
+        )}
+
+        <Row
+          icon={
+            <span
+              className="w-4 h-4 rounded-full inline-block"
+              style={{ backgroundColor: color }}
+            />
+          }
+          label="Famille"
+        >
+          <span className="text-slate-900 font-medium">{familyName}</span>
+        </Row>
+
+        {profil?.roles?.length ? (
+          <Row
+            icon={<ShieldCheck className="w-4 h-4 text-slate-400" />}
+            label="Rôle"
+          >
+            <div className="flex flex-wrap gap-1.5">
+              {profil.roles.map((role) => (
+                <span
+                  key={role}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
+                >
+                  {role}
+                </span>
+              ))}
+            </div>
+          </Row>
+        ) : null}
+
+        {profil?.sejourCount != null && (
+          <Row
+            icon={<CalendarDays className="w-4 h-4 text-slate-400" />}
+            label="Séjours"
+          >
+            <span className="text-slate-900 font-medium">
+              {profil.sejourCount}
+            </span>
+          </Row>
+        )}
       </section>
 
       <section className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
@@ -109,7 +170,27 @@ export default function OfflineProfil() {
   );
 }
 
+/** Ligne de la carte « Mon compte », alignée sur la version en ligne. */
+function Row({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <span className="flex-shrink-0">{icon}</span>
+      <span className="text-slate-500 w-20 flex-shrink-0">{label}</span>
+      {children}
+    </div>
+  );
+}
+
 type ProfilState = {
+  profil: OfflineProfil | null;
   familyName: string;
   year: number;
   priority: number;
@@ -123,8 +204,12 @@ function useProfilState(): ProfilState | null | undefined {
 
   useEffect(() => {
     try {
+      const profil = parseProfil(localStorage.getItem(PROFIL_KEY));
       const snapshot = parseSnapshot(localStorage.getItem(SNAPSHOT_KEY));
-      const familyName = snapshot?.familyName;
+
+      // Le profil est plus riche et plus récent quand il existe ; le snapshot
+      // calendrier reste le filet pour qui n'a jamais ouvert son profil.
+      const familyName = profil?.familyName ?? snapshot?.familyName;
       if (!familyName || !isKnownFamily(familyName)) {
         setState(null);
         return;
@@ -138,6 +223,7 @@ function useProfilState(): ProfilState | null | undefined {
       }
 
       setState({
+        profil,
         familyName,
         year,
         priority,

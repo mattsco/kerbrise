@@ -229,6 +229,22 @@ Révision de la décision 4 et de l'étape 3, sur proposition de l'utilisateur. 
 
 Format passé en **v2** : un snapshot v1 est ignoré, pas migré — il se réécrit à la première visite du calendrier.
 
+### 19. Le profil suit le même principe (21 juillet 2026)
+
+Extension de la décision 18 à `/dashboard/profil` : la page recopie en local ce qu'elle a **déjà chargé** (nom, e-mail, rôles, compteur de séjours), sans requête supplémentaire. Les autres pages hors ligne n'ont rien à capturer — marées, poubelles, règles, wifi, contacts et guide télé sont déjà committés dans le code.
+
+**Correction d'un excès de prudence.** Ces champs avaient été exclus au motif qu'ils « afficheraient les infos du dernier connecté à toute la famille ». C'est vrai d'un rendu SERVEUR figé dans le HTML précaché, qui est partagé par tous ceux qui ouvrent l'app sur l'appareil. C'est faux d'un `localStorage` : il est propre au navigateur et purgé à la déconnexion — exactement le traitement déjà réservé au nom de famille.
+
+**Clé séparée** (`kerbrise-offline-profil`) et non un objet commun : chaque snapshot est écrit par la page qui possède la donnée, et une clé partagée ferait écraser les champs de l'une par l'autre selon l'ordre de visite.
+
+**Dégradation en escalier**, vérifiée en production serveur coupé :
+
+| Ce que l'utilisateur a ouvert en ligne | Ce qu'il voit hors ligne |
+|---|---|
+| Rien | Invitation à se connecter |
+| Le calendrier | Famille + priorité été et pont de mai |
+| Le profil | En plus : nom, e-mail, rôle, nombre de séjours |
+
 ## Signal de déclenchement (inchangé)
 
 Ne pas construire sur hypothèse. Déclencheurs légitimes :

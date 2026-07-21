@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PriorityCard from "@/components/profil/PriorityCard";
+import ProfilWriter from "@/components/offline/ProfilWriter";
 
 export const dynamic = "force-dynamic";
 
@@ -178,6 +179,16 @@ export default async function ProfilPage() {
         <section id="password" className="scroll-mt-4">
           <ChangePasswordForm />
         </section>
+
+        {/* Recopie le profil pour le mode hors ligne (#37). Aucune requête :
+            tout vient des données déjà chargées ci-dessus. */}
+        <ProfilWriter
+          displayName={displayName}
+          email={user.email ?? null}
+          familyName={familyName}
+          roles={roles}
+          sejourCount={mySejourCount ?? null}
+        />
       </div>
     </main>
   );

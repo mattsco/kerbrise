@@ -3,6 +3,7 @@ import {
   SNAPSHOT_VERSION,
   STALE_AFTER_DAYS,
   formatSavedAt,
+  parseProfil,
   parseSnapshot,
   snapshotFreshness,
   type OfflineSnapshot,
@@ -83,5 +84,29 @@ describe("formatSavedAt", () => {
     const out = formatSavedAt(new Date(2026, 6, 21, 14, 30));
     expect(out).toContain("21 juillet");
     expect(out).toContain("14h30");
+  });
+});
+
+describe("parseProfil", () => {
+  const valide = {
+    version: SNAPSHOT_VERSION,
+    savedAt: new Date(2026, 6, 21).toISOString(),
+    displayName: "Matthieu",
+    email: "matthieu@example.com",
+    familyName: "Antoine",
+    roles: ["Membre"],
+    sejourCount: 3,
+  };
+
+  it("relit un profil valide", () => {
+    expect(parseProfil(JSON.stringify(valide))).toEqual(valide);
+  });
+
+  it("rejette null, JSON invalide, version inconnue, nom absent", () => {
+    expect(parseProfil(null)).toBeNull();
+    expect(parseProfil("{cassé")).toBeNull();
+    expect(parseProfil(JSON.stringify({ ...valide, version: 99 }))).toBeNull();
+    const { displayName: _omis, ...sansNom } = valide;
+    expect(parseProfil(JSON.stringify(sansNom))).toBeNull();
   });
 });

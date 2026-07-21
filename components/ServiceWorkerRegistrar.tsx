@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { runWhenIdle } from "@/lib/idle";
+import { PROFIL_KEY, SNAPSHOT_KEY } from "@/lib/offline-snapshot";
 
 /**
  * Enregistre le service worker — uniquement depuis le dashboard, donc
@@ -51,9 +52,11 @@ export async function purgeOfflineData() {
       );
     }
 
-    // Posé à l'étape 3 (snapshot calendrier). Le retirer dès maintenant évite
-    // d'avoir à se souvenir de revenir ici quand l'étape 3 arrivera.
-    localStorage.removeItem("kerbrise-offline-snapshot");
+    // Les deux snapshots applicatifs : calendrier et profil. Sans ça, un
+    // appareil déconnecté garderait les dates de séjours ET le prénom, l'email
+    // et les rôles du dernier utilisateur.
+    localStorage.removeItem(SNAPSHOT_KEY);
+    localStorage.removeItem(PROFIL_KEY);
 
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
