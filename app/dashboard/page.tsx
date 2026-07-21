@@ -12,7 +12,6 @@ import {
   Plus,
   Video,
   KeyRound,
-  LogOut,
   AlertCircle,
   ArrowRight,
   TrendingUp,
@@ -29,6 +28,7 @@ import ContextualBanner from "./ContextualBanner";
 import { requireAuthUser } from "@/lib/supabase/auth";
 import { APP_VERSION } from "@/lib/config";
 import UpcomingStaysList from "./UpcomingStaysList";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   
@@ -91,15 +91,7 @@ const supabase = await createClient();
       <header className="bg-white border-b border-slate-100 sticky top-0 z-30 backdrop-blur-md bg-white/90">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold text-slate-900">Kerbrise</h1>
-          <form action="/auth/signout" method="POST">
-            <button
-              type="submit"
-              className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 transition"
-              aria-label="Se déconnecter"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </header>
 
