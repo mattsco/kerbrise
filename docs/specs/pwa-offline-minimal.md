@@ -1,10 +1,10 @@
 # Spec — Offline PWA minimal (#37)
 
-> **Statut** : 📋 Périmètre tranché (20 juillet 2026) — **attend son déclencheur** (cf. plus bas)
+> **Statut** : 📋 Périmètre **et** implémentation tranchés (21 juillet 2026) — **attend son déclencheur** (cf. plus bas)
 > **Type** : Feature / résilience
 > **Cible** : un jour peut-être — à ne faire que si le déclencheur sonne
 > **Estimation** : ~2 j (service worker + page offline + snapshot calendrier)
-> **Dernière MAJ** : 20 juillet 2026
+> **Dernière MAJ** : 21 juillet 2026
 
 ## Problème
 
@@ -51,20 +51,63 @@ Un **service worker** léger précache `/hors-ligne` (+ assets), servie en fallb
 
 > Découpage acté le 20 juillet 2026. Principe : l'étape risquée (cycle de vie du SW) en PREMIER, isolée sur un contenu trivial — pas à la fin quand tout le contenu en dépend.
 
-1. **Service worker + squelette `/hors-ligne`.** SW à la main (< 100 lignes) avec la **stratégie d'invalidation dès le premier jour** : cache versionné par build (`BUILD_ID`), nettoyage des vieux caches à l'activation. Enregistrement **post-login uniquement** (composant client dans le layout dashboard — tranche la question auth vs précache). Page `/hors-ligne` minimale : bandeau « Hors ligne », rien d'autre. Test : DevTools offline → fallback servi ; redéploiement → ancienne version évincée.
-2. **Cartes pures.** Marées du jour + coef, poubelles, règles/rotation été — importés de `lib/` (pur, testé par #34), calculés côté client. Mesurer le poids des tables marées dans le bundle client (~50-100 Ko attendus). La page prend la grammaire visuelle du dashboard.
-3. **Snapshot applicatif.** Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec « Dernière synchro : {date} ». Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent, le calendrier dit « pas encore de synchro ».
+1. **Service worker + squelette `/hors-ligne`.** SW à la main (< 100 lignes) avec la **stratégie d'invalidation dès le premier jour** : cache versionné par `BUILD_ID`, `skipWaiting()` + `clients.claim()`, purge des vieux caches à l'`activate` (cf. décision 7). Enregistrement **post-login uniquement**, composant client dans le layout dashboard (décision 6) ; purge caches + snapshot au logout. Page `/hors-ligne` minimale : bandeau « Hors ligne », rien d'autre. Test : DevTools offline → fallback servi ; redéploiement → ancienne version évincée.
+2. **Cartes pures.** Marées du jour + coef, poubelles, règles/rotation été — importés de `lib/` (pur, testé par #34), calculés côté client. Mesurer le poids des tables marées dans le bundle client (~50-100 Ko attendus) et tenir le budget < 500 Ko (décision 10). La page prend la grammaire visuelle du dashboard, **photo `house.jpg` incluse et précachée**.
+3. **Snapshot applicatif.** Hook client qui, à chaque ouverture EN LIGNE du dashboard, stocke en localStorage : séjours M−3 → M+12, nom de famille de l'utilisateur, timestamp. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
 4. **Contenu statique complet.** Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
-5. **Durcissement + réel.** Tests Vitest sur les helpers purs ajoutés (infra #34), test sur un vrai iPhone (installation PWA, mode avion, éviction), vérif du flux de mise à jour du SW, docs (CHANGELOG, spec → implémentée).
+5. **Durcissement + réel.** Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
 
 **Constat qui dé-risque la décision n°1 (mdp wifi)** : le mot de passe est DÉJÀ une constante en dur dans un composant client (`app/dashboard/a-propos/MaisonStatus.tsx`) — il est donc déjà présent en clair dans le bundle JS téléchargé par tout navigateur authentifié. L'inclure dans la page offline ne dégrade pas la posture de sécurité existante.
 
-## Questions encore ouvertes (à trancher à l'implémentation)
+## Décisions actées (21 juillet 2026) — ex-questions ouvertes
 
-1. **Auth vs précache.** Le mdp wifi étant inclus, `/hors-ligne` contient de la donnée sensible → soit servie hors middleware auth (simple, mais la page est publique pour qui a l'URL), soit précachée **post-login seulement** (le SW ne s'installe qu'une fois authentifié). La deuxième est cohérente avec le contenu retenu ; à valider en implémentant.
-2. **Fraîcheur du SW.** Un service worker mal invalidé qui sert une vieille version est pire que pas de SW (bugs fantômes impossibles à diagnostiquer à distance pour une famille non technique). Stratégie de mise à jour à définir (skipWaiting + reload prompt ? cache versionné par build ?). C'est LE risque du chantier — la raison de ne pas le faire « vite fait ».
-3. **iOS.** La majorité de la famille est probablement sur iPhone : vérifier le comportement PWA + SW sur Safari iOS (support correct depuis 16.4, mais éviction de cache agressive — le fallback ET le snapshot doivent survivre… ou échouer proprement : c'est du best-effort, pas une garantie).
-4. **Poids client des tables marées.** Embarquer `tides-times` + coefs dans le bundle client de `/hors-ligne` (~50-100 Ko de données annuelles) + calcul « aujourd'hui » en client. Faisable, à chiffrer au moment venu.
+Les quatre questions laissées en suspens le 20 juillet sont tranchées. Elles ne rouvrent pas.
+
+### 6. Précache **post-login uniquement**
+
+Le SW n'est enregistré que depuis le layout dashboard, donc jamais avant authentification. `/hors-ligne` reste **derrière le middleware auth** comme le reste de l'app : elle n'est pas une page publique, elle est une entrée de cache que seul un navigateur déjà passé par le login possède.
+
+Conséquence assumée : **un appareil jamais connecté n'a pas d'offline.** C'est le bon défaut — sur un téléphone neuf, il n'y a de toute façon rien de local à afficher.
+
+Conséquence sur la déconnexion : le logout doit **purger les caches SW et le snapshot** (`caches.delete` + `localStorage.removeItem`). Sinon un appareil déconnecté garde mdp wifi et dates de séjours accessibles hors ligne — exactement ce que la décision n°1 acceptait *pour un appareil authentifié*, pas au-delà.
+
+### 7. Fraîcheur du SW : cache versionné par build, `skipWaiting`, **pas de prompt de reload**
+
+Le risque « SW qui sert du périmé » est **structurellement faible ici**, et c'est le périmètre qui le rend faible, pas la stratégie de cache : **le SW ne met jamais en cache une page vivante de l'app.** Il ne connaît que `/hors-ligne` et ses assets. Toute navigation réelle est network-first — le fallback n'est servi que si le fetch échoue. Il n'existe donc aucun scénario « la famille voit une vieille version du dashboard ».
+
+Ce que ça autorise :
+
+- **Cache versionné par `BUILD_ID`**, purge des vieux caches à l'`activate`.
+- **`skipWaiting()` + `clients.claim()`** sans prompt de reload. Le prompt existe pour éviter qu'un onglet ouvert mélange ancien HTML et nouveaux assets — impossible quand on ne sert pas le HTML de l'app.
+- Pire cas résiduel : `/hors-ligne` rend les règles/marées d'un build vieux de quelques jours. Sur du contenu qui bouge de quelques commits par mois, c'est du bruit.
+
+**Ce qui bouge vraiment (le calendrier) n'est pas dans le cache SW du tout** — il est dans le snapshot applicatif, rafraîchi à chaque ouverture en ligne. Les deux problèmes de fraîcheur sont séparés par construction, et le seul qui compte a son propre mécanisme.
+
+### 8. Fraîcheur du snapshot : seuil de péremption visible
+
+Précision issue de l'état réel du calendrier (juillet 2026) : **l'année suivante est vide et va se remplir sur ~6 mois.** Un snapshot périmé est donc **systématiquement optimiste** — il montre libre ce qui vient d'être pris. C'est le risque produit n°3, aggravé par la phase de remplissage.
+
+Mitigation ajoutée au bandeau (déjà prévu) :
+
+- Snapshot < 7 jours → bandeau neutre « Dernière synchro : {date} ».
+- Snapshot ≥ 7 jours → bandeau **d'avertissement** : « Snapshot du {date} — des séjours ont pu être posés depuis. »
+- Pas de snapshot → « Pas encore de synchro », cartes pures seules.
+
+### 9. iOS est la cible principale, pas un cas à vérifier
+
+Confirmé : la majorité de la famille est sur iPhone avec la PWA installée — et c'est **mesuré**, pas supposé : `PWADetector` alimente `last_is_pwa` / `last_device`, visibles dans l'admin analytics.
+
+Ça change le statut d'iOS dans le chantier : Safari iOS n'est pas un environnement à tester en fin de parcours, c'est **l'environnement de référence**. En conséquence :
+
+- Le test sur vrai iPhone (étape 5) est **bloquant**, pas un nice-to-have.
+- L'éviction de stockage iOS est une **contrainte de conception**, pas un bug à contourner : le snapshot comme le cache peuvent disparaître. Chaque surface doit dégrader proprement — c'est du best-effort explicite, jamais une garantie affichée à l'utilisateur.
+- Avant de démarrer, **relire l'analytics** pour chiffrer la répartition réelle (iOS/Android, PWA/navigateur). Le déclencheur du chantier est un usage réel ; sa cible se lit dans la même donnée.
+
+### 10. Poids client : accepté, **+ la photo de la maison précachée**
+
+Les ~50-100 Ko de tables marées passent — ordre de grandeur admis pour la valeur rendue. Ajout : **`public/house.jpg` (141 Ko) entre dans le précache**, pour que la page hors-ligne garde l'identité visuelle du dashboard plutôt que d'être un pense-bête gris.
+
+Budget de précache visé : **< 500 Ko** (photo + icônes + JS/CSS de `/hors-ligne`). Au-delà, on coupe — en commençant par une version réduite de la photo, pas par les données.
 
 ## Signal de déclenchement (inchangé)
 
