@@ -1,10 +1,9 @@
 # Spec — Offline PWA minimal (#37)
 
-> **Statut** : ✅ **Implémentée** (21 juillet 2026) — étapes 1 à 5 livrées, en attente de validation sur preview + iPhone
+> **Statut** : ✅ **Livrée** — implémentée le 21 juillet 2026, validée sur iPhone puis mergée sur `master` le 29 juillet 2026, en production sur kerbrise.fr
 > **Type** : Feature / résilience
-> **Cible** : un jour peut-être — à ne faire que si le déclencheur sonne
 > **Estimation** : ~2 j (service worker + page offline + snapshot calendrier)
-> **Dernière MAJ** : 21 juillet 2026
+> **Dernière MAJ** : 29 juillet 2026
 
 ## Problème
 
@@ -59,7 +58,7 @@ Un **service worker** léger précache `/hors-ligne` (+ assets), servie en fallb
    **Tout est calculé après le montage, jamais au rendu serveur.** Le HTML est figé dans le cache le jour du précache : rendre les marées côté serveur reviendrait à afficher celles de ce jour-là comme celles d'aujourd'hui — une donnée fausse et parfaitement crédible, exactement ce que la décision 8 combat sur le calendrier. Sans JS, la page montre des tirets et une explication : on préfère ne rien dire que mentir sur une heure de marée.
 3. ✅ **Snapshot applicatif** (fait le 21 juillet 2026, révisé le même jour → décision 18) → `/hors-ligne/calendrier` (décision 12). Composant client monté sur **la page calendrier**, qui recopie en localStorage les séjours déjà chargés par le serveur (tous, pas une fenêtre) + le nom de famille + un timestamp, sans aucune requête. La page offline rend le calendrier lecture seule + « ta famille », avec le bandeau **à trois états** de la décision 8 (neutre < 7 j, avertissement ≥ 7 j, « pas encore de synchro » si absent). Dégradation propre sans snapshot (absent ou évincé iOS) : les cartes pures restent.
 4. ✅ **Contenu statique complet** (fait le 21 juillet 2026) → `/hors-ligne/a-propos` (décision 12). Infos pratiques, numéros utiles, mdp wifi (déplacer la constante de `MaisonStatus.tsx` vers `lib/config.ts` au passage), lignes grisées « indisponible hors ligne » (webcam, demandes, stats, Freebox).
-5. ✅ **Durcissement + docs** (fait le 21 juillet 2026) — **sauf le test iPhone, qui reste à faire et reste bloquant**. Tests Vitest sur les helpers purs ajoutés (infra #34), **test bloquant sur un vrai iPhone** (installation PWA, mode avion, éviction de stockage — cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → implémentée).
+5. ✅ **Durcissement + docs** (fait le 21 juillet 2026, test iPhone fait le 29 — cf. décision 20). Tests Vitest sur les helpers purs ajoutés (infra #34), test sur un vrai iPhone (cf. décision 9), vérif du flux de mise à jour du SW, vérif de la purge au logout, docs (CHANGELOG, spec → livrée).
 
 **Constat qui dé-risque la décision n°1 (mdp wifi)** : le mot de passe est DÉJÀ une constante en dur dans un composant client (`app/dashboard/a-propos/MaisonStatus.tsx`) — il est donc déjà présent en clair dans le bundle JS téléchargé par tout navigateur authentifié. L'inclure dans la page offline ne dégrade pas la posture de sécurité existante.
 
@@ -103,7 +102,7 @@ Confirmé : la majorité de la famille est sur iPhone avec la PWA installée —
 
 Ça change le statut d'iOS dans le chantier : Safari iOS n'est pas un environnement à tester en fin de parcours, c'est **l'environnement de référence**. En conséquence :
 
-- Le test sur vrai iPhone (étape 5) est **bloquant**, pas un nice-to-have.
+- Le test sur vrai iPhone (étape 5) est **bloquant**, pas un nice-to-have. *(Levé le 29 juillet 2026 — cf. décision 20.)*
 - L'éviction de stockage iOS est une **contrainte de conception**, pas un bug à contourner : le snapshot comme le cache peuvent disparaître. Chaque surface doit dégrader proprement — c'est du best-effort explicite, jamais une garantie affichée à l'utilisateur.
 - Avant de démarrer, **relire l'analytics** pour chiffrer la répartition réelle (iOS/Android, PWA/navigateur). Le déclencheur du chantier est un usage réel ; sa cible se lit dans la même donnée.
 
@@ -211,7 +210,9 @@ Deux correctifs appliqués :
 1. **`navigationPreload`** — le navigateur lance la requête réseau *en parallèle* du réveil du worker, au lieu d'attendre qu'il ait démarré. C'est ce qui divise par deux le cas « première navigation après inactivité », de loin le pire. Sans lui, chaque retour dans l'app après quelques minutes payait le démarrage du worker.
 2. **`lib/idle.ts`** — l'enregistrement du SW et l'écriture du snapshot attendent l'événement `load` **puis** `requestIdleCallback`. Avant, un `setTimeout` de 2 s pouvait se déclencher en plein chargement sur une connexion lente, soit exactement le moment à éviter. Les pages en ligne sont prioritaires par construction, pas par espérance.
 
-⚠️ **Ces chiffres viennent d'un Mac sur localhost**, où le réseau est quasi nul : ils isolent le surcoût du service worker, ils ne prédisent pas l'expérience réelle. Sur un iPhone d'entrée de gamme, le démarrage d'un worker se compte plutôt en 50-150 ms — d'où l'importance du `navigationPreload`. À revérifier lors du test iPhone (décision 9), qui reste le seul juge.
+⚠️ **Ces chiffres viennent d'un Mac sur localhost**, où le réseau est quasi nul : ils isolent le surcoût du service worker, ils ne prédisent pas l'expérience réelle. Sur un iPhone d'entrée de gamme, le démarrage d'un worker se compte plutôt en 50-150 ms — d'où l'importance du `navigationPreload`.
+
+**Non remesuré sur iPhone.** Le test du 29 juillet (décision 20) a validé le *comportement* hors ligne, pas les latences : personne n'a chronométré de navigation sur l'appareil. Le surcoût par navigation reste donc mesuré uniquement sur localhost. Si une lenteur est signalée en usage réel, c'est la première piste à regarder.
 
 **Ce qui n'est PAS garanti** : le précache télécharge ~800 Ko en arrière-plan à chaque nouveau déploiement. C'est après le `load` et en temps mort, donc invisible sur une connexion correcte — mais sur un réseau très lent, cette bande passante est prise à quelque chose.
 
@@ -245,7 +246,25 @@ Extension de la décision 18 à `/dashboard/profil` : la page recopie en local c
 | Le calendrier | Famille + priorité été et pont de mai |
 | Le profil | En plus : nom, e-mail, rôle, nombre de séjours |
 
-## Signal de déclenchement (inchangé)
+### 20. Validation iPhone et levée de la condition bloquante (29 juillet 2026)
+
+La décision 9 posait le test sur vrai iPhone comme **bloquant**. Il a été fait le 29 juillet 2026, sur l'iPhone d'un membre de la famille, après le merge donc directement sur kerbrise.fr.
+
+**Ce qui a été vérifié** : Safari iOS, chargement du site, passage en **mode avion** → la surface hors ligne s'affiche. Le mécanisme central — SW installé, précache complet, fallback de navigation servi quand le réseau est mort — fonctionne sur l'environnement de référence.
+
+**Ce qui n'a pas été vérifié**, et il faut le dire plutôt que de laisser croire à une validation complète :
+
+- **PWA installée depuis l'écran d'accueil** : le test s'est fait dans Safari, pas dans l'app installée. Les deux partagent le même SW et le même cache d'origine, donc rien ne laisse attendre une divergence — mais ce n'est pas la même vérification.
+- **Éviction de stockage iOS** : non reproduite (elle ne se déclenche pas à la demande). C'est du best-effort assumé depuis la décision 9 : chaque surface dégrade proprement sans snapshot, et aucune garantie n'est affichée à l'utilisateur.
+- **Latences sur l'appareil** : non chronométrées (cf. décision 17).
+
+**Condition bloquante levée** sur cette base, par décision de l'utilisateur. Le reliquat n'est pas un trou de conception, c'est du best-effort déjà documenté ; le signal qui compte désormais est l'usage réel de la famille, pas un test de plus.
+
+⚠️ **Rappel de déploiement** : les appareils qui ont déjà la PWA installée ne prennent le SW qu'au prochain **rechargement complet** — le précache se fait donc au premier passage, pas à l'instant du déploiement.
+
+## Signal de déclenchement (historique)
+
+> Le chantier est livré. Cette section est conservée telle quelle : elle documente le raisonnement qui a précédé la décision de le faire, pas une condition encore en attente.
 
 Ne pas construire sur hypothèse. Déclencheurs légitimes :
 - quelqu'un de la famille se plaint *en vrai* d'avoir eu besoin d'une info app pendant une panne wifi/4G à la maison ;
