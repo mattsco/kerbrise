@@ -131,3 +131,32 @@ l'`install` laisse le worker bloqué en `installing` pour toujours — ni
 installé, ni en échec, donc jamais réessayé. Toutes les requêtes du SW passent
 donc par `fetchWithTimeout`. Si un jour le précache « ne fait rien » sans
 erreur, c'est la première piste.
+
+## 6. L'e-mail #40 importe un fichier Deno — et ça ne tient qu'à un fil
+
+`lib/emails/rappel-poubelle.ts` importe `emailShell` depuis
+`supabase/functions/_shared/html.ts`, un fichier **écrit pour Deno**.
+
+C'est volontaire : les cinq autres e-mails de Kerbrise partent d'Edge Functions
+et partagent cet habillage (image d'en-tête, pastille, CTA, pied de page). Le
+rappel « bac bleu » part, lui, d'une route Next — parce que le calendrier des
+collectes doit rester dans `lib/` pour être couvert par le check santé #33
+(spec §D1). Recopier le squelette aurait donné **deux habillages à corriger**
+au prochain changement de design.
+
+**Ça ne marche que parce que `html.ts` n'a aucun import.** Pas d'extension
+`.ts` à résoudre, pas de global Deno, donc TypeScript et Turbopack le
+compilent sans broncher. Le jour où quelqu'un y ajoute un
+`import { x } from "./y.ts"`, le build Next casse — et l'erreur ne dira pas
+pourquoi.
+
+Le garde-fou est dans `lib/emails/rappel-poubelle.test.ts` : un test **rend le
+template pour de vrai** et vérifie que l'habillage est bien là. Si l'import
+devient impossible, `npm test` échoue en CI, tout de suite, au lieu de laisser
+partir un déploiement mort.
+
+Deux règles, donc :
+- **`supabase/functions/_shared/html.ts` doit rester sans import.** Si un
+  helper lui devient nécessaire, l'inliner plutôt que l'importer.
+- Ne pas étendre ce pont à d'autres fichiers `_shared/` : `dates.ts` et
+  `recipients.ts` importent déjà avec des extensions `.ts` et ne passeront pas.
