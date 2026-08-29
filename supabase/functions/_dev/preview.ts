@@ -15,6 +15,7 @@ import { decisionHtml, decisionSubject } from "../_shared/templates/decision.ts"
 import { cancelledHtml, cancelledSubject } from "../_shared/templates/cancelled-approved.ts";
 import { reducedHtml, reducedSubject } from "../_shared/templates/reduced.ts";
 import { digestHtml, digestSubject } from "../_shared/templates/digest.ts";
+import { rappelPoubelleHtml, rappelPoubelleSubject } from "../_shared/templates/rappel-poubelle.ts";
 
 type Variant = { name: string; subject: string; html: string };
 
@@ -133,6 +134,19 @@ const add = (name: string, subject: string, html: string) =>
     testMode: false,
   };
   add("digest — uniquement en attente (sing + plur)", digestSubject(pendingOnly), digestHtml(pendingOnly));
+}
+
+// ─── rappel-poubelle (#40) ─────────────────────────────────────────────────
+{
+  // Cas réel : mardi 8 septembre 2026, famille Vincent sur place
+  // (séjour du 31 août au 14 septembre), collecte le mercredi 9.
+  for (const [nom, data] of [
+    ["rappel-poubelle — production", { prenom: "Vincent", testMode: false }],
+    ["rappel-poubelle — mode test", { prenom: "Vincent", testMode: true }],
+    ["rappel-poubelle — prénom accentué", { prenom: "François", testMode: false }],
+  ] as const) {
+    add(nom, rappelPoubelleSubject(data), rappelPoubelleHtml(data));
+  }
 }
 
 // ─── Écriture des fichiers ───────────────────────────────────────────────────

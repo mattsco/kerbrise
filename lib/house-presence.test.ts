@@ -1,11 +1,22 @@
 import { describe, it, expect } from "vitest";
 import {
   occupantOn,
-  recyclablesCollectionTomorrow,
   parisHour,
   SEND_HOUR_PARIS,
   type StayRow,
-} from "./house-alerts";
+} from "@/supabase/functions/_shared/house-presence";
+import {
+  recyclablesCollectionTomorrow,
+  RECYCLABLES_COLOR,
+  MENAGERES_COLOR,
+  getNextCollections,
+} from "@/supabase/functions/_shared/garbage-collection";
+
+// ⚠️ Modules partagés avec l'Edge Function send-bin-reminder (#40) : ils
+// doivent rester SANS IMPORT pour passer Deno (extension .ts obligatoire) et
+// TypeScript (extension interdite). Ces tests tournent sous vitest côté Next
+// et sont donc aussi le garde-fou de cette contrainte : si quelqu'un ajoute
+// un import Deno dans l'un des deux, la CI casse tout de suite.
 
 // Famille Vincent, réellement en base : 31 août → 14 septembre 2026.
 const VINCENT: StayRow = {
@@ -75,8 +86,16 @@ describe("recyclablesCollectionTomorrow — y a-t-il collecte demain ?", () => {
     expect(recyclablesCollectionTomorrow("2026-09-07")).toBeNull();
   });
 
+  it("passe un changement de mois sans se décaler", () => {
+    // 30 sept → 1er oct n'est pas une collecte ; 6 oct → 7 oct en est une.
+    expect(recyclablesCollectionTomorrow("2026-09-30")).toBeNull();
+    expect(recyclablesCollectionTomorrow("2026-10-06")?.date.getDate()).toBe(7);
+  });
+
   it("dernière collecte connue : mardi 26 janvier 2027", () => {
-    expect(recyclablesCollectionTomorrow("2027-01-26")?.date.getDate()).toBe(26 + 1);
+    const c = recyclablesCollectionTomorrow("2027-01-26");
+    expect(c?.date.getDate()).toBe(27);
+    expect(c?.date.getFullYear()).toBe(2027);
   });
 
   it("⚠️ après le 31/01/2027 le calendrier est épuisé — null, pas une exception", () => {
@@ -107,5 +126,22 @@ describe("parisHour — 18h à Paris toute l'année, malgré un cron en UTC", ()
       );
       expect(passages).toHaveLength(1);
     }
+  });
+});
+
+describe("couleurs des bacs — relevées sur place le 29/08/2026", () => {
+  // Les valeurs d'origine (vert / jaune) étaient une supposition, et elles
+  // étaient fausses. Ces tests existent pour qu'on ne redérive plus.
+  it("recyclables = bleu, ordures ménagères = marron", () => {
+    expect(RECYCLABLES_COLOR).toBe("#08288b");
+    expect(MENAGERES_COLOR).toBe("#97675e");
+  });
+
+  it("la collecte porte sa couleur et son emoji, pour l'UI comme pour l'e-mail", () => {
+    const { menageres, recyclables } = getNextCollections(new Date(2026, 8, 1));
+    expect(menageres.color).toBe(MENAGERES_COLOR);
+    expect(menageres.emoji).toBe("🟤");
+    expect(recyclables?.color).toBe(RECYCLABLES_COLOR);
+    expect(recyclables?.emoji).toBe("🔵");
   });
 });

@@ -9,7 +9,7 @@ import {
   formatDateLabel,
   formatRelativeDate,
   type Collection,
-} from "@/lib/garbage-collection";
+} from "@/supabase/functions/_shared/garbage-collection";
 
 export default function NextCollections() {
   const collections = useDailyValue(getNextCollections);

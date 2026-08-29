@@ -11,7 +11,7 @@ import LinksContactsSection from "@/app/dashboard/a-propos/LinksContactsSection"
  *
  * Deux composants de l'app sont réutilisés TELS QUELS plutôt que recopiés :
  *   - `NextCollections` : déjà client et purement calculé
- *     (lib/garbage-collection.ts), donc il fonctionne sans réseau.
+ *     (supabase/functions/_shared/garbage-collection.ts), donc il fonctionne sans réseau.
  *   - `LinksContactsSection` : données figées dans le code, aucun appel.
  *
  * Les liens externes qu'il contient (Google Docs) échoueront évidemment sans

@@ -70,3 +70,34 @@ export async function everyone(
   const real = (data ?? []).map((u) => u.email as string);
   return applyTestMode(real, testMode, testEmail);
 }
+
+/**
+ * Destinataires des rappels pratiques de la maison pour une famille (#40).
+ *
+ * Renvoie les LIGNES (prénom + e-mail) et non de simples adresses : le corps
+ * de l'e-mail est nominatif (« Hello Vincent »), donc un envoi par personne.
+ * Le mode test est appliqué par l'appelant, pour la même raison.
+ *
+ * ⚠️ `receives_house_alerts` et non `is_family_head` : ce dernier est vrai pour
+ * CINQ personnes (Antoine, Claire, François, Vincent, Nelly) et gouverne le
+ * DROIT DE VOTE sur les séjours. Repli sur les chefs quand même, si personne
+ * n'est coché : un rappel qui n'arrive pas est pire qu'un rappel en double.
+ */
+export async function houseAlertRecipients(
+  supabase: SupabaseClient,
+  familyId: string,
+): Promise<{ email: string; display_name: string | null }[]> {
+  const { data } = await supabase
+    .from("users")
+    .select("email, display_name, receives_house_alerts, is_family_head")
+    .eq("family_id", familyId);
+
+  const rows = data ?? [];
+  const flagged = rows.filter((u) => u.receives_house_alerts);
+  const chosen = flagged.length > 0 ? flagged : rows.filter((u) => u.is_family_head);
+
+  return chosen.map((u) => ({
+    email: u.email as string,
+    display_name: (u.display_name as string | null) ?? null,
+  }));
+}

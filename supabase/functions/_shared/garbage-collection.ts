@@ -5,6 +5,18 @@
  * - Ordures ménagères : tous les lundis
  * - Recyclables : mercredis 1 sur 2, à partir du 3 juin 2026
  *
+ * ⚠️ CE FICHIER VIT DANS `_shared/` ET DOIT RESTER SANS IMPORT.
+ *
+ * Il est lu par les DEUX runtimes : l'Edge Function `send-bin-reminder` (Deno,
+ * via `./garbage-collection.ts`) et l'app Next (carte « Prochaines collectes »
+ * + tests vitest, via `@/supabase/functions/_shared/garbage-collection`). Deno
+ * exige l'extension `.ts` dans les imports, TypeScript la refuse : un fichier
+ * qui n'importe rien est le seul à passer les deux. Même contrainte que
+ * `html.ts`. Si un helper devient nécessaire ici, l'inliner.
+ *
+ * C'est ce qui permet au calendrier — qui EXPIRE le 31/01/2027 — de n'exister
+ * qu'à un seul endroit, et donc d'être couvert par le check santé #33.
+ *
  * ⚠️ COULEURS DES BACS — relevées SUR PLACE le 29 août 2026, sur les vrais
  * bacs. Les valeurs précédentes (vert / jaune) étaient une supposition, et
  * elles étaient fausses : le bac de recyclage est **bleu**, celui des ordures
@@ -161,4 +173,34 @@ export function getNextCollection(from: Date = new Date()): Collection {
   if (!recyclables) return menageres;
 
   return menageres.date <= recyclables.date ? menageres : recyclables;
+}
+/**
+ * La collecte recyclables dont `dateISO` est la veille, ou null.
+ *
+ * Le cœur du rappel #40 : appelée chaque mardi, elle répond « oui » une
+ * semaine sur deux. `null` n'est donc PAS une erreur — c'est le cas le plus
+ * fréquent, avec celui où personne n'est à Kerbrise.
+ *
+ * Arithmétique de date faite à la main plutôt qu'avec les helpers de
+ * `lib/dates.ts` : ce fichier doit rester sans import (cf. en-tête).
+ */
+export function recyclablesCollectionTomorrow(
+  dateISO: string
+): Collection | null {
+  const [y, m, d] = dateISO.split("-").map(Number);
+  // Minuit LOCAL, comme parseLocalDate : `new Date(iso)` donnerait du UTC et
+  // décalerait d'un jour le soir. C'est le bug timezone que les tests de #34
+  // verrouillent ailleurs dans le projet.
+  const tomorrow = new Date(y, m - 1, d + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  const { recyclables } = getNextCollections(tomorrow);
+  if (!recyclables) return null;
+
+  const sameDay =
+    recyclables.date.getFullYear() === tomorrow.getFullYear() &&
+    recyclables.date.getMonth() === tomorrow.getMonth() &&
+    recyclables.date.getDate() === tomorrow.getDate();
+
+  return sameDay ? recyclables : null;
 }

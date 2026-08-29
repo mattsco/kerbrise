@@ -3,7 +3,13 @@ import {
   getNextCollections,
   getNextCollection,
   formatRelativeDate,
-} from "./garbage-collection";
+} from "@/supabase/functions/_shared/garbage-collection";
+
+// ⚠️ Le module testé vit dans supabase/functions/_shared/ — il est partagé
+// avec l'Edge Function send-bin-reminder (#40) et doit rester sans import
+// pour passer les deux runtimes. Le TEST, lui, reste dans lib/ : c'est la
+// règle du projet (« tests colocalisés dans lib/ uniquement », spec #34) et
+// l'include de vitest.config.ts.
 
 // Construit une date locale sans passer par le parse UTC de new Date(iso).
 const local = (y: number, m1: number, d: number) => new Date(y, m1 - 1, d);

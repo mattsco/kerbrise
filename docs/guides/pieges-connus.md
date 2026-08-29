@@ -132,31 +132,37 @@ installé, ni en échec, donc jamais réessayé. Toutes les requêtes du SW pass
 donc par `fetchWithTimeout`. Si un jour le précache « ne fait rien » sans
 erreur, c'est la première piste.
 
-## 6. L'e-mail #40 importe un fichier Deno — et ça ne tient qu'à un fil
+## 6. Deux fichiers de `_shared/` doivent rester SANS IMPORT
 
-`lib/emails/rappel-poubelle.ts` importe `emailShell` depuis
-`supabase/functions/_shared/html.ts`, un fichier **écrit pour Deno**.
+`supabase/functions/_shared/garbage-collection.ts` et `house-presence.ts` sont
+lus par **les deux runtimes** :
 
-C'est volontaire : les cinq autres e-mails de Kerbrise partent d'Edge Functions
-et partagent cet habillage (image d'en-tête, pastille, CTA, pied de page). Le
-rappel « bac bleu » part, lui, d'une route Next — parce que le calendrier des
-collectes doit rester dans `lib/` pour être couvert par le check santé #33
-(spec §D1). Recopier le squelette aurait donné **deux habillages à corriger**
-au prochain changement de design.
+- l'Edge Function `send-bin-reminder` (Deno) les importe avec l'extension
+  `.ts`, qu'elle exige ;
+- l'app Next les importe **sans** extension — le calendrier alimente la carte
+  « Prochaines collectes » (en ligne et hors ligne), et les tests vitest
+  couvrent les deux modules.
 
-**Ça ne marche que parce que `html.ts` n'a aucun import.** Pas d'extension
-`.ts` à résoudre, pas de global Deno, donc TypeScript et Turbopack le
-compilent sans broncher. Le jour où quelqu'un y ajoute un
-`import { x } from "./y.ts"`, le build Next casse — et l'erreur ne dira pas
+Deno impose l'extension, TypeScript la refuse. **Un fichier qui n'importe rien
+est le seul à satisfaire les deux.** Le jour où l'un de ces deux fichiers gagne
+un `import { x } from "./y.ts"`, le build Next casse — et l'erreur ne dira pas
 pourquoi.
 
-Le garde-fou est dans `lib/emails/rappel-poubelle.test.ts` : un test **rend le
-template pour de vrai** et vérifie que l'habillage est bien là. Si l'import
-devient impossible, `npm test` échoue en CI, tout de suite, au lieu de laisser
-partir un déploiement mort.
+Le garde-fou existe déjà : `lib/garbage-collection.test.ts` et
+`lib/house-presence.test.ts` les importent côté Next. Si la contrainte est
+violée, `npm test` et `tsc` échouent en CI, tout de suite.
 
-Deux règles, donc :
-- **`supabase/functions/_shared/html.ts` doit rester sans import.** Si un
-  helper lui devient nécessaire, l'inliner plutôt que l'importer.
-- Ne pas étendre ce pont à d'autres fichiers `_shared/` : `dates.ts` et
-  `recipients.ts` importent déjà avec des extensions `.ts` et ne passeront pas.
+Deux règles :
+
+- **Si un helper devient nécessaire dans l'un de ces fichiers, l'inliner.**
+  L'arithmétique de dates de `recyclablesCollectionTomorrow` est écrite à la
+  main pour cette raison, plutôt que d'appeler `lib/dates.ts`.
+- Ne pas étendre ce pont aux autres fichiers `_shared/` : `dates.ts`,
+  `recipients.ts` et `html.ts` importent avec des extensions `.ts` ou
+  dépendent de Deno, et ne passeront pas côté Next.
+
+> Historique : une première version de #40 envoyait l'e-mail depuis une route
+> Next, ce qui obligeait l'app à importer `_shared/html.ts` — le pont existait
+> alors **dans l'autre sens**. Le retour à une Edge Function l'a inversé, pas
+> supprimé : dès qu'un module est partagé entre les deux runtimes, la règle
+> « sans import » s'applique.

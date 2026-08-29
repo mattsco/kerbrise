@@ -1,14 +1,15 @@
 # Spec — Rappel e-mail « bac bleu » à l'occupant (#40)
 
-> **Statut** : ✅ **Implémentée le 29 août 2026** — en attente d'activation (cf. §8)
+> **Statut** : ✅ **Livrée et ACTIVE** — 29 août 2026
 > **Type** : Notification / confort d'usage
 > **Demandé par** : Antoine, 29 août 2026
 > **Cible** : premier envoi réel **mardi 8 septembre 2026** — ⚠️ **la donnée qui l'alimente expire le 31/01/2027** (cf. §7)
 > **Dernière MAJ** : 29 août 2026
 
-**Livré** : `lib/house-alerts.ts` (logique pure, 15 tests), `lib/emails/rappel-poubelle.ts`
-(9 tests), `app/api/cron/rappel-poubelle/route.ts`, migrations `0014` (appliquée)
-et `0015` (à appliquer après activation), `scripts/preview-rappel-poubelle.ts`.
+**Livré** : Edge Function `send-bin-reminder`, modules partagés
+`_shared/garbage-collection.ts` (déplacé depuis `lib/`) et
+`_shared/house-presence.ts`, template `_shared/templates/rappel-poubelle.ts`,
+migrations `0014` et `0015` **appliquées**, cron `bin-reminder` actif.
 
 ## Le besoin
 
@@ -25,7 +26,7 @@ L'app connaît déjà les deux informations nécessaires :
 
 | Information | Où elle vit aujourd'hui |
 |---|---|
-| Date de la prochaine collecte recyclables | `lib/garbage-collection.ts` (`getNextCollections`) |
+| Date de la prochaine collecte recyclables | `_shared/garbage-collection.ts` (`getNextCollections`) |
 | Qui est à Kerbrise à une date donnée | `lib/dashboard-banner.ts` (`computeBannerContext`, champ `currentlyAt`) |
 
 Il n'y a donc **aucune donnée nouvelle à produire**. Le travail est un
@@ -51,31 +52,40 @@ un moteur de règles ou une table de journalisation est hors sujet ici.
 
 ## Décisions
 
-### D1 — Le calendrier reste dans `lib/`, l'e-mail part d'une route Next
+### D1 — Edge Function, et le calendrier devient un module partagé *(révisée)*
 
-**C'est la décision structurante.** Les cinq e-mails existants partent d'Edge
-Functions Supabase (Deno). Suivre ce modèle imposerait de **réécrire la cadence
-« un mercredi sur deux depuis le 3 juin 2026 » en Deno**, à côté de la version
-TypeScript qui alimente déjà la page À propos et l'écran TRMNL.
+> **Première version** : route Next sur Vercel, pour que le calendrier reste
+> dans `lib/` et donc couvert par le check santé #33. Implémentée, déployée,
+> puis **abandonnée** — voir pourquoi ci-dessous.
 
-On ne le fait pas, pour une raison précise : ce calendrier **expire le
-31/01/2027** (§7). Une copie en Deno serait une seconde échéance silencieuse,
-invisible depuis `lib/`, et donc **impossible à couvrir par le check santé
-#33** — qui est justement le dispositif prévu pour ce type de péremption.
+Les cinq e-mails existants partent d'Edge Functions Supabase. Le premier
+jet de #40 est parti sur une route Next, au motif que le calendrier des
+collectes **expire le 31/01/2027** et devait rester visible du check #33 :
+une copie en Deno aurait créé une seconde échéance silencieuse.
 
-Donc : **pg_cron appelle une Route Handler Next** (`/api/cron/rappel-poubelle`)
-qui importe `lib/garbage-collection.ts` telle quelle.
+Le raisonnement était juste, la conclusion non — parce qu'elle chiffrait mal
+le coût d'exploitation. Envoyer depuis Vercel, c'est envoyer depuis une autre
+machine que Supabase, donc :
 
-| | Route Next (retenu) | Edge Function Deno |
+| | Route Next | Edge Function |
 |---|---|---|
-| Calendrier des collectes | source unique, déjà testée | **dupliqué** |
-| Couvrable par le check #33 | oui | non |
-| Cohérence avec les 5 e-mails existants | rompue | conservée |
-| Nouveau secret à poser | `RESEND_API_KEY` sur Vercel | aucun |
+| Secrets à poser | `CRON_SECRET` + `RESEND_API_KEY` + `EMAIL_FROM`, **et un redéploiement** | **aucun** |
+| Clé Resend | en double, Supabase *et* Vercel | une seule |
+| Cohérence avec les 5 autres e-mails | rompue | conservée |
 
-Le coût assumé est l'incohérence : les e-mails ne partiront plus tous du même
-endroit. Il est réel, et il est plus petit qu'un calendrier de poubelles en
-double exemplaire qui meurt en silence un mardi de janvier.
+La clé Resend en double est le vrai défaut : le jour où on la fait tourner, il
+faut penser aux deux endroits, et Vercel est celui qu'on oublie.
+
+**La sortie** : le calendrier n'a pas besoin de vivre dans `lib/`, il a besoin
+d'exister **une seule fois**. `garbage-collection.ts` n'a aucun import, donc il
+peut vivre dans `_shared/` et être lu par les deux runtimes — exactement le
+pont qui existait déjà avec `html.ts`, mais dans l'autre sens. Il déménage donc
+dans `supabase/functions/_shared/`, l'app Next l'importe de là (carte
+« Prochaines collectes » + tests vitest), et l'Edge Function aussi.
+
+Résultat : source unique **et** couverture #33 préservée **et** zéro secret.
+La contrainte « sans import » est documentée en piège n°6 et verrouillée par
+les tests.
 
 ### D2 — Destinataires : une nouvelle colonne, surtout pas `is_family_head`
 
@@ -136,28 +146,6 @@ présuppose rien : dire « la collecte passe demain à Kerbrise », **jamais**
 Rendre ça exact demanderait de savoir qui dort là, donc une saisie par séjour
 que personne n'a demandée. Hors périmètre, et probablement pour toujours.
 
-### D7 — Les couleurs des bacs vivent dans `lib/`, et elles ont été relevées sur place *(29 août 2026)*
-
-Erreur corrigée après coup : la demande initiale disait « poubelle **bleue**
-(Recyclables) », mais le code affichait 🟡 pour les recyclables et 🟢 pour les
-ordures ménagères, et j'ai suivi le code plutôt que la demande. Antoine, sur
-place, a relevé les vraies couleurs :
-
-| Bac | Couleur réelle | Avant (faux) |
-|---|---|---|
-| Recyclables | **bleu `#08288b`** 🔵 | vert-jaune `#A38800` 🟡 |
-| Ordures ménagères | **marron `#97675e`** 🟤 | vert `#1F5C26` 🟢 |
-
-Ces valeurs étaient **codées en dur dans `NextCollections.tsx`**, donc invisibles
-depuis l'e-mail — deux endroits pour une même vérité, dont un faux depuis
-l'origine. Elles remontent dans `lib/garbage-collection.ts` (`Collection.color`
-+ `emoji`), et la carte « Prochaines collectes » comme l'e-mail les lisent
-désormais de là. Trois tests verrouillent les hex et interdisent le retour du
-🟡 dans l'e-mail.
-
-Leçon retenue au passage : **quand la demande et le code se contredisent, c'est
-la demande qui a vu la maison.**
-
 ### D4 — Recyclables uniquement
 
 Les ordures ménagères passent **tous les lundis**. Un e-mail hebdomadaire pour
@@ -181,132 +169,83 @@ Le test `« exactement une des deux exécutions du cron passe le garde »` boucl
 sur quatre mardis de part et d'autre du 25 octobre 2026 : si le garde se
 cassait, il enverrait zéro ou deux e-mails, et le test le dit.
 
-### D6 — L'habillage vient du fichier Deno partagé *(ajoutée à l'implémentation)*
+### D6 — Le template rejoint les cinq autres *(révisée avec D1)*
 
-Découvert en codant : les cinq e-mails existants partagent
-`supabase/functions/_shared/html.ts` (image d'en-tête, pastille, CTA, pied de
-page). D1 envoyant celui-ci dans une route Next, le réflexe aurait été de
-recopier ce squelette — donc **deux habillages à corriger** au prochain
-changement de design, exactement ce que #37 a refusé pour le guide télé.
+Le retour à une Edge Function met `rappel-poubelle.ts` dans
+`_shared/templates/`, avec les cinq autres, et il est rendu par le même outil
+de preview (`_dev/preview.ts`, `deno run --allow-write --allow-read`). Un seul
+endroit pour voir à quoi ressemblent les e-mails de Kerbrise.
 
-`html.ts` n'ayant **aucun import**, Next peut l'importer tel quel. Le pont est
-fragile (il casse si quelqu'un y ajoute un `import "./x.ts"`), donc un test
-rend le template pour de vrai : la CI casse tout de suite plutôt que le
-déploiement. Documenté comme **piège n°6** dans `docs/guides/pieges-connus.md`.
+Conséquence assumée : le template **perd ses tests vitest** (il importe
+désormais avec des extensions `.ts`, illisibles côté Next). C'est le régime des
+cinq autres templates, et c'est cohérent avec la philosophie #34 — on teste la
+logique pure, on regarde les e-mails. La logique, elle, garde ses tests :
+calendrier, présence et garde horaire vivent dans `_shared/` sans import, et
+sont couverts depuis `lib/`.
+
+### D7 — Les couleurs des bacs sont relevées sur place *(29 août 2026)*
+
+Erreur corrigée après coup : la demande initiale disait « poubelle **bleue**
+(Recyclables) », mais le code affichait 🟡 pour les recyclables et 🟢 pour les
+ordures ménagères, et j'ai suivi le code plutôt que la demande. Antoine, sur
+place, a relevé les vraies couleurs :
+
+| Bac | Couleur réelle | Avant (faux) |
+|---|---|---|
+| Recyclables | **bleu `#08288b`** 🔵 | vert-jaune `#A38800` 🟡 |
+| Ordures ménagères | **marron `#97675e`** 🟤 | vert `#1F5C26` 🟢 |
+
+Ces valeurs étaient **codées en dur dans `NextCollections.tsx`**, donc invisibles
+depuis l'e-mail — deux endroits pour une même vérité, dont un faux depuis
+l'origine. Elles vivent maintenant dans `_shared/garbage-collection.ts`
+(`Collection.color` + `emoji`), lu par la carte « Prochaines collectes » comme
+par le template. Deux tests verrouillent les hex.
+
+Leçon retenue au passage : **quand la demande et le code se contredisent, c'est
+la demande qui a vu la maison.**
 
 ## Implémentation
 
-### 1. Logique pure — `lib/house-alerts.ts` (~1 h avec les tests)
+### `_shared/garbage-collection.ts` — le calendrier, déplacé
 
-Zéro I/O, testé, dans l'esprit #34 :
+Vient de `lib/`, inchangé au fond, plus `recyclablesCollectionTomorrow(dateISO)`.
+Son arithmétique de dates est écrite à la main : le fichier doit rester **sans
+import** pour passer les deux runtimes (piège n°6).
 
-```ts
-/** La famille qui dort à Kerbrise la nuit du `dateISO`, ou null. */
-export function occupantOn(
-  bookings: { start_date: string; end_date: string; family_id: string }[],
-  dateISO: string
-): { family_id: string } | null;
+### `_shared/house-presence.ts` — qui est là, et à quelle heure envoyer
 
-/**
- * La collecte recyclables dont `dateISO` est la veille, ou null.
- * S'appuie sur getNextCollections — pas de seconde implémentation du calendrier.
- */
-export function recyclablesCollectionTomorrow(dateISO: string): Collection | null;
-```
+`occupantOn`, `parisHour`, `SEND_HOUR_PARIS`. Pur, sans import lui aussi.
 
-Tests à écrire : jour de relais (départ + arrivée le même jour), départ le
-mercredi, arrivée le mercredi, aucun séjour, séjour `pending` ignoré,
-**mardi qui n'est pas une veille de collecte** (une semaine sur deux), et le
-comportement après le 31/01/2027 (`null`, pas une exception).
+### `_shared/templates/rappel-poubelle.ts` — l'e-mail
 
-### 2. Route Handler — `app/api/cron/rappel-poubelle/route.ts` (~1 h 30)
+À côté des cinq autres, sur le même `emailShell`, rendu par le même
+`_dev/preview.ts`.
 
-```
-POST /api/cron/rappel-poubelle
-Authorization: Bearer <CRON_SECRET>
-```
+### `send-bin-reminder/index.ts` — l'Edge Function
 
-1. Rejette si le secret ne correspond pas → `401`. La route est publique par
-   construction ; #35 a supprimé une route publique inutile, on n'en rouvre pas
-   une sans verrou.
-2. `recyclablesCollectionTomorrow(todayInParis())` → si `null`, `200 {skipped}`.
-   **C'est le cas une semaine sur deux**, ce n'est pas une erreur.
-3. Séjours `approved` chevauchant aujourd'hui → `occupantOn` → si `null`,
-   `200 {skipped: "personne sur place"}`.
-4. Destinataires = `users` de cette famille avec `receives_house_alerts`, repli
-   sur `is_family_head`, filtrés sur « déjà connecté au moins une fois » (même
-   règle que le digest).
-5. Envoi Resend. `EMAIL_TEST_MODE` / `TEST_EMAIL` respectés comme les cinq
-   fonctions existantes — indispensable pour tester sans écrire à la famille.
-6. Réponse JSON explicite (`{sent, recipients, collection}`) pour que le déclenchement
-   manuel serve de test.
+Chaîne de gardes qui répondent tous `200` :
 
-### 3. Cron — `db/migrations/0014_bin_reminder_cron.sql` (~15 min)
+| Garde | Réponse | Fréquence |
+|---|---|---|
+| mauvaise heure de Paris | `hors fenêtre d'envoi` | 1 passage sur 2 |
+| pas de collecte demain | `pas de collecte recyclables demain` | 1 mardi sur 2 |
+| maison vide | `personne à Kerbrise ce soir` | la majorité de l'année |
+| personne de coché | `aucun destinataire` + `console.error` | jamais, en principe |
 
-Décalque de `0004_weekly_digest_cron.sql` : `cron.unschedule` défensif, clé lue
-depuis `vault.decrypted_secrets`, jamais en dur.
+`?force=1` contourne **le seul** garde horaire, pour tester hors de 18 h.
+Jamais la collecte ni la présence : sinon le test ne prouverait rien.
 
-```sql
-select cron.schedule('bin-reminder', '0 16 * * 2', $$
-  select net.http_post(
-    url := 'https://kerbrise.fr/api/cron/rappel-poubelle',
-    headers := jsonb_build_object(
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret' limit 1)
-    ),
-    body := '{}'::jsonb
-  );
-$$);
-```
+### Tests — 12 dans `lib/house-presence.test.ts`
 
-Le job tourne **tous les mardis** ; c'est la route qui décide s'il y a lieu
-d'envoyer. Mettre la cadence « un mardi sur deux » dans l'expression cron
-recréerait le calendrier à un troisième endroit (cf. D1).
-
-### 4. L'e-mail (~45 min)
-
-Le lecteur principal a ~80 ans et le lit sur un téléphone. Une information par
-ligne, pas de colonne, pas de tableau.
-
-**Texte écrit par Antoine**, repris tel quel à un accord près (*poubelle* est
-féminin → « bleue ») :
-
-```
-Objet : 🔵 Petit rappel — la poubelle bleue, ce soir
-
-Hello Vincent,
-
-Le camion des recyclables passe demain matin.
-
-N'oublie pas de sortir la poubelle bleue 😉
-```
-
-Trois versions ont été écartées avant celle-là, toutes trop bavardes : encadré
-avec la date, liste des consignes de tri, rappel du rythme du bac marron. Un
-rappel de la veille n'a besoin d'aucun des trois.
-
-- **Pas de date dans le corps.** L'e-mail arrive le mardi soir : « demain
-  matin » est sans ambiguïté, et la date reste dans l'objet du cron et la
-  réponse JSON pour le débogage.
-- **Pas de consignes de tri.** Personne n'apprend à trier dans un rappel.
-- **Tutoiement direct assumé** (« n'oublie pas ») — ça revient sur la prudence
-  de D3, et c'est le choix d'Antoine : « s'ils ne sont pas à Kerbrise ils
-  forwarderont ».
-
-Un test verrouille les trois lignes au mot près et impose un corps sous
-220 caractères, pour que la prochaine version ne regrossisse pas en douce.
-
-> ⚠️ **Cet e-mail part à la famille, pas à un serveur.** Toute retouche de la
-> copie doit être relue à l'orthographe — l'accord de « bleue » avait sauté au
-> premier jet et personne ne l'aurait vu avant Vincent.
-
-Pas de bouton, pas de lien de désabonnement maison : trois destinataires qui se
-parlent tous les jours. Le pied de page renvoie vers `kerbrise.fr` comme les
-autres e-mails.
+Les deux modules `_shared/` sont couverts **depuis `lib/`**, là où vitest
+regarde (`include: ["lib/**/*.test.ts"]`). Ces tests jouent aussi le rôle de
+garde-fou du piège n°6 : ils importent les modules côté Next, donc la CI casse
+si l'un des deux gagne un import Deno.
 
 ## §7 — L'échéance qui conditionne tout
 
 `getNextRecyclables()` renvoie `null` après le **31 janvier 2027**
-(`RECYCLABLES_END_*` dans `lib/garbage-collection.ts`). **La dernière collecte
+(`RECYCLABLES_END_*` dans `_shared/garbage-collection.ts`). **La dernière collecte
 connue est le mercredi 27 janvier 2027.**
 
 Après cette date, la route répondra `{skipped}` chaque mardi, indéfiniment, et
@@ -318,7 +257,7 @@ n'arrive plus. C'est exactement le mode de panne décrit dans
 
 | Donnée | Fichier | Couverture | Expire |
 |---|---|---|---|
-| Calendrier collectes recyclables | `lib/garbage-collection.ts` | 03/06/2026 → 31/01/2027 | **31/01/2027** |
+| Calendrier collectes recyclables | `_shared/garbage-collection.ts` | 03/06/2026 → 31/01/2027 | **31/01/2027** |
 
 Le seuil `warn` à 60 jours sonnerait fin novembre 2026 — largement à temps pour
 relever le calendrier 2027 sur le site de Saint-Malo Agglo (secteur C). À
@@ -337,41 +276,39 @@ défaut, la fonctionnalité meurt cinq mois après sa naissance.
 - **Pas d'accusé de réception** (« bac sorti ✅ »). Personne ne l'a demandé, et
   ça transformerait un rappel en corvée.
 
-## §8 — Activation (ce qui reste à faire)
+## §8 — Activation : faite
 
-Le code est déployable en l'état, mais **rien ne partira** tant que ces trois
-étapes ne sont pas faites — dans cet ordre :
+Aucun secret n'a eu à être posé, c'est tout l'intérêt de D1.
 
-1. **Déployer** (la route doit répondre avant que le cron ne l'appelle).
-2. **Variables d'environnement Vercel** : `CRON_SECRET` (à générer),
-   `RESEND_API_KEY`, `EMAIL_FROM`. Pour la recette : `EMAIL_TEST_MODE=true` +
-   `TEST_EMAIL`.
-3. **Même valeur de `CRON_SECRET` dans le vault Supabase** :
-   `select vault.create_secret('<valeur>', 'cron_secret');`
-   puis appliquer la migration `0015`.
-
-⏳ **Marge disponible** : la prochaine collecte est le mercredi 9 septembre,
-donc le premier envoi réel est le **mardi 8 septembre à 18 h**. Le mardi
-1ᵉʳ septembre n'est pas une veille de collecte — un cron activé d'ici là
-répondra `{skipped}` sans rien envoyer, ce qui est un bon galop d'essai.
+1. `supabase functions deploy send-bin-reminder` — 7 fichiers, dont les modules
+   `_shared/` (le bundler suit les imports relatifs, y compris hors du dossier
+   de la fonction).
+2. Migration `0015` appliquée → job `bin-reminder`, `0 16,17 * * 2`, actif.
 
 ## Validation
 
-Recette en mode test, avec `?force=1` pour contourner **le seul garde horaire**
-(jamais la collecte ni la présence — sinon le test ne prouverait rien) :
+Testée le 29 août 2026 **par le chemin exact du cron** — `net.http_post` depuis
+Postgres, clé lue dans le vault — et non par un curl à la main : c'est ce
+chemin-là qui doit marcher mardi.
 
-```bash
-curl -X POST "https://kerbrise.fr/api/cron/rappel-poubelle?force=1" \
-  -H "Authorization: Bearer $CRON_SECRET"
+```sql
+select net.http_post(
+  url := 'https://<ref>.supabase.co/functions/v1/send-bin-reminder?force=1',
+  headers := jsonb_build_object(
+    'Content-Type','application/json',
+    'Authorization','Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name='service_role_key' limit 1)
+  ),
+  body := '{}'::jsonb
+);
+-- puis : select status_code, content from net._http_response where id = <id>;
 ```
 
-| Quand | Réponse attendue |
-|---|---|
-| Un mardi de collecte, quelqu'un sur place | `{sent:1, recipients:["Vincent"]}` → e-mail sur `TEST_EMAIL` |
-| Un mardi **hors** collecte | `{skipped:"pas de collecte recyclables demain"}` |
-| Maison vide | `{skipped:"personne à Kerbrise ce soir"}` |
-| Sans le header `Authorization` | `401` |
-| Sans `?force=1`, hors de 18 h | `{skipped:"hors fenêtre d'envoi", heureParis:…}` |
+Résultat : `200`, `{"sent":0,"skipped":"pas de collecte recyclables demain","today":"2026-08-29"}`.
 
-Puis le vrai critère, le seul qui compte : **demander à Vincent le 9 septembre
-s'il a reçu l'e-mail la veille, et s'il a servi.**
+Ce que ça prouve d'un coup : la fonction est déployée, les modules partagés
+sont bien bundlés, l'authentification par le vault passe, la date est calculée
+en heure de Paris, et le garde « collecte » fonctionne — **sans envoyer un seul
+e-mail**, le 30 août n'étant pas une collecte.
+
+Reste le vrai critère, le seul qui compte : **demander à Vincent le 9 septembre
+s'il a reçu l'e-mail la veille au soir, et s'il a servi.**
