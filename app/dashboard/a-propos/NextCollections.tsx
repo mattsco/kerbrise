@@ -21,19 +21,15 @@ export default function NextCollections() {
       </h2>
 
       <div className="grid grid-cols-2 gap-2">
-        <CollectionCard
-          collection={collections.menageres}
-          color="#1F5C26"
-          bg="#1F5C2615"
-          border="#1F5C2640"
-        />
+        {/* Couleurs lues sur la collecte elle-même : elles décrivent les VRAIS
+            bacs (bleu / marron, relevés sur place le 29/08/2026) et sont
+            partagées avec l'e-mail de rappel #40. Ne pas les remettre en dur
+            ici — c'est comme ça qu'elles avaient divergé de la réalité. */}
+        <CollectionCard collection={collections.menageres} />
 
         {collections.recyclables ? (
           <CollectionCard
             collection={collections.recyclables}
-            color="#A38800"
-            bg="#E9DB1525"
-            border="#E9DB1570"
             labelOverride="Recyclables"
           />
         ) : (
@@ -54,21 +50,19 @@ export default function NextCollections() {
 
 function CollectionCard({
   collection,
-  color,
-  bg,
-  border,
   labelOverride,
 }: {
   collection: Collection;
-  color: string;
-  bg: string;
-  border: string;
   labelOverride?: string;
 }) {
+  // Fond et bordure dérivés de la couleur du bac par transparence (hex à 8
+  // chiffres) : une seule valeur à maintenir au lieu de trois.
+  const color = collection.color;
+
   return (
     <div
       className="rounded-xl p-2.5 border"
-      style={{ backgroundColor: bg, borderColor: border }}
+      style={{ backgroundColor: `${color}14`, borderColor: `${color}3d` }}
     >
       <div className="flex items-center gap-1.5 mb-1">
         <span

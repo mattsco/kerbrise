@@ -4,6 +4,13 @@
  * Règles :
  * - Ordures ménagères : tous les lundis
  * - Recyclables : mercredis 1 sur 2, à partir du 3 juin 2026
+ *
+ * ⚠️ COULEURS DES BACS — relevées SUR PLACE le 29 août 2026, sur les vrais
+ * bacs. Les valeurs précédentes (vert / jaune) étaient une supposition, et
+ * elles étaient fausses : le bac de recyclage est **bleu**, celui des ordures
+ * ménagères **marron**. Elles vivent ici et nulle part ailleurs — la carte
+ * « Prochaines collectes » et l'e-mail de rappel (#40) les lisent toutes deux,
+ * pour qu'une correction ne se fasse plus jamais à deux endroits.
  */
 
 // Mercredi 3 juin 2026 (date de référence pour le démarrage recyclables)
@@ -21,7 +28,14 @@ export type Collection = {
   type: "menageres" | "recyclables";
   label: string;
   emoji: string;
+  /** Couleur réelle du bac (hex). Relevée sur place, cf. en-tête du fichier. */
+  color: string;
 };
+
+/** Couleur du bac de recyclage : bleu. */
+export const RECYCLABLES_COLOR = "#08288b";
+/** Couleur du bac d'ordures ménagères : marron. */
+export const MENAGERES_COLOR = "#97675e";
 
 /**
  * Retourne la date du prochain lundi à partir de "from" (inclus si lundi).
@@ -36,7 +50,8 @@ function getNextMenageres(from: Date): Collection {
     date,
     type: "menageres",
     label: "Ordures ménagères",
-    emoji: "🟢",
+    emoji: "🟤",
+    color: MENAGERES_COLOR,
   };
 }
 
@@ -86,7 +101,8 @@ function getNextRecyclables(from: Date): Collection | null {
     date: candidate,
     type: "recyclables",
     label: "Recyclables",
-    emoji: "🟡",
+    emoji: "🔵",
+    color: RECYCLABLES_COLOR,
   };
 }
 

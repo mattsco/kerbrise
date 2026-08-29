@@ -162,7 +162,7 @@ Enveloppe commune : `generated_at_label`, `status`, `screen`, `wifi`. Blocs spé
     "pivot_label": "Jour pivot — arrivée le jour du départ"
   },
   "garbage": {
-    "label": "Bacs jaunes",
+    "label": "Bac bleu",
     "when_label": "Demain (ven. 12 juin)"
   },
   "wifi": {
@@ -238,7 +238,7 @@ Règles :
 │  Antoine · jeu. 18 juin (dans 7 jours)           │
 │  ⚠ Jour pivot — arrivée le jour du départ        │
 │──────────────────────────────────────────────────│
-│  Poubelles : bacs jaunes — demain (ven. 12)      │
+│  Poubelles : bac bleu — demain (ven. 12)        │
 │  14°/19° éclaircies · PM 06:12 · 18:34 · Coef 95 │   ← ligne v1.1
 └──────────────────────────────────────────────────┘
 ```
