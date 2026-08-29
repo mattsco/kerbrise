@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { requireProfile } from "@/lib/data/profile";
 import { todayISO as getTodayISO } from "@/lib/dates";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWADetector from "@/components/PWADetector";
@@ -36,18 +36,11 @@ const user = await requireAuthUser();
 const supabase = await createClient(); 
 
 
-  // PHASE 1 : on a besoin du profil pour savoir si on fetch pending
-  const { data: profile } = await supabase
-    .from("users")
-    .select(
-      "display_name, family_id, is_family_head, is_admin, families(name, color)"
-    )
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/login");
-  }
+  // PHASE 1 : on a besoin du profil pour savoir si on fetch pending.
+  // requireProfile sort vers /compte-incomplet si la ligne users manque —
+  // l'ancien redirect("/login") d'ici renvoyait au formulaire de connexion
+  // qu'on venait de passer avec succès, soit une boucle sans message.
+  const profile = await requireProfile();
 
   // PHASE 2 : les 2 queries restantes en parallèle
   const todayISO = getTodayISO();
@@ -64,10 +57,8 @@ const supabase = await createClient();
     pendingPromise,
   ]);
 
-  // @ts-ignore
-  const familyName: string = profile.families?.name ?? "?";
-  // @ts-ignore
-  const familyColor: string = profile.families?.color ?? "#888";
+  const familyName = profile.family_name;
+  const familyColor = profile.family_color;
   const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "ami";
 
   const pendingCount = profile.is_family_head
@@ -235,7 +226,7 @@ const supabase = await createClient();
       </div>
 
       {/* Détection PWA installée vs navigateur (invisible) */}
-      <PWADetector />
+      <PWADetector userId={user.id} />
 
       {/* Bandeau PWA Install (sticky bottom) - invisible si déjà installé / desktop / dismiss */}
       <PWAInstallPrompt />

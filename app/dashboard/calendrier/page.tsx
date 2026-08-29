@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { requireProfile } from "@/lib/data/profile";
 import { getCalendarBookings } from "@/lib/data/bookings";
 import Calendar from "@/components/Calendar";
 import BackButton from "@/components/BackButton";
@@ -9,19 +10,12 @@ export default async function CalendrierPage() {
   const user = await requireAuthUser();
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("family_id, is_family_head, is_calendar_admin, families(name)")
-    .eq("id", user.id)
-    .single();
+  // `return null` avant, c'est-à-dire une page blanche sans un mot : le
+  // commentaire disait « impossible en pratique », or quatre comptes sont
+  // exactement dans ce cas. requireProfile sort vers un écran qui explique.
+  const profile = await requireProfile();
 
-  if (!profile) {
-    // Profil incomplet → on laisse Next gérer (impossible en pratique avec requireAuthUser)
-    return null;
-  }
-
-  // @ts-ignore
-  const familyName: string = profile.families?.name ?? "?";
+  const familyName = profile.family_name;
 
   // Fetch tous les chefs de MA famille (sauf moi), pour l'UX du modal d'été
   const { data: heads } = await supabase

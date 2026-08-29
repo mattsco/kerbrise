@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { runWhenIdle } from "@/lib/idle";
 import { PROFIL_KEY, SNAPSHOT_KEY } from "@/lib/offline-snapshot";
+import { PWA_MODE_KEY } from "./PWADetector";
 
 /**
  * Enregistre le service worker — uniquement depuis le dashboard, donc
@@ -57,6 +58,11 @@ export async function purgeOfflineData() {
     // et les rôles du dernier utilisateur.
     localStorage.removeItem(SNAPSHOT_KEY);
     localStorage.removeItem(PROFIL_KEY);
+
+    // Le cache anti-réécriture de PWADetector contient l'id du dernier
+    // utilisateur : même traitement que le reste, il ne survit pas à la
+    // déconnexion.
+    localStorage.removeItem(PWA_MODE_KEY);
 
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();

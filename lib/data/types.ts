@@ -123,4 +123,5 @@ export type Profile = {
   is_family_head: boolean;
   is_admin: boolean;
   is_calendar_admin: boolean;
+  password_changed: boolean;
 };

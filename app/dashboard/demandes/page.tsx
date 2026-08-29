@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ApprovalButtons from "@/components/ApprovalButtons";
@@ -7,6 +6,7 @@ import { FAMILY_NAMES, getFamilyColor } from "@/lib/families";
 import BackButton from "@/components/BackButton";
 import { isStayActiveOrFuture } from "@/lib/dates";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { requireProfile } from "@/lib/data/profile";
 import { listBookingsWithApprovals } from "@/lib/data/bookings";
 import type { BookingWithApprovals } from "@/lib/data/types";
 import { StatusBadge, formatMedium } from "@/lib/ui/booking-display";
@@ -18,17 +18,12 @@ export default async function PendingBookingsPage() {
   const user = await requireAuthUser();
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("display_name, family_id, is_family_head, is_calendar_admin, families(name, color)")
-    .eq("id", user.id)
-    .single();
-  if (!profile) redirect("/dashboard");
+  // redirect("/dashboard") avant : le dashboard renvoyait lui-même au login,
+  // donc ce cas participait à la même boucle silencieuse.
+  const profile = await requireProfile();
 
-  const isFamilyHead =
-    (profile as { is_family_head?: boolean }).is_family_head ?? false;
-  const isCalendarAdmin =
-    (profile as { is_calendar_admin?: boolean }).is_calendar_admin ?? false;
+  const isFamilyHead = profile.is_family_head;
+  const isCalendarAdmin = profile.is_calendar_admin;
 
   // Data layer : query + mapping + typing en un seul endroit (plus de cast).
   let allBookings: BookingWithApprovals[];

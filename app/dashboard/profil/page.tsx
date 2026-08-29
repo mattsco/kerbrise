@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BackButton from "@/components/BackButton";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { requireProfile } from "@/lib/data/profile";
 
 import { LAUNCH_DATE } from "@/lib/config";
 
@@ -23,20 +23,10 @@ export const dynamic = "force-dynamic";
 export default async function ProfilPage() {
   const user = await requireAuthUser();
   const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("users")
-    .select(
-      "display_name, password_changed, is_family_head, is_admin, is_calendar_admin, families(name, color)"
-    )
-    .eq("id", user.id)
-    .single();
+  const profile = await requireProfile();
 
-  if (!profile) redirect("/login");
-
-  // @ts-expect-error nested type
-  const familyName: string = profile?.families?.name ?? "?";
-  // @ts-expect-error nested type
-  const familyColor: string = profile?.families?.color ?? "#888";
+  const familyName = profile.family_name;
+  const familyColor = profile.family_color;
 
   const displayName = profile.display_name ?? user.email?.split("@")[0] ?? "?";
 

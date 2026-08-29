@@ -1,26 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import NewBookingForm from "@/components/NewBookingForm";
 import BackButton from "@/components/BackButton";
 import { requireAuthUser } from "@/lib/supabase/auth";
+import { requireProfile } from "@/lib/data/profile";
 
 export default async function NouvelleDemandePage() {
   const user = await requireAuthUser();
-  const supabase = await createClient(); 
-  
-  const { data: profile } = await supabase
-    .from("users")
-    .select("family_id, families(name)")
-    .eq("id", user.id)
-    .single();
+  const profile = await requireProfile();
 
-  if (!profile) {
-    redirect("/login");
-  }
-
-  // @ts-expect-error nested relation type (cf. regles/page.tsx)
-  const familyName: string = profile.families?.name ?? "";
+  const familyName = profile.family_name;
 
   return (
     <main className="min-h-screen bg-slate-50">
